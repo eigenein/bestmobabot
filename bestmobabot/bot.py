@@ -48,9 +48,10 @@ class Bot:
         logger.info('🤖 Running action queue.')
         while self.queue:
             when, _, action, args = heapq.heappop(self.queue)  # type: TQueueItem
-            sleep_duration = (when - self.now()).total_seconds()
+            sleep_timedelta = when - self.now()
+            sleep_duration = sleep_timedelta.total_seconds()
             if sleep_duration > 0.0:
-                logger.info('💤 Next action %s%s at %s', action.__name__, args, when)
+                logger.info('💤 Next action %s%s in %s at %s', action.__name__, args, sleep_timedelta, when)
                 sleep(sleep_duration)
             try:
                 action(when, *args)
