@@ -5,7 +5,7 @@ import re
 import string
 from typing import Any, Callable, Dict, List, NamedTuple, NewType, Optional, TypeVar
 
-import aiohttp
+import requests
 
 from bestmobabot.utils import logger
 
@@ -62,13 +62,14 @@ class Api:
     USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Safari/537.36'
 
     @staticmethod
-    async def authenticate(remixsid: str) -> 'Api':
+    def authenticate(remixsid: str) -> 'Api':
         logger.info('🔑 Authenticating…')
 
-        async with aiohttp.ClientSession(cookies={'remixsid': remixsid}, raise_for_status=True) as session:
+        with requests.Session() as session:
             logger.debug('🌎 Loading game page on VK.com…')
-            async with await session.get(Api.GAME_URL, verify_ssl=False) as response:  # type: aiohttp.ClientResponse
-                app_page = await response.text()
+            with session.get(Api.GAME_URL, cookies={'remixsid': remixsid}) as response:
+                response.raise_for_status()
+                app_page = response.text
 
             # Look for params variable in the script.
             match = re.search(r'var params\s?=\s?({[^\}]+\})', app_page)
@@ -79,13 +80,14 @@ class Api:
 
             # Load the proxy page and look for Hero Wars authentication token.
             logger.debug('🌎 Authenticating in Hero Wars…')
-            async with session.get(Api.IFRAME_URL, params=params, verify_ssl=False) as response:  # type: aiohttp.ClientResponse
-                iframe_new = await response.text()
+            with session.get(Api.IFRAME_URL, params=params) as response:
+                response.raise_for_status()
+                iframe_new = response.text
             match = re.search(r'auth_key=([a-zA-Z0-9.\-]+)', iframe_new)
             assert match, f'authentication key is not found: {iframe_new}'
             auth_token = match.group(1)
 
-            logger.info('🔑 Authentication token: %s', auth_token)
+        logger.info('🔑 Authentication token: %s', auth_token)
         return Api(auth_token, str(params['viewer_id']))
 
     def __init__(self, auth_token: str, user_id: str):
@@ -93,19 +95,19 @@ class Api:
         self.user_id = user_id
         self.request_id = 0
         self.session_id = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(14))
-        self.session = aiohttp.ClientSession(raise_for_status=True)
+        self.session = requests.Session()
 
-    async def __aenter__(self):
+    def __enter__(self):
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        return await self.session.__aexit__(exc_type, exc_val, exc_tb)
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        return self.session.__exit__(exc_type, exc_val, exc_tb)
 
     def new_request_id(self) -> int:
         self.request_id += 1
         return self.request_id
 
-    async def call(self, name: str, arguments: Optional[Dict[str, Any]] = None):
+    def call(self, name: str, arguments: Optional[Dict[str, Any]] = None):
         request_id = str(self.new_request_id())
         logger.debug('🔔 #%s %s(%r)', request_id, name, arguments)
 
@@ -129,8 +131,9 @@ class Api:
             headers['X-Auth-Session-Init'] = '1'
         headers["X-Auth-Signature"] = self.sign_request(data, headers)
 
-        async with self.session.post(self.API_URL, data=data, headers=headers, verify_ssl=False) as response:  # type: aiohttp.ClientResponse
-            result = await response.json(content_type=None)
+        with self.session.post(self.API_URL, data=data, headers=headers) as response:
+            response.raise_for_status()
+            result = response.json()
         if 'results' in result:
             return result['results'][0]['result']['response']
         if 'error' in result:
@@ -162,17 +165,17 @@ class Api:
     def parse_list(items: List[Dict], parse: Callable[[Dict], TNamedTuple]) -> List[TNamedTuple]:
         return [parse(item) for item in items]
 
-    async def get_user_info(self) -> UserInfo:
-        return UserInfo.parse(await self.call('userGetInfo'))
+    def get_user_info(self) -> UserInfo:
+        return UserInfo.parse(self.call('userGetInfo'))
 
-    async def list_expeditions(self) -> List[Expedition]:
-        return self.parse_list(await self.call('expeditionGet'), Expedition.parse)
+    def list_expeditions(self) -> List[Expedition]:
+        return self.parse_list(self.call('expeditionGet'), Expedition.parse)
 
-    async def farm_expedition(self, expedition_id: int) -> ExpeditionFarmResult:
-        response = await self.call('expeditionFarm', {'expeditionId': expedition_id})
+    def farm_expedition(self, expedition_id: int) -> ExpeditionFarmResult:
+        response = self.call('expeditionFarm', {'expeditionId': expedition_id})
         return ExpeditionFarmResult.parse(response)
 
-    async def farm_quest(self):
+    def farm_quest(self):
         # {calls: [{name: "questFarm", args: {questId: 10015}, ident: "body"}], session: null}
         # {"date":1514923436.037724,"results":[{"ident":"body","result":{"response":{"stamina":60}}}]}
         pass
