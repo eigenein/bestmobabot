@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import click
 import coloredlogs
 
@@ -8,17 +10,20 @@ from bestmobabot.utils import logger
 
 @click.command()
 @click.option('-s', '--remixsid', help='VK.com remixsid cookie.', required=True)
-def main(remixsid: str):
+@click.option('-v', '--verbose', help='Increase verbosity.', is_flag=True)
+def main(remixsid: str, verbose: True):
     """
     Hero Wars bot.
     """
-    coloredlogs.install(fmt='%(asctime)s %(levelname)s %(message)s', level='DEBUG', logger=logger)
+    level = 'DEBUG' if verbose else 'INFO'
+    coloredlogs.install(fmt='%(asctime)s %(levelname)s %(message)s', level=level, logger=logger)
     logger.info('🤖 Bot is starting.')
 
-    with Api.authenticate(remixsid) as api:
-        user_info = api.get_user_info()
-        logger.info(f'👋 Welcome {user_info.name}!')
-        with Bot(api) as bot:
+    with Api(remixsid) as api:
+        api.authenticate()
+        with Bot.start(api) as bot:
+            logger.info(f'👋 Welcome {bot.user_info.name}!')
+            logger.info(f'👋 Your local time is {datetime.now(bot.user_info.time_zone):%H:%M:%S}.')
             bot.run()
 
 

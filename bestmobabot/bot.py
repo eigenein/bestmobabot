@@ -1,19 +1,38 @@
 import heapq
-import time
-from datetime import datetime, timedelta
-from typing import Callable, List, Tuple, Union
+from datetime import datetime, time
+from time import sleep
+from typing import Any, Callable, List, Tuple
 
-from bestmobabot.api import Api
+from bestmobabot.api import Api, ApiError
+from bestmobabot.responses import *
 from bestmobabot.utils import logger
 
-TAction = Callable[[], None]
-TQueueItem = Tuple[datetime, TAction]
+TAction = Callable[..., None]
+TQueueItem = Tuple[datetime, int, TAction, Tuple]
 
 
 class Bot:
-    def __init__(self, api: Api):
+    ONE_DAY = timedelta(days=1)
+
+    EXPEDITION_COLLECT_REWARD = ExpeditionStatus(2)
+    EXPEDITION_FINISHED = ExpeditionStatus(3)
+
+    QUEST_STAMINA_MORNING = QuestId(10009)  # 8.00-11.00
+    QUEST_STAMINA_AFTERNOON = QuestId(10010)  # 13.00-16.00
+    QUEST_STAMINA_EVENING = QuestId(10015)  # 20.00-23.00
+
+    QUEST_IN_PROGRESS = QuestState(1)
+    QUEST_COLLECT_REWARD = QuestState(2)
+
+    @staticmethod
+    def start(api: Api) -> 'Bot':
+        return Bot(api, api.get_user_info())
+
+    def __init__(self, api: Api, user_info: UserInfo):
         self.api = api
+        self.user_info = user_info
         self.queue: List[TQueueItem] = []
+        self.action_counter = 0
 
     def __enter__(self):
         return self
@@ -23,31 +42,74 @@ class Bot:
 
     def run(self):
         logger.info('🤖 Scheduling initial actions.')
-        self.schedule_farm_expeditions()
+        self.schedule(self.alarm_time(time(hour=9)), self.farm_daily_bonus)
+        self.schedule(self.alarm_time(time(hour=22, minute=50)), self.farm_expeditions)
+        self.schedule(self.alarm_time(time(hour=9)), self.farm_daily_quest, self.QUEST_STAMINA_MORNING)
+        self.schedule(self.alarm_time(time(hour=14)), self.farm_daily_quest, self.QUEST_STAMINA_AFTERNOON)
+        self.schedule(self.alarm_time(time(hour=21)), self.farm_daily_quest, self.QUEST_STAMINA_EVENING)
 
         logger.info('🤖 Running action queue.')
         while self.queue:
-            when, action = heapq.heappop(self.queue)  # type: TQueueItem
-            sleep_duration = (when - datetime.now()).total_seconds()
+            when, _, action, args = heapq.heappop(self.queue)  # type: TQueueItem
+            sleep_duration = (when - self.now()).total_seconds()
             if sleep_duration > 0.0:
-                logger.info('💤 Next action %s at %s', action.__name__, when)
-                time.sleep(sleep_duration)
-            action()
+                logger.info('💤 Next action %s%s at %s', action.__name__, args, when)
+                sleep(sleep_duration)
+            try:
+                action(when, *args)
+            except ApiError as e:
+                if e.is_already():
+                    logger.info('🤔 Already done.')
+                elif e.is_invalid_session():
+                    logger.warning('😱 Invalid session.')
+                    # Re-authenticate.
+                    self.api.authenticate()
+                    # Re-schedule the action.
+                    self.schedule(self.now(), action, *args)
+                else:
+                    logger.error('😱 API error.', exc_info=e)
+            except Exception as e:
+                logger.error('😱 Uncaught error.', exc_info=e)
 
         logger.fatal('🏳 Action queue is empty.')
 
-    def schedule(self, when: Union[datetime, timedelta], action: TAction):
-        if isinstance(when, timedelta):
-            when = datetime.now() + when
-        when = when.replace(microsecond=0)
-        logger.debug('⏰ Schedule %s at %s', action.__name__, when)
-        heapq.heappush(self.queue, (when, action))
+    def now(self) -> datetime:
+        return datetime.now(self.user_info.time_zone)
 
-    def schedule_farm_expeditions(self):
-        self.schedule(timedelta(hours=12), self.farm_expeditions)
+    def alarm_time(self, time_: time) -> datetime:
+        now = datetime.now(self.user_info.time_zone).replace(microsecond=0)
+        dt = now.replace(hour=time_.hour, minute=time_.minute, second=time_.second)
+        return dt if dt > now else dt + timedelta(days=1)
 
-    def farm_expeditions(self):
+    def schedule(self, when: datetime, action: TAction, *args: Any):
+        self.action_counter += 1
+        logger.debug('⏰ Schedule %s%s at %s', action.__name__, args, when)
+        heapq.heappush(self.queue, (when, self.action_counter, action, args))
+
+    def farm_daily_bonus(self, when: datetime):
+        logger.info('💰 Farming daily bonus.')
+        try:
+            reward = self.api.farm_daily_bonus()
+            logger.info('📈 Reward is %s.', reward)
+        finally:
+            self.schedule(when + self.ONE_DAY, self.farm_daily_bonus)
+
+    def farm_expeditions(self, when: datetime):
         logger.info('💰 Farming expeditions.')
-        # TODO
-        self.schedule_farm_expeditions()
+        try:
+            expeditions = self.api.list_expeditions()
+            for expedition in expeditions.values():
+                if expedition.status == self.EXPEDITION_COLLECT_REWARD:
+                    reward = self.api.farm_expedition(expedition.id)
+                    logger.info('📈 Reward is %s.', reward)
+        finally:
+            self.schedule(when + self.ONE_DAY, self.farm_expeditions)
+
+    def farm_daily_quest(self, when: datetime, quest_id: QuestId):
+        logger.info('💰 Farming daily quest #%s.', quest_id)
+        try:
+            reward = self.api.farm_quest(quest_id)
+            logger.info('📈 Reward is %s.', reward)
+        finally:
+            self.schedule(when + self.ONE_DAY, self.farm_daily_quest, quest_id)
 

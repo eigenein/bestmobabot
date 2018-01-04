@@ -3,56 +3,12 @@ import json
 import random
 import re
 import string
-from typing import Any, Callable, Dict, List, NamedTuple, NewType, Optional, TypeVar
+from typing import Any, Callable, List, Optional, TypeVar
 
 import requests
 
+from bestmobabot.responses import *
 from bestmobabot.utils import logger
-
-
-class UserInfo(NamedTuple):
-    account_id: str
-    name: str
-
-    @staticmethod
-    def parse(item: Dict) -> 'UserInfo':
-        return UserInfo(
-            account_id=item['accountId'],
-            name=item['name'],
-        )
-
-
-class Reward(NamedTuple):
-    consumable: Dict[str, int]
-
-    @staticmethod
-    def parse(item: Dict) -> 'Reward':
-        return Reward(consumable=item['consumable'])
-
-
-ExpeditionStatus = NewType('ExpeditionStatus', int)
-ExpeditionStatus.COLLECT_REWARD = ExpeditionStatus(2)
-ExpeditionStatus.FINISHED = ExpeditionStatus(3)
-
-
-class Expedition(NamedTuple):
-    id: int
-    status: int
-
-    @staticmethod
-    def parse(item: Dict) -> 'Expedition':
-        return Expedition(
-            id=item['id'],
-            status=ExpeditionStatus(item['status']),
-        )
-
-
-class ExpeditionFarmResult(NamedTuple):
-    reward: Reward
-
-    @staticmethod
-    def parse(item: Dict) -> 'ExpeditionFarmResult':
-        return ExpeditionFarmResult(reward=Reward.parse(item['reward']))
 
 
 class Api:
@@ -61,13 +17,26 @@ class Api:
     API_URL = 'https://heroes-vk.nextersglobal.com/api/'
     USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Safari/537.36'
 
-    @staticmethod
-    def authenticate(remixsid: str) -> 'Api':
+    def __init__(self, remixsid: str):
+        self.remixsid = remixsid
+        self.auth_token: str = None
+        self.user_id: str = None
+        self.request_id: int = None
+        self.session_id: str = None
+        self.session = requests.Session()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        return self.session.__exit__(exc_type, exc_val, exc_tb)
+
+    def authenticate(self):
         logger.info('🔑 Authenticating…')
 
         with requests.Session() as session:
             logger.debug('🌎 Loading game page on VK.com…')
-            with session.get(Api.GAME_URL, cookies={'remixsid': remixsid}) as response:
+            with session.get(Api.GAME_URL, cookies={'remixsid': self.remixsid}) as response:
                 response.raise_for_status()
                 app_page = response.text
 
@@ -85,29 +54,18 @@ class Api:
                 iframe_new = response.text
             match = re.search(r'auth_key=([a-zA-Z0-9.\-]+)', iframe_new)
             assert match, f'authentication key is not found: {iframe_new}'
-            auth_token = match.group(1)
+            self.auth_token = match.group(1)
 
-        logger.info('🔑 Authentication token: %s', auth_token)
-        return Api(auth_token, str(params['viewer_id']))
-
-    def __init__(self, auth_token: str, user_id: str):
-        self.auth_token = auth_token
-        self.user_id = user_id
+        logger.info('🔑 Authentication token: %s', self.auth_token)
+        self.user_id = str(params['viewer_id'])
         self.request_id = 0
         self.session_id = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(14))
-        self.session = requests.Session()
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        return self.session.__exit__(exc_type, exc_val, exc_tb)
 
     def new_request_id(self) -> int:
         self.request_id += 1
         return self.request_id
 
-    def call(self, name: str, arguments: Optional[Dict[str, Any]] = None):
+    def call(self, name: str, arguments: Optional[Dict[str, Any]] = None, verbose=False):
         request_id = str(self.new_request_id())
         logger.debug('🔔 #%s %s(%r)', request_id, name, arguments)
 
@@ -134,10 +92,12 @@ class Api:
         with self.session.post(self.API_URL, data=data, headers=headers) as response:
             response.raise_for_status()
             result = response.json()
+        if verbose:
+            logger.debug('↪️ %s', result)
         if 'results' in result:
             return result['results'][0]['result']['response']
         if 'error' in result:
-            return result['error']
+            raise ApiError(result['error'])
         raise ValueError(result)
 
     @staticmethod
@@ -159,23 +119,44 @@ class Api:
         )).encode('utf-8')
         return hashlib.md5(data).hexdigest()
 
+    TKey = TypeVar('TKey')
     TNamedTuple = TypeVar('TNamedTuple')
 
     @staticmethod
-    def parse_list(items: List[Dict], parse: Callable[[Dict], TNamedTuple]) -> List[TNamedTuple]:
-        return [parse(item) for item in items]
+    def parse_list(items: List[Dict], key: Callable[[Dict], TKey], parse: Callable[[Dict], TNamedTuple]) -> Dict[TKey, TNamedTuple]:
+        return {key(item): parse(item) for item in items}
+
+    @staticmethod
+    def get_id(item: Dict) -> int:
+        return item['id']
 
     def get_user_info(self) -> UserInfo:
         return UserInfo.parse(self.call('userGetInfo'))
 
-    def list_expeditions(self) -> List[Expedition]:
-        return self.parse_list(self.call('expeditionGet'), Expedition.parse)
+    def farm_daily_bonus(self) -> Reward:
+        return Reward.parse(self.call('dailyBonusFarm', {'vip': 0}))
 
-    def farm_expedition(self, expedition_id: int) -> ExpeditionFarmResult:
-        response = self.call('expeditionFarm', {'expeditionId': expedition_id})
-        return ExpeditionFarmResult.parse(response)
+    def list_expeditions(self) -> Dict[int, Expedition]:
+        return self.parse_list(self.call('expeditionGet'), self.get_id, Expedition.parse)
 
-    def farm_quest(self):
-        # {calls: [{name: "questFarm", args: {questId: 10015}, ident: "body"}], session: null}
-        # {"date":1514923436.037724,"results":[{"ident":"body","result":{"response":{"stamina":60}}}]}
-        pass
+    def farm_expedition(self, expedition_id: int) -> Reward:
+        return Reward.parse(self.call('expeditionFarm', {'expeditionId': expedition_id}))
+
+    def get_all_quests(self) -> Dict[int, Quest]:
+        return self.parse_list(self.call('questGetAll'), self.get_id, Quest.parse)
+
+    def farm_quest(self, quest_id: QuestId) -> Reward:
+        return Reward.parse(self.call('questFarm', {'questId': quest_id}))
+
+
+class ApiError(Exception):
+    def __init__(self, item: Dict):
+        super().__init__(item)
+        self.name = item.get('name')
+        self.description = item.get('description')
+
+    def is_already(self) -> bool:
+        return self.name == 'Already'
+
+    def is_invalid_session(self) -> bool:
+        return self.name == r'common\rpc\exception\InvalidSession'
