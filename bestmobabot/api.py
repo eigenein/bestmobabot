@@ -3,7 +3,7 @@ import json
 import random
 import re
 import string
-from typing import Any, Callable, List, Optional, TypeVar
+from typing import Any, Callable, Iterable, List, Optional, TypeVar
 
 import requests
 
@@ -67,7 +67,7 @@ class Api:
 
     def call(self, name: str, arguments: Optional[Dict[str, Any]] = None, verbose=False):
         request_id = str(self.new_request_id())
-        logger.debug('🔔 #%s %s(%r)', request_id, name, arguments)
+        logger.debug('🔔 #%s %s(%r)', request_id, name, arguments or {})
 
         calls = [{'ident': name, 'name': name, 'args': arguments or {}}]
         data = json.dumps({"session": None, "calls": calls})
@@ -93,7 +93,7 @@ class Api:
             response.raise_for_status()
             result = response.json()
         if verbose:
-            logger.debug('↪️ %s', result)
+            logger.debug('💬 %s', result)
         if 'results' in result:
             return result['results'][0]['result']['response']
         if 'error' in result:
@@ -127,8 +127,12 @@ class Api:
         return {key(item): parse(item) for item in items}
 
     @staticmethod
-    def get_id(item: Dict) -> int:
-        return item['id']
+    def get_int_id(item: Dict) -> int:
+        return int(item['id'])
+
+    @staticmethod
+    def get_str_id(item: Dict) -> str:
+        return str(item['id'])
 
     def get_user_info(self) -> UserInfo:
         return UserInfo.parse(self.call('userGetInfo'))
@@ -137,16 +141,23 @@ class Api:
         return Reward.parse(self.call('dailyBonusFarm', {'vip': 0}))
 
     def list_expeditions(self) -> Dict[int, Expedition]:
-        return self.parse_list(self.call('expeditionGet'), self.get_id, Expedition.parse)
+        return self.parse_list(self.call('expeditionGet'), self.get_int_id, Expedition.parse)
 
     def farm_expedition(self, expedition_id: int) -> Reward:
         return Reward.parse(self.call('expeditionFarm', {'expeditionId': expedition_id}))
 
     def get_all_quests(self) -> Dict[int, Quest]:
-        return self.parse_list(self.call('questGetAll'), self.get_id, Quest.parse)
+        return self.parse_list(self.call('questGetAll'), self.get_int_id, Quest.parse)
 
     def farm_quest(self, quest_id: QuestId) -> Reward:
         return Reward.parse(self.call('questFarm', {'questId': quest_id}))
+
+    def get_all_mail(self) -> Dict[str, Mail]:
+        return self.parse_list(self.call('mailGetAll')['letters'], self.get_str_id, Mail.parse)
+
+    def farm_mail(self, letter_ids: Iterable[int]) -> Dict[str, Reward]:
+        response: Dict[str, Dict] = self.call('mailFarm', {'letterIds': list(letter_ids)})
+        return {letter_id: Reward.parse(item) for letter_id, item in response.items()}
 
 
 class ApiError(Exception):
@@ -160,3 +171,6 @@ class ApiError(Exception):
 
     def is_invalid_session(self) -> bool:
         return self.name == r'common\rpc\exception\InvalidSession'
+
+    def is_not_enough(self) -> bool:
+        return self.name == 'NotEnough'

@@ -64,3 +64,11 @@ class Quest(NamedTuple):
             progress=item['progress'],
             reward=Reward.parse(item['reward']),
         )
+
+
+class Mail(NamedTuple):
+    id: str
+
+    @staticmethod
+    def parse(item: Dict) -> 'Mail':
+        return Mail(id=item['id'])

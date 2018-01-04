@@ -17,10 +17,6 @@ class Bot:
     EXPEDITION_COLLECT_REWARD = ExpeditionStatus(2)
     EXPEDITION_FINISHED = ExpeditionStatus(3)
 
-    QUEST_STAMINA_MORNING = QuestId(10009)  # 8.00-11.00
-    QUEST_STAMINA_AFTERNOON = QuestId(10010)  # 13.00-16.00
-    QUEST_STAMINA_EVENING = QuestId(10015)  # 20.00-23.00
-
     QUEST_IN_PROGRESS = QuestState(1)
     QUEST_COLLECT_REWARD = QuestState(2)
 
@@ -42,11 +38,12 @@ class Bot:
 
     def run(self):
         logger.info('🤖 Scheduling initial actions.')
-        self.schedule(self.alarm_time(time(hour=9)), self.farm_daily_bonus)
-        self.schedule(self.alarm_time(time(hour=22, minute=50)), self.farm_expeditions)
-        self.schedule(self.alarm_time(time(hour=9)), self.farm_daily_quest, self.QUEST_STAMINA_MORNING)
-        self.schedule(self.alarm_time(time(hour=14)), self.farm_daily_quest, self.QUEST_STAMINA_AFTERNOON)
-        self.schedule(self.alarm_time(time(hour=21)), self.farm_daily_quest, self.QUEST_STAMINA_EVENING)
+        self.schedule(self.alarm_time(time(hour=0)), self.farm_expeditions)
+        self.schedule(self.alarm_time(time(hour=8)), self.farm_daily_bonus)
+        self.schedule(self.alarm_time(time(hour=9)), self.farm_quests)
+        self.schedule(self.alarm_time(time(hour=10)), self.farm_mail)
+        self.schedule(self.alarm_time(time(hour=14)), self.farm_quests)
+        self.schedule(self.alarm_time(time(hour=21)), self.farm_quests)
 
         logger.info('🤖 Running action queue.')
         while self.queue:
@@ -90,7 +87,7 @@ class Bot:
         logger.info('💰 Farming daily bonus.')
         try:
             reward = self.api.farm_daily_bonus()
-            logger.info('📈 Reward is %s.', reward)
+            logger.info('📈 %s', reward)
         finally:
             self.schedule(when + self.ONE_DAY, self.farm_daily_bonus)
 
@@ -101,15 +98,28 @@ class Bot:
             for expedition in expeditions.values():
                 if expedition.status == self.EXPEDITION_COLLECT_REWARD:
                     reward = self.api.farm_expedition(expedition.id)
-                    logger.info('📈 Reward is %s.', reward)
+                    logger.info('📈 %s', reward)
         finally:
             self.schedule(when + self.ONE_DAY, self.farm_expeditions)
 
-    def farm_daily_quest(self, when: datetime, quest_id: QuestId):
-        logger.info('💰 Farming daily quest #%s.', quest_id)
+    def farm_quests(self, when: datetime):
+        logger.info('💰 Farming quests.')
         try:
-            reward = self.api.farm_quest(quest_id)
-            logger.info('📈 Reward is %s.', reward)
+            quests = self.api.get_all_quests()
+            for quest in quests.values():
+                if quest.state == self.QUEST_COLLECT_REWARD:
+                    logger.info('📈 %s', self.api.farm_quest(quest.id))
         finally:
-            self.schedule(when + self.ONE_DAY, self.farm_daily_quest, quest_id)
+            self.schedule(when + self.ONE_DAY, self.farm_quests)
 
+    def farm_mail(self, when: datetime):
+        logger.info('💰 Farming mail')
+        try:
+            mail = self.api.get_all_mail()
+            if not mail:
+                return
+            rewards = self.api.farm_mail(int(letter_id) for letter_id in mail.keys())
+            for reward in rewards.values():
+                logger.info('📈 %s', reward)
+        finally:
+            self.schedule(when + timedelta(hours=6), self.farm_mail)
