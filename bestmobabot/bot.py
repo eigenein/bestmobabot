@@ -23,8 +23,6 @@ class Bot:
     QUEST_IN_PROGRESS = QuestState(1)
     QUEST_COLLECT_REWARD = QuestState(2)
 
-    AS_SOON_AS_POSSIBLE = datetime.fromtimestamp(0, timezone.utc)
-
     @staticmethod
     def start(api: Api) -> 'Bot':
         return Bot(api, api.get_user_info())
@@ -70,7 +68,7 @@ class Bot:
             except InvalidSessionError:
                 logger.warning('😱 Invalid session.')
                 self.api.authenticate()
-                self.schedule(self.AS_SOON_AS_POSSIBLE, action, *args)
+                self.schedule(when, action, *args)
             except AlreadyError:
                 logger.info('🤔 Already done.')
             except InvalidResponseError as e:
