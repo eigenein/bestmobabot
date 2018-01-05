@@ -23,7 +23,7 @@ def main(remixsid: str, verbose: True):
         api.authenticate()
         with Bot.start(api) as bot:
             logger.info(f'👋 Welcome {bot.user_info.name}!')
-            logger.info(f'👋 Your local time is {datetime.now(bot.user_info.time_zone):%H:%M:%S}.')
+            logger.info(f'👋 Your local time is {datetime.now(bot.user_info.time_zone)}.')
             bot.run()
 
 
