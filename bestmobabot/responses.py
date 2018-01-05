@@ -1,31 +1,31 @@
 from datetime import timedelta, timezone
-from typing import Dict, NamedTuple
+from typing import Dict, List, NamedTuple
 
 from bestmobabot.types import *
 
 
-class UserInfo(NamedTuple):
-    account_id: str
+class User(NamedTuple):
+    account_id: UserID
     name: str
     time_zone: timezone
 
     @staticmethod
-    def parse(item: Dict) -> 'UserInfo':
-        return UserInfo(
-            account_id=item['accountId'],
+    def parse(item: Dict) -> 'User':
+        return User(
+            account_id=UserID(item['accountId']),
             name=item['name'],
-            time_zone=timezone(timedelta(hours=item['timeZone'])),
+            time_zone=timezone(timedelta(hours=item.get('timeZone', 0))),
         )
 
 
 class Expedition(NamedTuple):
-    id: ExpeditionId
+    id: ExpeditionID
     status: int
 
     @staticmethod
     def parse(item: Dict) -> 'Expedition':
         return Expedition(
-            id=ExpeditionId(item['id']),
+            id=ExpeditionID(item['id']),
             status=ExpeditionStatus(item['status']),
         )
 
@@ -53,7 +53,7 @@ class Reward(NamedTuple):
 
 
 class Quest(NamedTuple):
-    id: QuestId
+    id: QuestID
     state: QuestState
     progress: int
     reward: Reward
@@ -61,7 +61,7 @@ class Quest(NamedTuple):
     @staticmethod
     def parse(item: Dict) -> 'Quest':
         return Quest(
-            id=QuestId(item['id']),
+            id=QuestID(item['id']),
             state=QuestState(item['state']),
             progress=item['progress'],
             reward=Reward.parse(item['reward']),
@@ -74,3 +74,32 @@ class Letter(NamedTuple):
     @staticmethod
     def parse(item: Dict) -> 'Letter':
         return Letter(id=item['id'])
+
+
+class Hero(NamedTuple):
+    id: HeroID
+    level: int
+    color: int
+    star: int
+
+    @staticmethod
+    def parse(item: Dict) -> 'Hero':
+        return Hero(id=HeroID(item['id']), level=item['level'], color=item['color'], star=item['star'])
+
+
+class ArenaEnemy(NamedTuple):
+    user_id: UserID
+    place: str
+    heroes: List[Hero]
+    power: str
+    user: User
+
+    @staticmethod
+    def parse(item: Dict) -> 'ArenaEnemy':
+        return ArenaEnemy(
+            user_id=UserID(item['userId']),
+            place=item['place'],
+            heroes=list(map(Hero.parse, item['heroes'])),
+            power=item['power'],
+            user=User.parse(item['user']),
+        )

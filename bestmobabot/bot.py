@@ -1,7 +1,7 @@
 import heapq
 from datetime import datetime, time
 from time import sleep
-from typing import Any, Callable, List, Tuple
+from typing import Any, Callable, Tuple
 
 from bestmobabot.api import AlreadyError, Api, InvalidResponseError, InvalidSessionError
 from bestmobabot.responses import *
@@ -24,7 +24,7 @@ class Bot:
     def start(api: Api) -> 'Bot':
         return Bot(api, api.get_user_info())
 
-    def __init__(self, api: Api, user_info: UserInfo):
+    def __init__(self, api: Api, user_info: User):
         self.api = api
         self.user_info = user_info
         self.queue: List[TQueueItem] = []
