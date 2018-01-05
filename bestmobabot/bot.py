@@ -148,7 +148,7 @@ class Bot:
     def send_daily_gift(self, when: datetime):
         logger.info('🎁 Send daily gift.')
         try:
-            self._farm_quests(self.api.send_daily_gift(['15664420', '209336881']))
+            self._farm_quests(self.api.send_daily_gift(['15664420', '209336881', '386801200']))
         finally:
             self.schedule(when + self.DEFAULT_INTERVAL, self.send_daily_gift)
 
