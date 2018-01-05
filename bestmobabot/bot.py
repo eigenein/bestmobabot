@@ -3,7 +3,7 @@ from datetime import datetime, time
 from time import sleep
 from typing import Any, Callable, List, Tuple
 
-from bestmobabot.api import AlreadyError, Api, InvalidSessionError
+from bestmobabot.api import AlreadyError, Api, InvalidResponseError, InvalidSessionError
 from bestmobabot.responses import *
 from bestmobabot.utils import logger
 
@@ -61,6 +61,8 @@ class Bot:
                 self.schedule(self.now(), action, *args)
             except AlreadyError:
                 logger.info('🤔 Already done.')
+            except InvalidResponseError as e:
+                logger.error('😱 API returned something bad: %s', e)
             except Exception as e:
                 logger.error('😱 Uncaught error.', exc_info=e)
 

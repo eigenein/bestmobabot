@@ -30,6 +30,10 @@ class NotEnoughError(ApiError):
     pass
 
 
+class InvalidResponseError(ValueError):
+    pass
+
+
 class Api:
     GAME_URL = 'https://vk.com/app5327745'
     IFRAME_URL = 'https://i-heroes-vk.nextersglobal.com/iframe/vkontakte/iframe.new.php'
@@ -110,7 +114,11 @@ class Api:
 
         with self.session.post(self.API_URL, data=data, headers=headers) as response:
             response.raise_for_status()
-            result = response.json()
+            try:
+                result = response.json()
+            except ValueError as e:
+                result = {}  # just for PyCharm
+                raise InvalidResponseError(response.text) from e
         if verbose:
             logger.debug('💬 %s', result)
         if 'results' in result:
