@@ -158,20 +158,11 @@ class Api:
         description = error.get('description')
         return cls.exception_classes.get(name, ApiError)(name, description)
 
-    TKey = TypeVar('TKey')
     TNamedTuple = TypeVar('TNamedTuple')
 
     @staticmethod
-    def parse_list(items: List[Dict], key: Callable[[Dict], TKey], parse: Callable[[Dict], TNamedTuple]) -> Dict[TKey, TNamedTuple]:
-        return {key(item): parse(item) for item in items}
-
-    @staticmethod
-    def get_int_id(item: Dict) -> int:
-        return int(item['id'])
-
-    @staticmethod
-    def get_str_id(item: Dict) -> str:
-        return str(item['id'])
+    def parse_list(items: List[Dict], parse: Callable[[Dict], TNamedTuple]) -> List[TNamedTuple]:
+        return [parse(item) for item in items]
 
     def get_user_info(self) -> UserInfo:
         return UserInfo.parse(self.call('userGetInfo'))
@@ -179,21 +170,25 @@ class Api:
     def farm_daily_bonus(self) -> Reward:
         return Reward.parse(self.call('dailyBonusFarm', {'vip': 0}))
 
-    def list_expeditions(self) -> Dict[int, Expedition]:
-        return self.parse_list(self.call('expeditionGet'), self.get_int_id, Expedition.parse)
+    def list_expeditions(self) -> List[Expedition]:
+        return self.parse_list(self.call('expeditionGet'), Expedition.parse)
 
-    def farm_expedition(self, expedition_id: int) -> Reward:
+    def farm_expedition(self, expedition_id: ExpeditionId) -> Reward:
         return Reward.parse(self.call('expeditionFarm', {'expeditionId': expedition_id}))
 
-    def get_all_quests(self) -> Dict[int, Quest]:
-        return self.parse_list(self.call('questGetAll'), self.get_int_id, Quest.parse)
+    def get_all_quests(self) -> List[Quest]:
+        return self.parse_list(self.call('questGetAll'), Quest.parse)
 
     def farm_quest(self, quest_id: QuestId) -> Reward:
         return Reward.parse(self.call('questFarm', {'questId': quest_id}))
 
-    def get_all_mail(self) -> Dict[str, Mail]:
-        return self.parse_list(self.call('mailGetAll')['letters'], self.get_str_id, Mail.parse)
+    def get_all_mail(self) -> List[Letter]:
+        return self.parse_list(self.call('mailGetAll')['letters'], Letter.parse)
 
     def farm_mail(self, letter_ids: Iterable[int]) -> Dict[str, Reward]:
         response: Dict[str, Dict] = self.call('mailFarm', {'letterIds': list(letter_ids)})
         return {letter_id: Reward.parse(item) for letter_id, item in response.items()}
+
+    def buy_chest(self, is_free=True, chest='town', is_pack=False) -> List[Reward]:
+        response: Dict = self.call('chestBuy', {'free': is_free, 'chest': chest, 'pack': is_pack})
+        return self.parse_list(response['rewards'], Reward.parse)

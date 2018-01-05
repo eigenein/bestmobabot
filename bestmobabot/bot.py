@@ -40,6 +40,7 @@ class Bot:
         logger.info('🤖 Scheduling initial actions.')
         self.schedule(self.alarm_time(time(hour=0)), self.farm_expeditions)
         self.schedule(self.alarm_time(time(hour=8)), self.farm_daily_bonus)
+        self.schedule(self.alarm_time(time(hour=8)), self.buy_chest)
         self.schedule(self.alarm_time(time(hour=9)), self.farm_quests)
         self.schedule(self.alarm_time(time(hour=10)), self.farm_mail)
         self.schedule(self.alarm_time(time(hour=14)), self.farm_quests)
@@ -93,7 +94,7 @@ class Bot:
         logger.info('💰 Farming expeditions.')
         try:
             expeditions = self.api.list_expeditions()
-            for expedition in expeditions.values():
+            for expedition in expeditions:
                 if expedition.status == self.EXPEDITION_COLLECT_REWARD:
                     reward = self.api.farm_expedition(expedition.id)
                     logger.info('📈 %s', reward)
@@ -104,7 +105,7 @@ class Bot:
         logger.info('💰 Farming quests.')
         try:
             quests = self.api.get_all_quests()
-            for quest in quests.values():
+            for quest in quests:
                 if quest.state == self.QUEST_COLLECT_REWARD:
                     logger.info('📈 %s', self.api.farm_quest(quest.id))
         finally:
@@ -113,11 +114,19 @@ class Bot:
     def farm_mail(self, when: datetime):
         logger.info('💰 Farming mail')
         try:
-            mail = self.api.get_all_mail()
-            if not mail:
+            letters = self.api.get_all_mail()
+            if not letters:
                 return
-            rewards = self.api.farm_mail(int(letter_id) for letter_id in mail.keys())
+            rewards = self.api.farm_mail(int(letter.id) for letter in letters)
             for reward in rewards.values():
                 logger.info('📈 %s', reward)
         finally:
             self.schedule(when + timedelta(hours=6), self.farm_mail)
+
+    def buy_chest(self, when: datetime):
+        logger.info('📦 Buy chest.')
+        try:
+            for reward in self.api.buy_chest():
+                logger.info('📈 %s', reward)
+        finally:
+            self.schedule(when + self.ONE_DAY, self.buy_chest)

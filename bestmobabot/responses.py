@@ -19,34 +19,36 @@ class UserInfo(NamedTuple):
 
 
 class Expedition(NamedTuple):
-    id: int
+    id: ExpeditionId
     status: int
 
     @staticmethod
     def parse(item: Dict) -> 'Expedition':
         return Expedition(
-            id=item['id'],
+            id=ExpeditionId(item['id']),
             status=ExpeditionStatus(item['status']),
         )
 
 
 class Reward(NamedTuple):
-    stamina: int
-    gold: int
-    experience: int
+    stamina: Stamina
+    gold: Gold
+    experience: Experience
     consumable: Dict[str, int]
-    starmoney: int
+    star_money: StarMoney
     coin: Dict[str, str]
+    hero_fragment: Dict[str, int]
 
     @staticmethod
     def parse(item: Dict) -> 'Reward':
         return Reward(
-            stamina=item.get('stamina', 0),
-            gold=item.get('gold', 0),
-            experience=item.get('experience', 0),
+            stamina=Stamina(item.get('stamina', 0)),
+            gold=Gold(item.get('gold', 0)),
+            experience=Experience(item.get('experience', 0)),
             consumable=item.get('consumable', {}),
-            starmoney=item.get('starmoney', 0),
+            star_money=StarMoney(item.get('starmoney', 0)),
             coin=item.get('coin', {}),
+            hero_fragment=item.get('fragmentHero', {}),
         )
 
 
@@ -66,9 +68,9 @@ class Quest(NamedTuple):
         )
 
 
-class Mail(NamedTuple):
+class Letter(NamedTuple):
     id: str
 
     @staticmethod
-    def parse(item: Dict) -> 'Mail':
-        return Mail(id=item['id'])
+    def parse(item: Dict) -> 'Letter':
+        return Letter(id=item['id'])
