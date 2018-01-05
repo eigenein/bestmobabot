@@ -11,6 +11,25 @@ from bestmobabot.responses import *
 from bestmobabot.utils import logger
 
 
+class ApiError(Exception):
+    def __init__(self, name: Optional[str], description: Optional[str]):
+        super().__init__(name, description)
+        self.name = name
+        self.description = description
+
+
+class AlreadyError(ApiError):
+    pass
+
+
+class InvalidSessionError(ApiError):
+    pass
+
+
+class NotEnoughError(ApiError):
+    pass
+
+
 class Api:
     GAME_URL = 'https://vk.com/app5327745'
     IFRAME_URL = 'https://i-heroes-vk.nextersglobal.com/iframe/vkontakte/iframe.new.php'
@@ -97,7 +116,7 @@ class Api:
         if 'results' in result:
             return result['results'][0]['result']['response']
         if 'error' in result:
-            raise ApiError(result['error'])
+            raise self.make_exception(result['error'])
         raise ValueError(result)
 
     @staticmethod
@@ -118,6 +137,18 @@ class Api:
             fingerprint,
         )).encode('utf-8')
         return hashlib.md5(data).hexdigest()
+
+    exception_classes = {
+        'Already': AlreadyError,
+        'common\\rpc\\exception\\InvalidSession': InvalidSessionError,
+        'NotEnough': NotEnoughError,
+    }
+
+    @classmethod
+    def make_exception(cls, error: Dict) -> 'ApiError':
+        name = error.get('name')
+        description = error.get('description')
+        return cls.exception_classes.get(name, ApiError)(name, description)
 
     TKey = TypeVar('TKey')
     TNamedTuple = TypeVar('TNamedTuple')
@@ -158,19 +189,3 @@ class Api:
     def farm_mail(self, letter_ids: Iterable[int]) -> Dict[str, Reward]:
         response: Dict[str, Dict] = self.call('mailFarm', {'letterIds': list(letter_ids)})
         return {letter_id: Reward.parse(item) for letter_id, item in response.items()}
-
-
-class ApiError(Exception):
-    def __init__(self, item: Dict):
-        super().__init__(item)
-        self.name = item.get('name')
-        self.description = item.get('description')
-
-    def is_already(self) -> bool:
-        return self.name == 'Already'
-
-    def is_invalid_session(self) -> bool:
-        return self.name == r'common\rpc\exception\InvalidSession'
-
-    def is_not_enough(self) -> bool:
-        return self.name == 'NotEnough'

@@ -3,7 +3,7 @@ from datetime import datetime, time
 from time import sleep
 from typing import Any, Callable, List, Tuple
 
-from bestmobabot.api import Api, ApiError
+from bestmobabot.api import AlreadyError, Api, InvalidSessionError
 from bestmobabot.responses import *
 from bestmobabot.utils import logger
 
@@ -55,17 +55,12 @@ class Bot:
                 sleep(sleep_duration)
             try:
                 action(when, *args)
-            except ApiError as e:
-                if e.is_already():
-                    logger.info('🤔 Already done.')
-                elif e.is_invalid_session():
-                    logger.warning('😱 Invalid session.')
-                    # Re-authenticate.
-                    self.api.authenticate()
-                    # Re-schedule the action.
-                    self.schedule(self.now(), action, *args)
-                else:
-                    logger.error('😱 API error.', exc_info=e)
+            except InvalidSessionError:
+                logger.warning('😱 Invalid session.')
+                self.api.authenticate()
+                self.schedule(self.now(), action, *args)
+            except AlreadyError:
+                logger.info('🤔 Already done.')
             except Exception as e:
                 logger.error('😱 Uncaught error.', exc_info=e)
 
