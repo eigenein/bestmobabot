@@ -134,11 +134,29 @@ class ArenaEnemy(NamedTuple):
 
 class ArenaResult(NamedTuple):
     win: bool
+    battles: List['Battle']
 
     @staticmethod
     def parse(item: Dict) -> 'ArenaResult':
         return ArenaResult(
             win=item['win'],
+            battles=list(map(Battle.parse, item['battles'])),
+        )
+
+
+class Battle(NamedTuple):
+    win: bool
+    stars: int
+    old_place: str
+    new_place: str
+
+    @staticmethod
+    def parse(item: Dict) -> 'Battle':
+        return Battle(
+            win=item['win'],
+            stars=item.get('stars', 0),
+            old_place=item['oldPlace'],
+            new_place=item['newPlace'],
         )
 
 

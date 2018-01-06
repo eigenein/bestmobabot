@@ -1,9 +1,8 @@
 import contextlib
 import heapq
-import itertools
 from datetime import datetime, time
 from time import sleep
-from typing import Callable, Iterable, Tuple
+from typing import Callable, Tuple
 
 from bestmobabot.api import AlreadyError, Api, InvalidResponseError, InvalidSessionError
 from bestmobabot.responses import *
@@ -194,7 +193,8 @@ class Bot(contextlib.AbstractContextManager):
             ], key=get_power)
             heroes = sorted(self.api.get_all_heroes(), key=get_power, reverse=True)[:5]
             result, quests = self.api.attack_arena(enemy.user.id, [hero.id for hero in heroes])
-            logger.info('👊 Win? %s', result.win)
+            battle = result.battles[0]
+            logger.info('👊 Win: %s %s %s ➡ %s', result.win, '⭐' * battle.stars, battle.old_place, battle.new_place)
             self._farm_quests(quests)
         finally:
             self.schedule(when + self.ARENA_INTERVAL, self.attack_arena)
