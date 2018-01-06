@@ -1,4 +1,4 @@
-.env
+*.env
 *.log
 
 # Created by .ignore support plugin (hsz.mobi)

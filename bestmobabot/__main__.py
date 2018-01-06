@@ -12,7 +12,7 @@ from bestmobabot.utils import logger
 @click.command()
 @click.option('-s', '--remixsid', help='VK.com remixsid cookie.', envvar='BESTMOBABOT_REMIXSID', required=True)
 @click.option('-v', '--verbose', help='Increase verbosity.', is_flag=True)
-@click.option('-l', '--log-file', help='Log file.', type=click.File('wt'), default=click.get_text_stream('stderr'))
+@click.option('-l', '--log-file', help='Log file.', envvar='BESTMOBABOT_LOGFILE', type=click.File('wt'), default=click.get_text_stream('stderr'))
 def main(remixsid: str, verbose: True, log_file: TextIO):
     """
     Hero Wars bot.
