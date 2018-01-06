@@ -1,0 +1,10 @@
+version: "3.3"
+services:
+  bestmobabot:
+    image: eigenein/bestmobabot
+    restart: always
+    env_file: .env
+    volumes:
+      - /srv/bestmobabot:/srv/bestmobabot
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
