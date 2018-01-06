@@ -154,11 +154,12 @@ class Battle(NamedTuple):
 
     @staticmethod
     def parse(item: Dict) -> 'Battle':
+        result = item['result']
         return Battle(
-            win=item['win'],
-            stars=item.get('stars', 0),
-            old_place=item['oldPlace'],
-            new_place=item['newPlace'],
+            win=result['win'],
+            stars=result.get('stars', 0),
+            old_place=result.get('oldPlace'),
+            new_place=result.get('newPlace'),
         )
 
 

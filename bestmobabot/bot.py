@@ -197,6 +197,8 @@ class Bot(contextlib.AbstractContextManager):
             battle = result.battles[0]
             logger.info('👊 Win: %s %s %s ➡ %s', result.win, '⭐' * battle.stars, battle.old_place, battle.new_place)
             self._farm_quests(quests)
+        except NotEnoughError:
+            logger.info('💬 Not enough.')
         finally:
             self.schedule(when + self.ARENA_INTERVAL, self.attack_arena)
 
