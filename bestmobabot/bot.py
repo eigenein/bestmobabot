@@ -1,12 +1,12 @@
 import heapq
+import itertools
 from datetime import datetime, time
-from operator import attrgetter
 from time import sleep
-from typing import Callable, Tuple
+from typing import Callable, Iterable, Tuple
 
 from bestmobabot.api import AlreadyError, Api, InvalidResponseError, InvalidSessionError
 from bestmobabot.responses import *
-from bestmobabot.utils import logger
+from bestmobabot.utils import get_power, logger
 
 TAction = Callable[..., Any]
 TQueueItem = Tuple[datetime, int, TAction, Tuple]
@@ -15,7 +15,7 @@ TQueueItem = Tuple[datetime, int, TAction, Tuple]
 class Bot:
     DEFAULT_INTERVAL = timedelta(days=1)
     FARM_MAIL_INTERVAL = timedelta(hours=6)
-    ARENA_INTERVAL = timedelta(minutes=288)
+    ARENA_INTERVAL = timedelta(minutes=(24 * 60 // 5))
 
     EXPEDITION_COLLECT_REWARD = ExpeditionStatus(2)
     EXPEDITION_FINISHED = ExpeditionStatus(3)
@@ -23,13 +23,15 @@ class Bot:
     QUEST_IN_PROGRESS = QuestState(1)
     QUEST_COLLECT_REWARD = QuestState(2)
 
+    FIND_ARENA_ENEMIES_NUMBER = 2
+
     @staticmethod
     def start(api: Api) -> 'Bot':
         return Bot(api, api.get_user_info())
 
-    def __init__(self, api: Api, user_info: User):
+    def __init__(self, api: Api, user: User):
         self.api = api
-        self.user_info = user_info
+        self.user = user
         self.queue: List[TQueueItem] = []
         self.action_counter = 0
 
@@ -43,9 +45,9 @@ class Bot:
         logger.info('🤖 Scheduling initial actions.')
 
         # Stamina quests depend on player's time zone.
-        self.schedule(self.alarm_time(time(hour=9, minute=30), self.user_info.time_zone), self.farm_quests)
-        self.schedule(self.alarm_time(time(hour=14, minute=30), self.user_info.time_zone), self.farm_quests)
-        self.schedule(self.alarm_time(time(hour=21, minute=30), self.user_info.time_zone), self.farm_quests)
+        self.schedule(self.alarm_time(time(hour=9, minute=30), self.user.tz), self.farm_quests)
+        self.schedule(self.alarm_time(time(hour=14, minute=30), self.user.tz), self.farm_quests)
+        self.schedule(self.alarm_time(time(hour=21, minute=30), self.user.tz), self.farm_quests)
 
         # Other quests are simultaneous for everyone. Day starts at 4:00 UTC.
         self.schedule(self.alarm_time(time(hour=0, minute=0), timezone.utc, self.ARENA_INTERVAL), self.attack_arena)
@@ -80,8 +82,8 @@ class Bot:
         logger.fatal('🏳 Action queue is empty.')
 
     @staticmethod
-    def alarm_time(time_: time, time_zone: timezone, interval=DEFAULT_INTERVAL) -> datetime:
-        now = datetime.now(time_zone).replace(microsecond=0)
+    def alarm_time(time_: time, tz: tzinfo, interval=DEFAULT_INTERVAL) -> datetime:
+        now = datetime.now(tz).replace(microsecond=0)
         dt = now.replace(hour=time_.hour, minute=time_.minute, second=time_.second)
         while dt < now:
             dt += interval
@@ -154,12 +156,12 @@ class Bot:
     def attack_arena(self, when: datetime):
         logger.info('👊 Attack arena.')
         try:
-            enemy = min([
-                enemy
-                for enemy in self.api.find_arena_enemies()
-                if not self.user_info.clan_id or self.user_info.clan_id != enemy.user.clan_id
-            ], key=attrgetter('power'))
-            heroes: List[Hero] = sorted(self.api.get_all_heroes(), key=attrgetter('power'), reverse=True)[:5]
+            enemies: Iterable[ArenaEnemy] = itertools.chain.from_iterable([
+                self.api.find_arena_enemies()
+                for _ in range(self.FIND_ARENA_ENEMIES_NUMBER)
+            ])
+            enemy = min([enemy for enemy in enemies if not enemy.user.is_from_clan(self.user.clan_id)], key=get_power)
+            heroes = sorted(self.api.get_all_heroes(), key=get_power, reverse=True)[:5]
             result, quests = self.api.attack_arena(enemy.user.id, [hero.id for hero in heroes])
             logger.info('👊 Win? %s', result.win)
             self._farm_quests(quests)

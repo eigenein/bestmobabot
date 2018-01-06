@@ -22,8 +22,8 @@ def main(remixsid: str, verbose: True):
     with Api(remixsid) as api:
         api.authenticate()
         with Bot.start(api) as bot:
-            logger.info(f'👋 Welcome {bot.user_info.name}!')
-            logger.info(f'👋 Your local time is {datetime.now(bot.user_info.time_zone)}.')
+            logger.info(f'👋 Welcome {bot.user.name}!')
+            logger.info(f'👋 Your local time is {datetime.now(bot.user.tz)}.')
             bot.run()
 
 
