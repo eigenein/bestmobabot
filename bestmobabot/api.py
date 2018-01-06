@@ -4,6 +4,7 @@ import json
 import random
 import re
 import string
+from time import sleep
 from typing import Iterable, Tuple
 
 import requests
@@ -110,6 +111,9 @@ class Api(contextlib.AbstractContextManager):
         if self.request_id == 1:
             headers['X-Auth-Session-Init'] = '1'
         headers["X-Auth-Signature"] = self.sign_request(data, headers)
+
+        # Emulate human behavior a little bit.
+        sleep(random.uniform(5.0, 15.0))
 
         with self.session.post(self.API_URL, data=data, headers=headers) as response:
             response.raise_for_status()

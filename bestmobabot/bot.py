@@ -102,6 +102,9 @@ class Bot(contextlib.AbstractContextManager):
         heapq.heappush(self.queue, (when, self.action_counter, action, args))
 
     def farm_daily_bonus(self, when: datetime):
+        """
+        Забирает ежедневный подарок.
+        """
         logger.info('💰 Farming daily bonus…')
         try:
             reward = self.api.farm_daily_bonus()
@@ -110,6 +113,9 @@ class Bot(contextlib.AbstractContextManager):
             self.schedule(when + self.DEFAULT_INTERVAL, self.farm_daily_bonus)
 
     def farm_expeditions(self, when: datetime):
+        """
+        Собирает награду с экспедиций в дирижабле.
+        """
         logger.info('💰 Farming expeditions…')
         try:
             expeditions = self.api.list_expeditions()
@@ -121,6 +127,9 @@ class Bot(contextlib.AbstractContextManager):
             self.schedule(when + self.DEFAULT_INTERVAL, self.farm_expeditions)
 
     def farm_quests(self, when: datetime):
+        """
+        Собирает награды из ежедневных заданий.
+        """
         try:
             self._farm_quests(self.api.get_all_quests())
         finally:
@@ -133,6 +142,9 @@ class Bot(contextlib.AbstractContextManager):
                 logger.info('📈 %s', self.api.farm_quest(quest.id))
 
     def farm_mail(self, when: datetime):
+        """
+        Собирает награды из почты.
+        """
         try:
             self._farm_mail()
         finally:
@@ -149,6 +161,9 @@ class Bot(contextlib.AbstractContextManager):
             logger.info('📈 %s', reward)
 
     def buy_chest(self, when: datetime):
+        """
+        Открывает ежедневный бесплатный сундук.
+        """
         logger.info('📦 Buying chest…')
         try:
             for reward in self.api.buy_chest():
@@ -157,6 +172,9 @@ class Bot(contextlib.AbstractContextManager):
             self.schedule(when + self.DEFAULT_INTERVAL, self.buy_chest)
 
     def send_daily_gift(self, when: datetime):
+        """
+        Отправляет сердечки друзьям.
+        """
         logger.info('🎁 Sending daily gift…')
         try:
             self._farm_quests(self.api.send_daily_gift(['15664420', '209336881', '386801200']))
@@ -164,6 +182,9 @@ class Bot(contextlib.AbstractContextManager):
             self.schedule(when + self.DEFAULT_INTERVAL, self.send_daily_gift)
 
     def attack_arena(self, when: datetime):
+        """
+        Совершает бой на арене.
+        """
         logger.info('👊 Attacking arena…')
         try:
             enemies: Iterable[ArenaEnemy] = itertools.chain.from_iterable([
@@ -179,6 +200,9 @@ class Bot(contextlib.AbstractContextManager):
             self.schedule(when + self.ARENA_INTERVAL, self.attack_arena)
 
     def check_freebie(self, when: datetime):
+        """
+        Собирает подарки на странице игры ВКонтакте.
+        """
         logger.info('🎁 Checking freebie…')
         try:
             gift_ids = set(self.vk.find_gifts()) - self.collected_gift_ids
