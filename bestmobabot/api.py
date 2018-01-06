@@ -1,3 +1,4 @@
+import contextlib
 import hashlib
 import json
 import random
@@ -34,7 +35,7 @@ class InvalidResponseError(ValueError):
     pass
 
 
-class Api:
+class Api(contextlib.AbstractContextManager):
     GAME_URL = 'https://vk.com/app5327745'
     IFRAME_URL = 'https://i-heroes-vk.nextersglobal.com/iframe/vkontakte/iframe.new.php'
     API_URL = 'https://heroes-vk.nextersglobal.com/api/'
@@ -49,11 +50,8 @@ class Api:
         self.session = requests.Session()
         self.last_result: Dict = None
 
-    def __enter__(self):
-        return self
-
     def __exit__(self, exc_type, exc_val, exc_tb):
-        return self.session.__exit__(exc_type, exc_val, exc_tb)
+        self.session.__exit__(exc_type, exc_val, exc_tb)
 
     def authenticate(self):
         logger.info('🔑 Authenticating…')
@@ -182,7 +180,7 @@ class Api:
 
     def farm_mail(self, letter_ids: Iterable[LetterID]) -> Dict[str, Reward]:
         response = self.call('mailFarm', {'letterIds': list(letter_ids)})
-        return {letter_id: Reward.parse(item) for letter_id, item in response.payload.items()}
+        return {letter_id: Reward.parse(item or {}) for letter_id, item in response.payload.items()}
 
     def buy_chest(self, is_free=True, chest='town', is_pack=False) -> List[Reward]:
         response = self.call('chestBuy', {'free': is_free, 'chest': chest, 'pack': is_pack})
@@ -200,3 +198,7 @@ class Api:
 
     def get_all_heroes(self) -> List[Hero]:
         return list(map(Hero.parse, self.call('heroGetAll').payload.values()))
+
+    def check_freebie(self, gift_id: str) -> Optional[Reward]:
+        response = self.call('freebieCheck', {'giftId': gift_id}).payload
+        return Reward.parse(response) if response else None

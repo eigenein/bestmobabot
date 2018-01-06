@@ -140,3 +140,13 @@ class ArenaResult(NamedTuple):
         return ArenaResult(
             win=item['win'],
         )
+
+
+class Freebie(NamedTuple):
+    reward: Reward
+
+    @staticmethod
+    def parse(item: Dict) -> 'Freebie':
+        return Freebie(
+            reward=Reward.parse(item['reward']),
+        )
