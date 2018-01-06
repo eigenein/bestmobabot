@@ -1,11 +1,11 @@
 import contextlib
 import heapq
-from datetime import datetime, time
+from datetime import datetime, time, timedelta, timezone, tzinfo
 from time import sleep
-from typing import Callable, Tuple
+from typing import Any, Callable, Iterable, List, Tuple
 
-from bestmobabot.api import AlreadyError, Api, InvalidResponseError, InvalidSessionError
-from bestmobabot.responses import *
+from bestmobabot import constants, responses
+from bestmobabot.api import AlreadyError, Api, InvalidResponseError, InvalidSessionError, NotEnoughError
 from bestmobabot.utils import get_power, logger
 from bestmobabot.vk import VK
 
@@ -19,17 +19,13 @@ class Bot(contextlib.AbstractContextManager):
     ARENA_INTERVAL = timedelta(minutes=(24 * 60 // 5))
     FREEBIE_INTERVAL = timedelta(hours=8)
 
-    EXPEDITION_COLLECT_REWARD = ExpeditionStatus(2)
-    EXPEDITION_FINISHED = ExpeditionStatus(3)
-
-    QUEST_IN_PROGRESS = QuestState(1)
-    QUEST_COLLECT_REWARD = QuestState(2)
+    MAX_OPEN_ARTIFACT_CHESTS = 5
 
     @staticmethod
     def start(api: Api) -> 'Bot':
         return Bot(api, api.get_user_info())
 
-    def __init__(self, api: Api, user: User):
+    def __init__(self, api: Api, user: responses.User):
         self.api = api
         self.user = user
         self.queue: List[TQueueItem] = []
@@ -57,6 +53,7 @@ class Bot(contextlib.AbstractContextManager):
         self.schedule(self.alarm_time(time(hour=8, minute=30)), self.buy_chest)
         self.schedule(self.alarm_time(time(hour=9, minute=0)), self.send_daily_gift)
         self.schedule(self.alarm_time(time(hour=9, minute=30), interval=self.FREEBIE_INTERVAL), self.check_freebie)
+        self.schedule(self.alarm_time(time(hour=10, minute=0)), self.farm_zeppelin_gift)
 
         logger.info('🤖 Running action queue.')
         while self.queue:
@@ -80,7 +77,7 @@ class Bot(contextlib.AbstractContextManager):
             except Exception as e:
                 logger.error('😱 Uncaught error.', exc_info=e)
                 for result in self.api.last_responses:
-                    logger.error('💬 API result: %s', result)
+                    logger.error('💬 API result: %s', result.strip())
             else:
                 logger.info('✅ Well done.')
 
@@ -100,14 +97,22 @@ class Bot(contextlib.AbstractContextManager):
         logger.debug('⏰ Schedule %s%s at %s', action.__name__, args, when)
         heapq.heappush(self.queue, (when, self.action_counter, action, args))
 
+    @staticmethod
+    def print_reward(reward: responses.Reward):
+        logger.info('📈 %s', reward)
+
+    @staticmethod
+    def print_rewards(rewards: Iterable[responses.Reward]):
+        for reward in rewards:
+            Bot.print_reward(reward)
+
     def farm_daily_bonus(self, when: datetime):
         """
         Забирает ежедневный подарок.
         """
         logger.info('💰 Farming daily bonus…')
         try:
-            reward = self.api.farm_daily_bonus()
-            logger.info('📈 %s', reward)
+            self.print_reward(self.api.farm_daily_bonus())
         finally:
             self.schedule(when + self.DEFAULT_INTERVAL, self.farm_daily_bonus)
 
@@ -119,9 +124,8 @@ class Bot(contextlib.AbstractContextManager):
         try:
             expeditions = self.api.list_expeditions()
             for expedition in expeditions:
-                if expedition.status == self.EXPEDITION_COLLECT_REWARD:
-                    reward = self.api.farm_expedition(expedition.id)
-                    logger.info('📈 %s', reward)
+                if expedition.status == constants.EXPEDITION_COLLECT_REWARD:
+                    self.print_reward(self.api.farm_expedition(expedition.id))
         finally:
             self.schedule(when + self.DEFAULT_INTERVAL, self.farm_expeditions)
 
@@ -134,11 +138,11 @@ class Bot(contextlib.AbstractContextManager):
         finally:
             self.schedule(when + self.DEFAULT_INTERVAL, self.farm_quests)
 
-    def _farm_quests(self, quests: List[Quest]):
+    def _farm_quests(self, quests: responses.Quests):
         logger.info('💰 Farming quests…')
         for quest in quests:
-            if quest.state == self.QUEST_COLLECT_REWARD:
-                logger.info('📈 %s', self.api.farm_quest(quest.id))
+            if quest.state == constants.QUEST_COLLECT_REWARD:
+                self.print_reward(self.api.farm_quest(quest.id))
 
     def farm_mail(self, when: datetime):
         """
@@ -155,9 +159,7 @@ class Bot(contextlib.AbstractContextManager):
         if not letters:
             return
         logger.info('📩 %s letters.', len(letters))
-        rewards = self.api.farm_mail(int(letter.id) for letter in letters)
-        for reward in rewards.values():
-            logger.info('📈 %s', reward)
+        self.print_rewards(self.api.farm_mail(int(letter.id) for letter in letters).values())
 
     def buy_chest(self, when: datetime):
         """
@@ -165,8 +167,7 @@ class Bot(contextlib.AbstractContextManager):
         """
         logger.info('📦 Buying chest…')
         try:
-            for reward in self.api.buy_chest():
-                logger.info('📈 %s', reward)
+            self.print_rewards(self.api.buy_chest())
         finally:
             self.schedule(when + self.DEFAULT_INTERVAL, self.buy_chest)
 
@@ -216,3 +217,20 @@ class Bot(contextlib.AbstractContextManager):
                 self._farm_mail()
         finally:
             self.schedule(when + self.FREEBIE_INTERVAL, self.check_freebie)
+
+    def farm_zeppelin_gift(self, when: datetime):
+        """
+        Собирает ключ у валькирии и открывает артефактные сундуки.
+        """
+        try:
+            self.print_reward(self.api.farm_zeppelin_gift())
+            for _ in range(self.MAX_OPEN_ARTIFACT_CHESTS):
+                try:
+                    self.print_rewards(self.api.open_artifact_chest())
+                except NotEnoughError:
+                    logger.info('💬 Not enough.')
+                    break
+            else:
+                logger.info('💬 All chests have been opened.')
+        finally:
+            self.schedule(when + self.DEFAULT_INTERVAL, self.farm_zeppelin_gift)

@@ -5,11 +5,11 @@ import random
 import re
 import string
 from time import sleep
-from typing import Iterable, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 import requests
 
-from bestmobabot.responses import *
+from bestmobabot import responses, types
 from bestmobabot.utils import logger
 
 
@@ -94,7 +94,7 @@ class Api(contextlib.AbstractContextManager):
         self.request_id += 1
         return self.request_id
 
-    def call(self, name: str, arguments: Optional[Dict[str, Any]] = None) -> Response:
+    def call(self, name: str, arguments: Optional[Dict[str, Any]] = None) -> responses.Response:
         request_id = str(self.new_request_id())
         logger.info('🔔 #%s %s(%r)', request_id, name, arguments or {})
 
@@ -118,8 +118,9 @@ class Api(contextlib.AbstractContextManager):
             headers['X-Auth-Session-Init'] = '1'
         headers["X-Auth-Signature"] = self.sign_request(data, headers)
 
-        # Emulate human behavior a little bit.
-        sleep(random.uniform(5.0, 15.0))
+        if self.request_id != 1:
+            # Emulate human behavior a little bit.
+            sleep(random.uniform(5.0, 15.0))
 
         with self.session.post(self.API_URL, data=data, headers=headers) as response:
             self.last_responses.append(response.text)
@@ -131,7 +132,7 @@ class Api(contextlib.AbstractContextManager):
                 raise InvalidResponseError(response.text) from e
 
         if 'results' in result:
-            return Response.parse(result['results'][0]['result'])
+            return responses.Response.parse(result['results'][0]['result'])
         if 'error' in result:
             raise self.make_exception(result['error'])
         raise ValueError(result)
@@ -168,48 +169,55 @@ class Api(contextlib.AbstractContextManager):
         description = error.get('description')
         return cls.exception_classes.get(name, ApiError)(name, description)
 
-    def get_user_info(self) -> User:
-        return User.parse(self.call('userGetInfo').payload)
+    def get_user_info(self) -> responses.User:
+        return responses.User.parse(self.call('userGetInfo').payload)
 
-    def farm_daily_bonus(self) -> Reward:
-        return Reward.parse(self.call('dailyBonusFarm', {'vip': 0}).payload)
+    def farm_daily_bonus(self) -> responses.Reward:
+        return responses.Reward.parse(self.call('dailyBonusFarm', {'vip': 0}).payload)
 
-    def list_expeditions(self) -> List[Expedition]:
-        return list(map(Expedition.parse, self.call('expeditionGet')))
+    def list_expeditions(self) -> List[responses.Expedition]:
+        return list(map(responses.Expedition.parse, self.call('expeditionGet')))
 
-    def farm_expedition(self, expedition_id: ExpeditionID) -> Reward:
-        return Reward.parse(self.call('expeditionFarm', {'expeditionId': expedition_id}).payload)
+    def farm_expedition(self, expedition_id: types.ExpeditionID) -> responses.Reward:
+        return responses.Reward.parse(self.call('expeditionFarm', {'expeditionId': expedition_id}).payload)
 
-    def get_all_quests(self) -> List[Quest]:
-        return list(map(Quest.parse, self.call('questGetAll').payload))
+    def get_all_quests(self) -> responses.Quests:
+        return list(map(responses.Quest.parse, self.call('questGetAll').payload))
 
-    def farm_quest(self, quest_id: QuestID) -> Reward:
-        return Reward.parse(self.call('questFarm', {'questId': quest_id}).payload)
+    def farm_quest(self, quest_id: types.QuestID) -> responses.Reward:
+        return responses.Reward.parse(self.call('questFarm', {'questId': quest_id}).payload)
 
-    def get_all_mail(self) -> List[Letter]:
-        return list(map(Letter.parse, self.call('mailGetAll').payload['letters']))
+    def get_all_mail(self) -> List[responses.Letter]:
+        return list(map(responses.Letter.parse, self.call('mailGetAll').payload['letters']))
 
-    def farm_mail(self, letter_ids: Iterable[LetterID]) -> Dict[str, Reward]:
+    def farm_mail(self, letter_ids: Iterable[responses.LetterID]) -> Dict[str, responses.Reward]:
         response = self.call('mailFarm', {'letterIds': list(letter_ids)})
-        return {letter_id: Reward.parse(item or {}) for letter_id, item in response.payload.items()}
+        return {letter_id: responses.Reward.parse(item or {}) for letter_id, item in response.payload.items()}
 
-    def buy_chest(self, is_free=True, chest='town', is_pack=False) -> List[Reward]:
+    def buy_chest(self, is_free=True, chest='town', is_pack=False) -> List[responses.Reward]:
         response = self.call('chestBuy', {'free': is_free, 'chest': chest, 'pack': is_pack})
-        return list(map(Reward.parse, response.payload['rewards']))
+        return list(map(responses.Reward.parse, response.payload['rewards']))
 
-    def send_daily_gift(self, ids: Iterable[UserID]) -> Quests:
+    def send_daily_gift(self, ids: Iterable[types.UserID]) -> responses.Quests:
         return self.call('friendsSendDailyGift', {'ids': list(ids)}).quests
 
-    def find_arena_enemies(self) -> List[ArenaEnemy]:
-        return list(map(ArenaEnemy.parse, self.call('arenaFindEnemies').payload))
+    def find_arena_enemies(self) -> List[responses.ArenaEnemy]:
+        return list(map(responses.ArenaEnemy.parse, self.call('arenaFindEnemies').payload))
 
-    def attack_arena(self, user_id: UserID, hero_ids: Iterable[HeroID]) -> Tuple[ArenaResult, Quests]:
+    def attack_arena(self, user_id: types.UserID, hero_ids: Iterable[types.HeroID]) -> Tuple[responses.ArenaResult, responses.Quests]:
         response = self.call('arenaAttack', {'userId': user_id, 'heroes': list(hero_ids)})
-        return ArenaResult.parse(response.payload), response.quests
+        return responses.ArenaResult.parse(response.payload), response.quests
 
-    def get_all_heroes(self) -> List[Hero]:
-        return list(map(Hero.parse, self.call('heroGetAll').payload.values()))
+    def get_all_heroes(self) -> List[responses.Hero]:
+        return list(map(responses.Hero.parse, self.call('heroGetAll').payload.values()))
 
-    def check_freebie(self, gift_id: str) -> Optional[Reward]:
+    def check_freebie(self, gift_id: str) -> Optional[responses.Reward]:
         response = self.call('freebieCheck', {'giftId': gift_id}).payload
-        return Reward.parse(response) if response else None
+        return responses.Reward.parse(response) if response else None
+
+    def farm_zeppelin_gift(self) -> responses.Reward:
+        return responses.Reward.parse(self.call('zeppelinGiftFarm').payload)
+
+    def open_artifact_chest(self, amount=1, is_free=True) -> List[responses.Reward]:
+        payload = self.call('artifactChestOpen', {'amount': amount, 'free': is_free}).payload
+        return list(map(responses.Reward.parse, payload['chestReward']))

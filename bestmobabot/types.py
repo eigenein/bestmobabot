@@ -1,6 +1,7 @@
 from typing import NewType
 
 ClanID = NewType('ClanID', str)
+ConsumableID = NewType('ConsumableID', str)
 ExpeditionID = NewType('ExpeditionID', str)
 ExpeditionStatus = NewType('ExpeditionStatus', int)
 Experience = NewType('Experience', int)
