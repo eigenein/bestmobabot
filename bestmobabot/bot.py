@@ -48,12 +48,12 @@ class Bot:
         self.schedule(self.alarm_time(time(hour=21, minute=30), self.user_info.time_zone), self.farm_quests)
 
         # Other quests are simultaneous for everyone. Day starts at 4:00 UTC.
+        self.schedule(self.alarm_time(time(hour=0, minute=0), timezone.utc, self.ARENA_INTERVAL), self.attack_arena)
+        self.schedule(self.alarm_time(time(hour=1, minute=0), timezone.utc, self.FARM_MAIL_INTERVAL), self.farm_mail)
         self.schedule(self.alarm_time(time(hour=3, minute=59), timezone.utc), self.farm_expeditions)
-        self.schedule(self.alarm_time(time(hour=19, minute=39), timezone.utc, self.ARENA_INTERVAL), self.attack_arena)
         self.schedule(self.alarm_time(time(hour=8, minute=0), timezone.utc), self.farm_daily_bonus)
-        self.schedule(self.alarm_time(time(hour=8, minute=15), timezone.utc), self.buy_chest)
-        self.schedule(self.alarm_time(time(hour=8, minute=30), timezone.utc, self.FARM_MAIL_INTERVAL), self.farm_mail)
-        self.schedule(self.alarm_time(time(hour=8, minute=45), timezone.utc), self.send_daily_gift)
+        self.schedule(self.alarm_time(time(hour=8, minute=30), timezone.utc), self.buy_chest)
+        self.schedule(self.alarm_time(time(hour=9, minute=0), timezone.utc), self.send_daily_gift)
 
         logger.info('🤖 Running action queue.')
         while self.queue:
