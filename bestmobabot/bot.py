@@ -75,6 +75,7 @@ class Bot:
                 logger.error('😱 API returned something bad: %s', e)
             except Exception as e:
                 logger.error('😱 Uncaught error.', exc_info=e)
+                logger.error('💬 Last API result: %r', self.api.last_result)
 
         logger.fatal('🏳 Action queue is empty.')
 

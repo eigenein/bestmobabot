@@ -47,6 +47,7 @@ class Api:
         self.request_id: int = None
         self.session_id: str = None
         self.session = requests.Session()
+        self.last_result: Dict = None
 
     def __enter__(self):
         return self
@@ -88,7 +89,7 @@ class Api:
         self.request_id += 1
         return self.request_id
 
-    def call(self, name: str, arguments: Optional[Dict[str, Any]] = None, verbose=False) -> Response:
+    def call(self, name: str, arguments: Optional[Dict[str, Any]] = None) -> Response:
         request_id = str(self.new_request_id())
         logger.info('🔔 #%s %s(%r)', request_id, name, arguments or {})
 
@@ -119,8 +120,8 @@ class Api:
             except ValueError as e:
                 result = {}  # just for PyCharm
                 raise InvalidResponseError(response.text) from e
-        if verbose:
-            logger.debug('💬 %s', result)
+
+        self.last_result = result
         if 'results' in result:
             return Response.parse(result['results'][0]['result'])
         if 'error' in result:
