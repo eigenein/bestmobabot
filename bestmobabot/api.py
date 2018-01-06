@@ -53,7 +53,9 @@ class Api(contextlib.AbstractContextManager):
         self.request_id: int = None
         self.session_id: str = None
         self.session = requests.Session()
-        self.last_result: Dict = None
+
+        # Store last API results for debugging.
+        self.last_responses: List[str] = []
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.session.__exit__(exc_type, exc_val, exc_tb)
@@ -120,6 +122,7 @@ class Api(contextlib.AbstractContextManager):
         sleep(random.uniform(5.0, 15.0))
 
         with self.session.post(self.API_URL, data=data, headers=headers) as response:
+            self.last_responses.append(response.text)
             response.raise_for_status()
             try:
                 result = response.json()
@@ -127,7 +130,6 @@ class Api(contextlib.AbstractContextManager):
                 result = {}  # just for PyCharm
                 raise InvalidResponseError(response.text) from e
 
-        self.last_result = result
         if 'results' in result:
             return Response.parse(result['results'][0]['result'])
         if 'error' in result:

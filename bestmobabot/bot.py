@@ -26,8 +26,6 @@ class Bot(contextlib.AbstractContextManager):
     QUEST_IN_PROGRESS = QuestState(1)
     QUEST_COLLECT_REWARD = QuestState(2)
 
-    FIND_ARENA_ENEMIES_NUMBER = 2
-
     @staticmethod
     def start(api: Api) -> 'Bot':
         return Bot(api, api.get_user_info())
@@ -69,6 +67,7 @@ class Bot(contextlib.AbstractContextManager):
             if sleep_duration > 0.0:
                 logger.info('💤 Next action %s%s in %s at %s', action.__name__, args, sleep_timedelta, when)
                 sleep(sleep_duration)
+            self.api.last_responses.clear()
             try:
                 action(when, *args)
             except InvalidSessionError:
@@ -81,7 +80,8 @@ class Bot(contextlib.AbstractContextManager):
                 logger.error('😱 API returned something bad: %s', e)
             except Exception as e:
                 logger.error('😱 Uncaught error.', exc_info=e)
-                logger.error('💬 Last API result: %r', self.api.last_result)
+                for result in self.api.last_responses:
+                    logger.error('💬 API result: %s', result)
             else:
                 logger.info('✅ Well done.')
 
@@ -136,7 +136,7 @@ class Bot(contextlib.AbstractContextManager):
             self.schedule(when + self.DEFAULT_INTERVAL, self.farm_quests)
 
     def _farm_quests(self, quests: List[Quest]):
-        logger.info('💰 Farming %s quests…', len(quests))
+        logger.info('💰 Farming quests…')
         for quest in quests:
             if quest.state == self.QUEST_COLLECT_REWARD:
                 logger.info('📈 %s', self.api.farm_quest(quest.id))
@@ -187,11 +187,11 @@ class Bot(contextlib.AbstractContextManager):
         """
         logger.info('👊 Attacking arena…')
         try:
-            enemies: Iterable[ArenaEnemy] = itertools.chain.from_iterable([
-                self.api.find_arena_enemies()
-                for _ in range(self.FIND_ARENA_ENEMIES_NUMBER)
-            ])
-            enemy = min([enemy for enemy in enemies if not enemy.user.is_from_clan(self.user.clan_id)], key=get_power)
+            enemy = min([
+                enemy
+                for enemy in self.api.find_arena_enemies()
+                if not enemy.user.is_from_clan(self.user.clan_id)
+            ], key=get_power)
             heroes = sorted(self.api.get_all_heroes(), key=get_power, reverse=True)[:5]
             result, quests = self.api.attack_arena(enemy.user.id, [hero.id for hero in heroes])
             logger.info('👊 Win? %s', result.win)
@@ -206,8 +206,6 @@ class Bot(contextlib.AbstractContextManager):
         logger.info('🎁 Checking freebie…')
         try:
             gift_ids = set(self.vk.find_gifts()) - self.collected_gift_ids
-            if not gift_ids:
-                return
             should_farm_mail = False
             for gift_id in gift_ids:
                 logger.info('🎁 Checking %s…', gift_id)
