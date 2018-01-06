@@ -32,6 +32,10 @@ class NotEnoughError(ApiError):
     pass
 
 
+class NotAvailableError(ApiError):
+    pass
+
+
 class InvalidResponseError(ValueError):
     pass
 
@@ -153,6 +157,7 @@ class Api(contextlib.AbstractContextManager):
         'Already': AlreadyError,
         'common\\rpc\\exception\\InvalidSession': InvalidSessionError,
         'NotEnough': NotEnoughError,
+        'NotAvailable': NotAvailableError,
     }
 
     @classmethod
