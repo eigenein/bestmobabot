@@ -17,7 +17,7 @@ class Bot(contextlib.AbstractContextManager):
     DEFAULT_INTERVAL = timedelta(days=1)
     FARM_MAIL_INTERVAL = timedelta(hours=6)
     ARENA_INTERVAL = timedelta(minutes=(24 * 60 // 5))
-    FREEBIE_INTERVAL = timedelta(hours=8)
+    FREEBIE_INTERVAL = timedelta(hours=6)
 
     MAX_OPEN_ARTIFACT_CHESTS = 5
 
