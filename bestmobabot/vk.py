@@ -37,7 +37,7 @@ class VK(contextlib.AbstractContextManager):
             yield from self.GIFT_RE.findall(item['text'])
             for url in self.VK_CC_RE.findall(item['text']):
                 # HEAD is not supported by VK.com.
-                with self.session.get(url, allow_redirects=True) as response:
+                with self.session.get(url, stream=True) as response:
                     yield from self.GIFT_RE.findall(response.url)
             for attachment in item['attachments']:  # type: Dict[str, Any]
                 if attachment['type'] == 'link':
