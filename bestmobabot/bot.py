@@ -3,7 +3,7 @@ import heapq
 import json
 from datetime import datetime, time, timedelta, timezone, tzinfo
 from time import sleep
-from typing import Any, Dict, Callable, Iterable, List, NamedTuple, Optional, Tuple, Union
+from typing import Any, Dict, Callable, Iterable, List, NamedTuple, Optional, Set, Tuple, Union
 
 from bestmobabot import constants, responses
 from bestmobabot.api import AlreadyError, API, InvalidResponseError, InvalidSessionError, InvalidSignatureError, NotEnoughError
@@ -32,7 +32,13 @@ class Bot(contextlib.AbstractContextManager):
         self.queue: List[Task] = []
         self.task_counter = 0
         self.vk = VK()
-        self.collected_gift_ids = set()
+        self.collected_gift_ids: Set[str] = set()
+
+        # TODO: Possible improvement.
+        # TODO: 1. Make a static table of task schedules (start time + interval).
+        # TODO: 2. Instead of the queue have a table of the next task execution. Key is (name, args).
+        # TODO: 3. Remove finally clauses in tasks.
+        # TODO: 4. Always update the next task execution time unless got invalid session error.
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.api.__exit__(exc_type, exc_val, exc_tb)
@@ -125,7 +131,8 @@ class Bot(contextlib.AbstractContextManager):
         except (InvalidSessionError, InvalidSignatureError) as e:
             logger.warning('😱 Invalid session: %s.', e)
             self.api.start(state=None)
-            self.schedule(task.when, task.callable_, *task.args)
+            # FIXME: self.schedule(task.when, task.callable_, *task.args)
+            # FIXME: leads to scheduling a multiple times because of finally clause.
         except AlreadyError:
             logger.info('🤔 Already done.')
         except InvalidResponseError as e:
@@ -258,6 +265,7 @@ class Bot(contextlib.AbstractContextManager):
                 if self.api.check_freebie(gift_id) is not None:
                     logger.info('🎉 Received %s!', gift_id)
                     should_farm_mail = True
+                self.collected_gift_ids.add(gift_id)
             if should_farm_mail:
                 self._farm_mail()
         finally:
