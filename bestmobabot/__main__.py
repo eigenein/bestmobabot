@@ -1,7 +1,7 @@
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
-from typing import TextIO
+from typing import Dict, Optional, TextIO
 
 import click
 import coloredlogs
@@ -23,12 +23,10 @@ def main(remixsid: str, verbose: True, log_file: TextIO):
     coloredlogs.install(fmt='%(asctime)s %(levelname)s %(message)s', level=level, logger=logger, stream=log_file)
     logger.info('🤖 Bot is starting.')
 
-    state_path = Path(f'remixsid-{remixsid}.json')
-
     with API(remixsid) as api:
         # Try to read cached state.
-        logger.info('🔑 Checking saved state in %s…', state_path)
-        state = json.loads(state_path.read_text()) if state_path.is_file() else None
+        state_path = Path(f'remixsid-{remixsid}.json')
+        state = read_state(state_path)
         # Start the bot.
         api.start(state)
         with Bot(api) as bot:
@@ -37,10 +35,26 @@ def main(remixsid: str, verbose: True, log_file: TextIO):
             try:
                 bot.run()
             except KeyboardInterrupt:
-                # Cache user ID and authentication token for faster restart.
+                # Save the state for faster restart.
                 logger.info('🔑 Writing state to %s…', state_path)
-                state_path.write_text(json.dumps({**api.state, **bot.state}, indent=2))
+                state_path.write_text(json.dumps({
+                    'datetime': datetime.now().timestamp(),
+                    **api.state,
+                    **bot.state,
+                }, indent=2))
                 raise
+
+
+def read_state(path: Path) -> Optional[Dict]:
+    if not path.is_file():
+        logger.info('😐 No saved state found.')
+        return None
+    logger.info('😀 Reading saved state from %s…', path)
+    state = json.loads(path.read_text())
+    if datetime.now() - datetime.fromtimestamp(state['datetime']) > timedelta(days=1):
+        logger.warning('😐 Saved state is too old.')
+        return None
+    return state
 
 
 if __name__ == '__main__':
