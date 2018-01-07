@@ -40,6 +40,10 @@ class InvalidResponseError(ValueError):
     pass
 
 
+class InvalidSignatureError(ValueError):
+    pass
+
+
 class Api(contextlib.AbstractContextManager):
     GAME_URL = 'https://vk.com/app5327745'
     IFRAME_URL = 'https://i-heroes-vk.nextersglobal.com/iframe/vkontakte/iframe.new.php'
@@ -129,7 +133,10 @@ class Api(contextlib.AbstractContextManager):
                 result = response.json()
             except ValueError as e:
                 result = {}  # just for PyCharm
-                raise InvalidResponseError(response.text) from e
+                if response.text == 'Invalid signature':
+                    raise InvalidSignatureError(response.text) from e
+                else:
+                    raise InvalidResponseError(response.text) from e
 
         if 'results' in result:
             return responses.Response.parse(result['results'][0]['result'])

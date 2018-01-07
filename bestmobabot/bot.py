@@ -5,7 +5,7 @@ from time import sleep
 from typing import Any, Callable, Iterable, List, Tuple
 
 from bestmobabot import constants, responses
-from bestmobabot.api import AlreadyError, Api, InvalidResponseError, InvalidSessionError, NotEnoughError
+from bestmobabot.api import AlreadyError, Api, InvalidResponseError, InvalidSessionError, InvalidSignatureError, NotEnoughError
 from bestmobabot.utils import get_power, logger
 from bestmobabot.vk import VK
 
@@ -66,14 +66,14 @@ class Bot(contextlib.AbstractContextManager):
             self.api.last_responses.clear()
             try:
                 action(when, *args)
-            except InvalidSessionError:
-                logger.warning('😱 Invalid session.')
+            except (InvalidSessionError, InvalidSignatureError) as e:
+                logger.warning('😱 Invalid session: %s.', e)
                 self.api.authenticate()
                 self.schedule(when, action, *args)
             except AlreadyError:
                 logger.info('🤔 Already done.')
             except InvalidResponseError as e:
-                logger.error('😱 API returned something bad: %s', e)
+                logger.error('😱 API returned something bad: %r', e)
             except Exception as e:
                 logger.error('😱 Uncaught error.', exc_info=e)
                 for result in self.api.last_responses:
