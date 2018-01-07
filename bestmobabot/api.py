@@ -64,9 +64,26 @@ class API(contextlib.AbstractContextManager):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.session.__exit__(exc_type, exc_val, exc_tb)
 
-    def authenticate(self):
-        logger.info('🔑 Authenticating…')
+    @property
+    def state(self) -> Dict[str, Any]:
+        return {
+            'user_id': self.user_id,
+            'auth_token': self.auth_token,
+            'request_id': self.request_id,
+            'session_id': self.session_id,
+            'remixsid': self.remixsid,
+        }
 
+    def start(self, state: Optional[Dict[str, Any]]):
+        if state:
+            logger.info('🔑 Using saved credentials.')
+            self.user_id = state['user_id']
+            self.auth_token = state['auth_token']
+            self.request_id = state['request_id']
+            self.session_id = state['session_id']
+            return
+
+        logger.info('🔑 Authenticating…')
         with requests.Session() as session:
             logger.debug('🌎 Loading game page on VK.com…')
             with session.get(API.GAME_URL, cookies={'remixsid': self.remixsid}) as response:
@@ -94,13 +111,9 @@ class API(contextlib.AbstractContextManager):
         self.request_id = 0
         self.session_id = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(14))
 
-    def new_request_id(self) -> int:
-        self.request_id += 1
-        return self.request_id
-
     def call(self, name: str, arguments: Optional[Dict[str, Any]] = None) -> responses.Response:
-        request_id = str(self.new_request_id())
-        logger.info('🔔 #%s %s(%r)', request_id, name, arguments or {})
+        self.request_id += 1
+        logger.info('🔔 #%s %s(%r)', self.request_id, name, arguments or {})
 
         calls = [{'ident': name, 'name': name, 'args': arguments or {}}]
         data = json.dumps({"session": None, "calls": calls})
@@ -114,7 +127,7 @@ class API(contextlib.AbstractContextManager):
             'X-Auth-User-Id': self.user_id,
             'X-Env-Library-Version': '1',
             'X-Env-Referrer': 'unknown',
-            'X-Request-Id': request_id,
+            'X-Request-Id': str(self.request_id),
             'X-Requested-With': 'ShockwaveFlash / 28.0.0.126',
             'X-Server-Time': '0',
         }

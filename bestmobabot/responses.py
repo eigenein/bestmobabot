@@ -21,10 +21,12 @@ class User(NamedTuple):
     name: str
     tz: tzinfo
     clan_id: ClanID
+    item: Dict
 
     @staticmethod
     def parse(item: Dict) -> 'User':
         return User(
+            item=item,
             id=str(item['id']),
             name=item['name'],
             tz=timezone(timedelta(hours=item.get('timeZone', 0))),

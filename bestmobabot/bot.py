@@ -1,16 +1,21 @@
 import contextlib
 import heapq
+import json
 from datetime import datetime, time, timedelta, timezone, tzinfo
 from time import sleep
-from typing import Any, Callable, Iterable, List, Tuple
+from typing import Any, Dict, Callable, Iterable, List, NamedTuple, Optional, Tuple
 
 from bestmobabot import constants, responses
 from bestmobabot.api import AlreadyError, API, InvalidResponseError, InvalidSessionError, InvalidSignatureError, NotEnoughError
 from bestmobabot.utils import get_power, logger
 from bestmobabot.vk import VK
 
-TAction = Callable[..., Any]
-TQueueItem = Tuple[datetime, int, TAction, Tuple]
+
+class Task(NamedTuple):
+    when: datetime
+    index: int
+    callable_: Callable
+    args: Tuple
 
 
 class Bot(contextlib.AbstractContextManager):
@@ -21,15 +26,11 @@ class Bot(contextlib.AbstractContextManager):
 
     MAX_OPEN_ARTIFACT_CHESTS = 5
 
-    @staticmethod
-    def start(api: API) -> 'Bot':
-        return Bot(api, api.get_user_info())
-
-    def __init__(self, api: API, user: responses.User):
+    def __init__(self, api: API):
         self.api = api
-        self.user = user
-        self.queue: List[TQueueItem] = []
-        self.action_counter = 0
+        self.user: responses.User = None
+        self.queue: List[Task] = []
+        self.task_counter = 0
         self.vk = VK()
         self.collected_gift_ids = set()
 
@@ -37,8 +38,40 @@ class Bot(contextlib.AbstractContextManager):
         self.api.__exit__(exc_type, exc_val, exc_tb)
         self.vk.__exit__(exc_type, exc_val, exc_tb)
 
-    def run(self):
-        logger.info('🤖 Scheduling initial actions.')
+    @property
+    def state(self) -> Dict[str, Any]:
+        return {
+            'user': json.dumps(self.user.item),
+            'collected_gift_ids': list(self.collected_gift_ids),
+            'task_counter': self.task_counter,
+            'queue': [{
+                'when': task.when.timestamp(),
+                'index': task.index,
+                'name': task.callable_.__name__,
+                'args': task.args,
+            } for task in self.queue],
+        }
+
+    def start(self, state: Optional[Dict[str, Any]]):
+        if state:
+            self.user = responses.User.parse(json.loads(state['user']))
+            self.collected_gift_ids = set(state['collected_gift_ids'])
+            self.task_counter = state['task_counter']
+            for item in state['queue']:
+                task = Task(
+                    when=datetime.fromtimestamp(item['when']).astimezone(),
+                    index=item['index'],
+                    callable_=getattr(self, item['name']),
+                    args=tuple(item['args']),
+                )
+                logger.info('⏰ Adding scheduled task %s%s at %s', task.callable_.__name__, task.args, task.when)
+                self.queue.append(task)
+            heapq.heapify(self.queue)
+            return
+
+        self.user = self.api.get_user_info()
+
+        logger.info('🤖 Scheduling initial tasks.')
 
         # Stamina quests depend on player's time zone.
         self.schedule(self.alarm_time(time(hour=9, minute=30), tz=self.user.tz), self.farm_quests)
@@ -55,33 +88,14 @@ class Bot(contextlib.AbstractContextManager):
         self.schedule(self.alarm_time(time(hour=9, minute=30), interval=self.FREEBIE_INTERVAL), self.check_freebie)
         self.schedule(self.alarm_time(time(hour=10, minute=0)), self.farm_zeppelin_gift)
 
-        logger.info('🤖 Running action queue.')
+    def run(self):
+        logger.info('🤖 Running task queue.')
         while self.queue:
-            when, _, action, args = heapq.heappop(self.queue)  # type: TQueueItem
-            sleep_timedelta = when - datetime.now(timezone.utc)
-            sleep_duration = sleep_timedelta.total_seconds()
-            if sleep_duration > 0.0:
-                logger.info('💤 Next action %s%s in %s at %s', action.__name__, args, sleep_timedelta, when)
-                sleep(sleep_duration)
+            self.sleep_until(self.queue[0])
             self.api.last_responses.clear()
-            try:
-                action(when, *args)
-            except (InvalidSessionError, InvalidSignatureError) as e:
-                logger.warning('😱 Invalid session: %s.', e)
-                self.api.authenticate()
-                self.schedule(when, action, *args)
-            except AlreadyError:
-                logger.info('🤔 Already done.')
-            except InvalidResponseError as e:
-                logger.error('😱 API returned something bad: %s', e)
-            except Exception as e:
-                logger.error('😱 Uncaught error.', exc_info=e)
-                for result in self.api.last_responses:
-                    logger.error('💬 API result: %s', result.strip())
-            else:
-                logger.info('✅ Well done.')
+            self.execute(heapq.heappop(self.queue))
 
-        logger.fatal('🏳 Action queue is empty.')
+        logger.fatal('🏳 Task queue is empty.')
 
     @staticmethod
     def alarm_time(time_: time, *, tz: tzinfo = timezone.utc, interval=DEFAULT_INTERVAL) -> datetime:
@@ -91,11 +105,37 @@ class Bot(contextlib.AbstractContextManager):
             dt += interval
         return dt
 
-    def schedule(self, when: datetime, action: TAction, *args: Any):
-        self.action_counter += 1
+    def schedule(self, when: datetime, callable_: Callable, *args: Any):
+        self.task_counter += 1
         when = when.astimezone()
-        logger.debug('⏰ Schedule %s%s at %s', action.__name__, args, when)
-        heapq.heappush(self.queue, (when, self.action_counter, action, args))
+        logger.info('⏰ Schedule %s%s at %s', callable_.__name__, args, when)
+        heapq.heappush(self.queue, Task(when=when, index=self.task_counter, callable_=callable_, args=args))
+
+    @staticmethod
+    def sleep_until(task: Task):
+        sleep_timedelta = task.when - datetime.now(timezone.utc)
+        sleep_duration = sleep_timedelta.total_seconds()
+        if sleep_duration > 0.0:
+            logger.info('💤 Next task is %s%s in %s at %s', task.callable_.__name__, task.args, sleep_timedelta, task.when)
+            sleep(sleep_duration)
+
+    def execute(self, task: Task):
+        try:
+            task.callable_(task.when, *task.args)
+        except (InvalidSessionError, InvalidSignatureError) as e:
+            logger.warning('😱 Invalid session: %s.', e)
+            self.api.start(state=None)
+            self.schedule(task.when, task.callable_, *task.args)
+        except AlreadyError:
+            logger.info('🤔 Already done.')
+        except InvalidResponseError as e:
+            logger.error('😱 API returned something bad: %s', e)
+        except Exception as e:
+            logger.error('😱 Uncaught error.', exc_info=e)
+            for result in self.api.last_responses:
+                logger.error('💬 API result: %s', result.strip())
+        else:
+            logger.info('✅ Well done.')
 
     @staticmethod
     def print_reward(reward: responses.Reward):
@@ -105,6 +145,9 @@ class Bot(contextlib.AbstractContextManager):
     def print_rewards(rewards: Iterable[responses.Reward]):
         for reward in rewards:
             Bot.print_reward(reward)
+
+    # Actual tasks.
+    # ------------------------------------------------------------------------------------------------------------------
 
     def farm_daily_bonus(self, when: datetime):
         """
