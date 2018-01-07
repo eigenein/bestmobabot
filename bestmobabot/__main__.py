@@ -8,7 +8,7 @@ import coloredlogs
 
 from bestmobabot.api import API
 from bestmobabot.bot import Bot
-from bestmobabot.utils import logger
+from bestmobabot.logger import logger
 
 
 @click.command()

@@ -10,7 +10,7 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 import requests
 
 from bestmobabot import responses, types
-from bestmobabot.utils import logger
+from bestmobabot.logger import logger
 
 
 class ApiError(Exception):

@@ -4,7 +4,7 @@ from typing import Any, Dict, Iterable
 
 import requests
 
-from bestmobabot.utils import logger
+from bestmobabot.logger import logger
 
 
 class VK(contextlib.AbstractContextManager):

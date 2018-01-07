@@ -1,7 +1,8 @@
 from datetime import timedelta, timezone, tzinfo
 from typing import Any, Dict, List, NamedTuple, Optional
 
-from bestmobabot.types import *
+from bestmobabot.logger import logger
+from bestmobabot.types import *  # FIXME
 
 
 class Response(NamedTuple):
@@ -123,16 +124,20 @@ class ArenaEnemy(NamedTuple):
     place: str
     heroes: List[Hero]
     power: int
-    user: User
+    user: Optional[User]
 
     @staticmethod
     def parse(item: Dict) -> 'ArenaEnemy':
+        # Somehow some enemies have no user.
+        user = User.parse(item['user']) if item.get('user') else None
+        if user is None:
+            logger.warning('🤔 Arena enemy have no user.')
         return ArenaEnemy(
             user_id=str(item['userId']),
             place=item['place'],
             heroes=list(map(Hero.parse, item['heroes'])),
             power=int(item['power']),
-            user=User.parse(item['user']),
+            user=user,
         )
 
 

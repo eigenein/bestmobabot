@@ -3,11 +3,11 @@ import heapq
 import json
 from datetime import datetime, time, timedelta, timezone, tzinfo
 from time import sleep
-from typing import Any, Dict, Callable, Iterable, List, NamedTuple, Optional, Tuple
+from typing import Any, Dict, Callable, Iterable, List, NamedTuple, Optional, Tuple, Union
 
 from bestmobabot import constants, responses
 from bestmobabot.api import AlreadyError, API, InvalidResponseError, InvalidSessionError, InvalidSignatureError, NotEnoughError
-from bestmobabot.utils import get_power, logger
+from bestmobabot.logger import logger
 from bestmobabot.vk import VK
 
 
@@ -233,7 +233,7 @@ class Bot(contextlib.AbstractContextManager):
             enemy = min([
                 enemy
                 for enemy in self.api.find_arena_enemies()
-                if not enemy.user.is_from_clan(self.user.clan_id)
+                if enemy.user is not None and not enemy.user.is_from_clan(self.user.clan_id)
             ], key=get_power)
             heroes = sorted(self.api.get_all_heroes(), key=get_power, reverse=True)[:5]
             result, quests = self.api.attack_arena(enemy.user.id, [hero.id for hero in heroes])
@@ -279,3 +279,7 @@ class Bot(contextlib.AbstractContextManager):
                 logger.info('💬 All chests have been opened.')
         finally:
             self.schedule(when + self.DEFAULT_INTERVAL, self.farm_zeppelin_gift)
+
+
+def get_power(enemy: Union[responses.ArenaEnemy, responses.Hero]) -> int:
+    return enemy.power
