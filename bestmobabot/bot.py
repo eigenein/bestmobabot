@@ -48,7 +48,7 @@ class Bot(contextlib.AbstractContextManager):
         # Other quests are simultaneous for everyone. Day starts at 4:00 UTC.
         self.schedule(self.alarm_time(time(hour=0, minute=0), interval=self.ARENA_INTERVAL), self.attack_arena)
         self.schedule(self.alarm_time(time(hour=1, minute=0), interval=self.FARM_MAIL_INTERVAL), self.farm_mail)
-        self.schedule(self.alarm_time(time(hour=3, minute=59)), self.farm_expeditions)
+        self.schedule(self.alarm_time(time(hour=3, minute=0)), self.farm_expeditions)
         self.schedule(self.alarm_time(time(hour=8, minute=0)), self.farm_daily_bonus)
         self.schedule(self.alarm_time(time(hour=8, minute=30)), self.buy_chest)
         self.schedule(self.alarm_time(time(hour=9, minute=0)), self.send_daily_gift)
