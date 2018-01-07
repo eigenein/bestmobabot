@@ -73,7 +73,7 @@ class Bot(contextlib.AbstractContextManager):
             except AlreadyError:
                 logger.info('🤔 Already done.')
             except InvalidResponseError as e:
-                logger.error('😱 API returned something bad: %r', e)
+                logger.error('😱 API returned something bad: %s', e)
             except Exception as e:
                 logger.error('😱 Uncaught error.', exc_info=e)
                 for result in self.api.last_responses:

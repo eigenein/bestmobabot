@@ -14,10 +14,10 @@ class VK(contextlib.AbstractContextManager):
         'access_token': '05268efb05268efb05268efbef0546f6f20052605268efb5f7665c22235e9206e22f11b',
         # https://vk.com/bestmobagroup
         'owner_id': '-116039030',
-        'count': '3',
+        'count': '5',
         'v': '5.69',
     }
-    GIFT_RE = re.compile(r'gift_id=([0-9a-f]{32})')
+    GIFT_RE = re.compile(r'gift_id=(\w+)')
 
     def __init__(self):
         self.session = requests.Session()
