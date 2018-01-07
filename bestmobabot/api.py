@@ -44,7 +44,7 @@ class InvalidSignatureError(ValueError):
     pass
 
 
-class Api(contextlib.AbstractContextManager):
+class API(contextlib.AbstractContextManager):
     GAME_URL = 'https://vk.com/app5327745'
     IFRAME_URL = 'https://i-heroes-vk.nextersglobal.com/iframe/vkontakte/iframe.new.php'
     API_URL = 'https://heroes-vk.nextersglobal.com/api/'
@@ -69,7 +69,7 @@ class Api(contextlib.AbstractContextManager):
 
         with requests.Session() as session:
             logger.debug('🌎 Loading game page on VK.com…')
-            with session.get(Api.GAME_URL, cookies={'remixsid': self.remixsid}) as response:
+            with session.get(API.GAME_URL, cookies={'remixsid': self.remixsid}) as response:
                 response.raise_for_status()
                 app_page = response.text
 
@@ -82,7 +82,7 @@ class Api(contextlib.AbstractContextManager):
 
             # Load the proxy page and look for Hero Wars authentication token.
             logger.debug('🌎 Authenticating in Hero Wars…')
-            with session.get(Api.IFRAME_URL, params=params) as response:
+            with session.get(API.IFRAME_URL, params=params) as response:
                 response.raise_for_status()
                 iframe_new = response.text
             match = re.search(r'auth_key=([a-zA-Z0-9.\-]+)', iframe_new)

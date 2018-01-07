@@ -18,6 +18,7 @@ class VK(contextlib.AbstractContextManager):
         'v': '5.69',
     }
     GIFT_RE = re.compile(r'gift_id=(\w+)')
+    VK_CC_RE = re.compile(r'https://vk.cc/\w+')
 
     def __init__(self):
         self.session = requests.Session()
@@ -34,6 +35,10 @@ class VK(contextlib.AbstractContextManager):
 
         for item in payload['response']['items']:  # type: Dict[str, Any]
             yield from self.GIFT_RE.findall(item['text'])
+            for url in self.VK_CC_RE.findall(item['text']):
+                # HEAD is not supported by VK.com.
+                with self.session.get(url, allow_redirects=True) as response:
+                    yield from self.GIFT_RE.findall(response.url)
             for attachment in item['attachments']:  # type: Dict[str, Any]
                 if attachment['type'] == 'link':
                     yield from self.GIFT_RE.findall(attachment['link']['url'])

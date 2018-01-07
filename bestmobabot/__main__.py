@@ -4,7 +4,7 @@ from typing import TextIO
 import click
 import coloredlogs
 
-from bestmobabot.api import Api
+from bestmobabot.api import API
 from bestmobabot.bot import Bot
 from bestmobabot.utils import logger
 
@@ -21,7 +21,7 @@ def main(remixsid: str, verbose: True, log_file: TextIO):
     coloredlogs.install(fmt='%(asctime)s %(levelname)s %(message)s', level=level, logger=logger, stream=log_file)
     logger.info('🤖 Bot is starting.')
 
-    with Api(remixsid) as api:
+    with API(remixsid) as api:
         api.authenticate()
         with Bot.start(api) as bot:
             logger.info(f'👋 Welcome {bot.user.name}!')

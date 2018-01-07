@@ -5,7 +5,7 @@ from time import sleep
 from typing import Any, Callable, Iterable, List, Tuple
 
 from bestmobabot import constants, responses
-from bestmobabot.api import AlreadyError, Api, InvalidResponseError, InvalidSessionError, InvalidSignatureError, NotEnoughError
+from bestmobabot.api import AlreadyError, API, InvalidResponseError, InvalidSessionError, InvalidSignatureError, NotEnoughError
 from bestmobabot.utils import get_power, logger
 from bestmobabot.vk import VK
 
@@ -22,10 +22,10 @@ class Bot(contextlib.AbstractContextManager):
     MAX_OPEN_ARTIFACT_CHESTS = 5
 
     @staticmethod
-    def start(api: Api) -> 'Bot':
+    def start(api: API) -> 'Bot':
         return Bot(api, api.get_user_info())
 
-    def __init__(self, api: Api, user: responses.User):
+    def __init__(self, api: API, user: responses.User):
         self.api = api
         self.user = user
         self.queue: List[TQueueItem] = []
