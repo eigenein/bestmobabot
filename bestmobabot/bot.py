@@ -131,7 +131,7 @@ class Bot(contextlib.AbstractContextManager):
 
     def farm_quests(self, when: datetime):
         """
-        Собирает награды из ежедневных заданий.
+        Собирает награды из заданий.
         """
         try:
             self._farm_quests(self.api.get_all_quests())
