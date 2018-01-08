@@ -73,9 +73,6 @@ class Bot(contextlib.AbstractContextManager):
             self.user = self.api.get_user_info()
 
         self.tasks = [
-            # Task(when=Task.every_n_minutes(1), execute=self.quack, args=('Quack 1!',)),
-            # Task(when=Task.every_n_minutes(1), execute=self.quack, args=('Quack 2!',)),
-            # Task(when=Task.fixed_time(hour=22, minute=14, tz=None), execute=self.quack, args=('Fixed time!',)),
             # Stamina quests depend on player's time zone.
             Task(when=Task.fixed_time(hour=9, minute=30, tz=self.user.tz), execute=self.farm_quests),
             Task(when=Task.fixed_time(hour=14, minute=30, tz=self.user.tz), execute=self.farm_quests),
@@ -89,6 +86,11 @@ class Bot(contextlib.AbstractContextManager):
             Task(when=Task.fixed_time(hour=8, minute=30), execute=self.buy_chest),
             Task(when=Task.fixed_time(hour=9, minute=0), execute=self.send_daily_gift),
             Task(when=Task.fixed_time(hour=10, minute=0), execute=self.farm_zeppelin_gift),
+
+            # Debug tasks.
+            # Task(when=Task.every_n_minutes(1), execute=self.quack, args=('Quack 1!',)),
+            # Task(when=Task.every_n_minutes(1), execute=self.quack, args=('Quack 2!',)),
+            # Task(when=Task.fixed_time(hour=22, minute=14, tz=None), execute=self.quack, args=('Fixed time!',)),
         ]
 
     def run(self):
