@@ -22,17 +22,17 @@ class Task(NamedTuple):
 
     @staticmethod
     def fixed_time(*, hour: int, minute: int, tz: Optional[tzinfo] = timezone.utc) -> WhenCallable:
-        def should_execute(now: datetime) -> datetime:
-            now = now.astimezone(tz)
-            upcoming = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
-            return upcoming if upcoming > now else upcoming + timedelta(days=1)
+        def should_execute(since: datetime) -> datetime:
+            since = since.astimezone(tz)
+            upcoming = since.replace(hour=hour, minute=minute, second=0, microsecond=0)
+            return upcoming if upcoming > since else upcoming + timedelta(days=1)
         return should_execute
 
     @staticmethod
     def every_n_seconds(seconds: float, *, tz: Optional[tzinfo] = timezone.utc, offset: timedelta = timedelta()) -> WhenCallable:
-        def should_execute(now: datetime) -> datetime:
-            now = now.astimezone(tz)
-            return now + timedelta(seconds=(seconds - (now.timestamp() - offset.total_seconds()) % seconds))
+        def should_execute(since: datetime) -> datetime:
+            since = since.astimezone(tz)
+            return since + timedelta(seconds=(seconds - (since.timestamp() - offset.total_seconds()) % seconds))
         return should_execute
 
     @staticmethod
@@ -87,7 +87,7 @@ class Bot(contextlib.AbstractContextManager):
             Task(when=Task.fixed_time(hour=9, minute=0), execute=self.send_daily_gift),
             Task(when=Task.fixed_time(hour=10, minute=0), execute=self.farm_zeppelin_gift),
 
-            # Debug tasks.
+            # Debug tasks. Uncomment when needed.
             # Task(when=Task.every_n_minutes(1), execute=self.quack, args=('Quack 1!',)),
             # Task(when=Task.every_n_minutes(1), execute=self.quack, args=('Quack 2!',)),
             # Task(when=Task.fixed_time(hour=22, minute=14, tz=None), execute=self.quack, args=('Fixed time!',)),
@@ -112,7 +112,7 @@ class Bot(contextlib.AbstractContextManager):
             # Execute the task.
             self.execute(task)
             # Update its execution time.
-            next_execution[index] = task.when(datetime.now())
+            next_execution[index] = task.when(max(datetime.now().astimezone(), when + timedelta(seconds=1)))
 
     def execute(self, task: Task):
         self.api.last_responses.clear()
