@@ -31,7 +31,7 @@ def main(remixsid: str, verbose: True, log_file: TextIO):
         api.start(state)
         with Bot(api) as bot:
             bot.start(state)
-            logger.info(f'👋 Welcome {bot.user.name}! Your local time is {datetime.now(bot.user.tz)}.')
+            logger.info(f'👋 Welcome {bot.user.name}! Your game time is {datetime.now(bot.user.tz):%H:%M:%S}.')
             try:
                 bot.run()
             except KeyboardInterrupt:

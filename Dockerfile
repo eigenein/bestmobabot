@@ -14,4 +14,4 @@ RUN python3.6 -m pip install -r requirements.txt
 RUN mkdir -p /srv/bestmobabot
 VOLUME /srv/bestmobabot
 
-CMD ["python3.6", "-m", "bestmobabot", "-v"]
+CMD ["python3.6", "-m", "bestmobabot"]

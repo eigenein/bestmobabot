@@ -94,8 +94,6 @@ class API(contextlib.AbstractContextManager):
             match = re.search(r'var params\s?=\s?({[^\}]+\})', app_page)
             assert match, 'params not found'
             params = json.loads(match.group(1))
-            for key, value in params.items():
-                logger.debug('🔡 %s: %s', key, value)
 
             # Load the proxy page and look for Hero Wars authentication token.
             logger.debug('🌎 Authenticating in Hero Wars…')
@@ -112,6 +110,15 @@ class API(contextlib.AbstractContextManager):
         self.session_id = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(14))
 
     def call(self, name: str, arguments: Optional[Dict[str, Any]] = None) -> responses.Response:
+        try:
+            return self._call(name, arguments)
+        except (InvalidSessionError, InvalidSignatureError) as e:
+            logger.warning('😱 Invalid session: %s.', e)
+            self.start(state=None)
+            logger.info('🔔 Retrying the call…')
+            return self._call(name, arguments)
+
+    def _call(self, name: str, arguments: Optional[Dict[str, Any]] = None) -> responses.Response:
         self.request_id += 1
         logger.info('🔔 #%s %s(%r)', self.request_id, name, arguments or {})
 
@@ -137,6 +144,7 @@ class API(contextlib.AbstractContextManager):
 
         if self.request_id != 1:
             # Emulate human behavior a little bit.
+            logger.debug('💤 Sleeping…')
             sleep(random.uniform(5.0, 15.0))
 
         with self.session.post(self.API_URL, data=data, headers=headers) as response:
