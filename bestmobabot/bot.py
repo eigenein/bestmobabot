@@ -63,6 +63,9 @@ class Bot(contextlib.AbstractContextManager):
         return {
             'user': json.dumps(self.user.item),
             'collected_gift_ids': list(self.collected_gift_ids),
+            'description': {
+                'name': self.user.name,
+            },
         }
 
     def start(self, state: Optional[Dict[str, Any]]):
