@@ -47,8 +47,9 @@ class Task(NamedTuple):
 class Bot(contextlib.AbstractContextManager):
     MAX_OPEN_ARTIFACT_CHESTS = 5
 
-    def __init__(self, api: API):
+    def __init__(self, api: API, no_experience: bool):
         self.api = api
+        self.no_experience = no_experience
         self.vk = VK()
         self.user: responses.User = None
         self.collected_gift_ids: Set[str] = set()
@@ -181,10 +182,15 @@ class Bot(contextlib.AbstractContextManager):
         Собирает награды из заданий.
         """
         logger.info('💰 Farming quests…')
-        quests = quests or self.api.get_all_quests()
+        if quests is None:
+            quests = self.api.get_all_quests()
         for quest in quests:
-            if quest.state == constants.QUEST_COLLECT_REWARD:
-                self.print_reward(self.api.farm_quest(quest.id))
+            if quest.state != constants.QUEST_COLLECT_REWARD:
+                continue
+            if self.no_experience and quest.reward.experience:
+                logger.warning('🙈 Ignoring %s experience reward for quest %s.', quest.reward.experience, quest.id)
+                continue
+            self.print_reward(self.api.farm_quest(quest.id))
 
     def farm_mail(self):
         """
