@@ -211,7 +211,7 @@ class Bot(contextlib.AbstractContextManager):
         logger.info('🎁 Sending daily gift…')
         self.farm_quests(self.api.send_daily_gift(['15664420', '209336881', '386801200']))
 
-    def attack_arena(self, when: datetime):
+    def attack_arena(self):
         """
         Совершает бой на арене.
         """
@@ -251,7 +251,7 @@ class Bot(contextlib.AbstractContextManager):
         if should_farm_mail:
             self.farm_mail()
 
-    def farm_zeppelin_gift(self, when: datetime):
+    def farm_zeppelin_gift(self):
         """
         Собирает ключ у валькирии и открывает артефактные сундуки.
         """
