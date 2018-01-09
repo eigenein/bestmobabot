@@ -1,4 +1,4 @@
-The bot playing [Hero Wars](https://vk.com/app5327745) MOBA-like game on VK.com.
+The bot playing [Hero Wars](https://vk.com/app5327745) MOBA-like game on [VK.com](https://vk.com).
 
 ### Running with Docker Compose
 
