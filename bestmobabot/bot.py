@@ -2,7 +2,7 @@ import contextlib
 import json
 from datetime import datetime, timedelta, timezone, tzinfo
 from time import sleep
-from typing import Any, Dict, Callable, Iterable, List, NamedTuple, Optional, Set, Tuple, Union
+from typing import Any, Dict, Callable, Iterable, List, NamedTuple, Optional, Set, TextIO, Tuple, Union
 
 from bestmobabot import constants, responses
 from bestmobabot.api import AlreadyError, API, InvalidResponseError, NotEnoughError
@@ -47,9 +47,10 @@ class Task(NamedTuple):
 class Bot(contextlib.AbstractContextManager):
     MAX_OPEN_ARTIFACT_CHESTS = 5
 
-    def __init__(self, api: API, no_experience: bool):
+    def __init__(self, api: API, no_experience: bool, battle_log: Optional[TextIO]):
         self.api = api
         self.no_experience = no_experience
+        self.battle_log = battle_log
         self.vk = VK()
         self.user: responses.User = None
         self.collected_gift_ids: Set[str] = set()
@@ -149,6 +150,10 @@ class Bot(contextlib.AbstractContextManager):
     def get_power(enemy: Union[responses.ArenaEnemy, responses.Hero]) -> int:
         return enemy.power
 
+    @staticmethod
+    def get_item(response: Union[responses.User, responses.Hero]) -> Dict:
+        return response.item
+
     # Actual tasks.
     # ------------------------------------------------------------------------------------------------------------------
 
@@ -238,6 +243,15 @@ class Bot(contextlib.AbstractContextManager):
         battle = result.battles[0]
         logger.info('👊 Win: %s %s %s ➡ %s', result.win, '⭐' * battle.stars, battle.old_place, battle.new_place)
         self.farm_quests(quests)
+
+        # Save battle result.
+        if self.battle_log:
+            print(json.dumps({
+                'win': result.win,
+                'stars': battle.stars,
+                'player': [self.get_item(hero) for hero in heroes],
+                'enemies': [self.get_item(hero) for hero in enemy.heroes],
+            }), file=self.battle_log)
 
     def check_freebie(self):
         """

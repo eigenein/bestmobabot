@@ -107,6 +107,7 @@ class Hero(NamedTuple):
     color: int
     star: int
     power: Optional[int]
+    item: Dict
 
     @staticmethod
     def parse(item: Dict) -> 'Hero':
@@ -116,6 +117,7 @@ class Hero(NamedTuple):
             color=item['color'],
             star=item['star'],
             power=item.get('power'),
+            item=item,
         )
 
 
