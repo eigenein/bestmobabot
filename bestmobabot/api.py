@@ -321,3 +321,7 @@ class API(contextlib.AbstractContextManager):
             ],
             'result': {'stars': 3, 'win': True},
         }).quests
+
+    def open_boss_chest(self, boss_id: types.BossID) -> Tuple[responses.Reward, responses.Quests]:
+        response = self.call('bossOpenChest', {'bossId': boss_id})
+        return responses.Reward.parse(response.payload['reward']), response.quests

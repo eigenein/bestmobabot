@@ -276,6 +276,7 @@ class Bot(contextlib.AbstractContextManager):
         """
         Собирает ключ у валькирии и открывает артефактные сундуки.
         """
+        logger.info('🎁 Farming zeppelin gift…')
         self.print_reward(self.api.farm_zeppelin_gift())
         for _ in range(self.MAX_OPEN_ARTIFACT_CHESTS):
             try:
@@ -285,3 +286,13 @@ class Bot(contextlib.AbstractContextManager):
                 break
         else:
             logger.info('💬 All chests have been opened.')
+
+    def attack_boss(self):
+        """
+        Выполняет бой в Запределье.
+        """
+        logger.info('👊 Attacking a boss…')
+        boss, *_ = self.api.get_current_boss()
+        self.api.attack_boss(boss.id, ...)
+        # heroes = sorted(self.api.get_all_heroes(), key=self.get_power, reverse=True)[:5]
+        ...
