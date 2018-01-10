@@ -5,7 +5,7 @@ import random
 import re
 import string
 from time import sleep
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 
 import requests
 
@@ -284,10 +284,24 @@ class API(contextlib.AbstractContextManager):
         return list(map(responses.Reward.parse, payload['chestReward']))
 
     # Boss.
+    # https://github.com/eigenein/bestmobabot/wiki/Boss
     # ------------------------------------------------------------------------------------------------------------------
 
-    def get_current_boss(self) -> responses.Boss:
-        return responses.Boss.parse(self.call('bossGetCurrent').payload)
+    # https://heroes.cdnvideo.ru/vk/v0312/lib/lib.json.gz
+    RECOMMENDED_HEROES: Dict[str, Set[types.HeroID]] = {
+        '1': {'1', '4', '5', '6', '7', '9', '10', '12', '13', '17', '18', '21', '22', '23', '26', '29', '32', '33', '34', '35', '36'},
+        '2': {'8', '14', '15', '19', '20', '30', '31'},
+        '3': {'2', '3', '11', '16', '25', '24', '27', '28', '37', '38', '39', '40'},
+        '4': {'1'},
+        '5': {'1'},
+        '6': {'1'},
+        '7': {'1'},
+        '8': {'1'},
+        '9': {'1'},
+    }
+
+    def get_current_boss(self) -> List[responses.Boss]:
+        return list(map(responses.Boss.parse, self.call('bossGetCurrent').payload))
 
     def attack_boss(self, boss_id: types.BossID, hero_ids: Iterable[types.HeroID]) -> responses.Battle:
         return responses.Battle.parse(self.call('bossAttack', {'bossId': boss_id, 'heroes': list(hero_ids)}).payload)
