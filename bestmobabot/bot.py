@@ -252,6 +252,7 @@ class Bot(contextlib.AbstractContextManager):
                 'player': [self.get_item(hero) for hero in heroes],
                 'enemies': [self.get_item(hero) for hero in enemy.heroes],
             }), file=self.battle_log)
+            self.battle_log.flush()
 
     def check_freebie(self):
         """
