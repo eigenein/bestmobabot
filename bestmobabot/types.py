@@ -1,5 +1,6 @@
 from typing import NewType
 
+BossID = NewType('BossID', str)
 ClanID = NewType('ClanID', str)
 ConsumableID = NewType('ConsumableID', str)
 ExpeditionID = NewType('ExpeditionID', str)

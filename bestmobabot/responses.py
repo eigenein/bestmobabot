@@ -1,8 +1,8 @@
 from datetime import timedelta, timezone, tzinfo
 from typing import Any, Dict, List, NamedTuple, Optional
 
+from bestmobabot import types
 from bestmobabot.logger import logger
-from bestmobabot.types import *  # FIXME
 
 
 class Response(NamedTuple):
@@ -18,10 +18,10 @@ class Response(NamedTuple):
 
 
 class User(NamedTuple):
-    id: UserID
+    id: types.UserID
     name: str
     tz: tzinfo
-    clan_id: ClanID
+    clan_id: types.ClanID
     item: Dict
 
     @staticmethod
@@ -39,35 +39,35 @@ class User(NamedTuple):
 
 
 class Expedition(NamedTuple):
-    id: ExpeditionID
+    id: types.ExpeditionID
     status: int
 
     @staticmethod
     def parse(item: Dict) -> 'Expedition':
         return Expedition(
             id=str(item['id']),
-            status=ExpeditionStatus(item['status']),
+            status=item['status'],
         )
 
 
 class Reward(NamedTuple):
-    stamina: Stamina
-    gold: Gold
-    experience: Experience
+    stamina: types.Stamina
+    gold: types.Gold
+    experience: types.Experience
     consumable: Dict[str, int]
-    star_money: StarMoney
+    star_money: types.StarMoney
     coin: Dict[str, str]
-    hero_fragment: Dict[HeroID, int]
+    hero_fragment: Dict[types.HeroID, int]
     artifact_fragment: Dict[str, int]
 
     @staticmethod
     def parse(item: Dict) -> 'Reward':
         return Reward(
-            stamina=Stamina(item.get('stamina', 0)),
-            gold=Gold(item.get('gold', 0)),
-            experience=Experience(item.get('experience', 0)),
+            stamina=item.get('stamina', 0),
+            gold=item.get('gold', 0),
+            experience=item.get('experience', 0),
             consumable=item.get('consumable', {}),
-            star_money=StarMoney(item.get('starmoney', 0)),
+            star_money=item.get('starmoney', 0),
             coin=item.get('coin', {}),
             hero_fragment=item.get('fragmentHero', {}),
             artifact_fragment=item.get('fragmentArtifact', {}),
@@ -75,8 +75,8 @@ class Reward(NamedTuple):
 
 
 class Quest(NamedTuple):
-    id: QuestID
-    state: QuestState
+    id: types.QuestID
+    state: types.QuestState
     progress: int
     reward: Reward
 
@@ -84,7 +84,7 @@ class Quest(NamedTuple):
     def parse(item: Dict) -> 'Quest':
         return Quest(
             id=str(item['id']),
-            state=QuestState(item['state']),
+            state=item['state'],
             progress=item['progress'],
             reward=Reward.parse(item['reward']),
         )
@@ -94,7 +94,7 @@ Quests = List[Quest]
 
 
 class Letter(NamedTuple):
-    id: LetterID
+    id: types.LetterID
 
     @staticmethod
     def parse(item: Dict) -> 'Letter':
@@ -102,7 +102,7 @@ class Letter(NamedTuple):
 
 
 class Hero(NamedTuple):
-    id: HeroID
+    id: types.HeroID
     level: int
     color: int
     star: int
@@ -122,7 +122,7 @@ class Hero(NamedTuple):
 
 
 class ArenaEnemy(NamedTuple):
-    user_id: UserID
+    user_id: types.UserID
     place: str
     heroes: List[Hero]
     power: int
@@ -145,26 +145,26 @@ class ArenaEnemy(NamedTuple):
 
 class ArenaResult(NamedTuple):
     win: bool
-    battles: List['Battle']
+    battles: List['BattleResult']
 
     @staticmethod
     def parse(item: Dict) -> 'ArenaResult':
         return ArenaResult(
             win=item['win'],
-            battles=list(map(Battle.parse, item['battles'])),
+            battles=list(map(BattleResult.parse, item['battles'])),
         )
 
 
-class Battle(NamedTuple):
+class BattleResult(NamedTuple):
     win: bool
     stars: int
     old_place: str
     new_place: str
 
     @staticmethod
-    def parse(item: Dict) -> 'Battle':
+    def parse(item: Dict) -> 'BattleResult':
         result = item['result']
-        return Battle(
+        return BattleResult(
             win=result['win'],
             stars=result.get('stars', 0),
             old_place=result.get('oldPlace'),
@@ -180,3 +180,19 @@ class Freebie(NamedTuple):
         return Freebie(
             reward=Reward.parse(item['reward']),
         )
+
+
+class Boss(NamedTuple):
+    id: types.BossID
+
+    @staticmethod
+    def parse(item: Dict) -> 'Boss':
+        return Boss(id=str(item['id']))
+
+
+class Battle(NamedTuple):
+    seed: int
+
+    @staticmethod
+    def parse(item: Dict) -> 'Battle':
+        return Battle(seed=item['seed'])

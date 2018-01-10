@@ -197,11 +197,23 @@ class API(contextlib.AbstractContextManager):
         description = error.get('description')
         return cls.exception_classes.get(name, ApiError)(name, description)
 
+    # User.
+    # ------------------------------------------------------------------------------------------------------------------
+
     def get_user_info(self) -> responses.User:
         return responses.User.parse(self.call('userGetInfo').payload)
 
+    def get_all_heroes(self) -> List[responses.Hero]:
+        return list(map(responses.Hero.parse, self.call('heroGetAll').payload.values()))
+
+    # Daily bonus.
+    # ------------------------------------------------------------------------------------------------------------------
+
     def farm_daily_bonus(self) -> responses.Reward:
         return responses.Reward.parse(self.call('dailyBonusFarm', {'vip': 0}).payload)
+
+    # Expeditions.
+    # ------------------------------------------------------------------------------------------------------------------
 
     def list_expeditions(self) -> List[responses.Expedition]:
         return list(map(responses.Expedition.parse, self.call('expeditionGet').payload))
@@ -209,25 +221,40 @@ class API(contextlib.AbstractContextManager):
     def farm_expedition(self, expedition_id: types.ExpeditionID) -> responses.Reward:
         return responses.Reward.parse(self.call('expeditionFarm', {'expeditionId': expedition_id}).payload)
 
+    # Quests.
+    # ------------------------------------------------------------------------------------------------------------------
+
     def get_all_quests(self) -> responses.Quests:
         return list(map(responses.Quest.parse, self.call('questGetAll').payload))
 
     def farm_quest(self, quest_id: types.QuestID) -> responses.Reward:
         return responses.Reward.parse(self.call('questFarm', {'questId': quest_id}).payload)
 
+    # Mail.
+    # ------------------------------------------------------------------------------------------------------------------
+
     def get_all_mail(self) -> List[responses.Letter]:
         return list(map(responses.Letter.parse, self.call('mailGetAll').payload['letters']))
 
-    def farm_mail(self, letter_ids: Iterable[responses.LetterID]) -> Dict[str, responses.Reward]:
+    def farm_mail(self, letter_ids: Iterable[types.LetterID]) -> Dict[str, responses.Reward]:
         response = self.call('mailFarm', {'letterIds': list(letter_ids)})
         return {letter_id: responses.Reward.parse(item or {}) for letter_id, item in response.payload.items()}
+
+    # Chests.
+    # ------------------------------------------------------------------------------------------------------------------
 
     def buy_chest(self, is_free=True, chest='town', is_pack=False) -> List[responses.Reward]:
         response = self.call('chestBuy', {'free': is_free, 'chest': chest, 'pack': is_pack})
         return list(map(responses.Reward.parse, response.payload['rewards']))
 
+    # Daily gift.
+    # ------------------------------------------------------------------------------------------------------------------
+
     def send_daily_gift(self, ids: Iterable[types.UserID]) -> responses.Quests:
         return self.call('friendsSendDailyGift', {'ids': list(ids)}).quests
+
+    # Arena.
+    # ------------------------------------------------------------------------------------------------------------------
 
     def find_arena_enemies(self) -> List[responses.ArenaEnemy]:
         return list(map(responses.ArenaEnemy.parse, self.call('arenaFindEnemies').payload))
@@ -236,16 +263,47 @@ class API(contextlib.AbstractContextManager):
         response = self.call('arenaAttack', {'userId': user_id, 'heroes': list(hero_ids)})
         return responses.ArenaResult.parse(response.payload), response.quests
 
-    def get_all_heroes(self) -> List[responses.Hero]:
-        return list(map(responses.Hero.parse, self.call('heroGetAll').payload.values()))
+    # Freebie.
+    # ------------------------------------------------------------------------------------------------------------------
 
     def check_freebie(self, gift_id: str) -> Optional[responses.Reward]:
         response = self.call('freebieCheck', {'giftId': gift_id}).payload
         return responses.Reward.parse(response) if response else None
 
+    # Zeppelin gift.
+    # ------------------------------------------------------------------------------------------------------------------
+
     def farm_zeppelin_gift(self) -> responses.Reward:
         return responses.Reward.parse(self.call('zeppelinGiftFarm').payload)
+
+    # Artifact chests.
+    # ------------------------------------------------------------------------------------------------------------------
 
     def open_artifact_chest(self, amount=1, is_free=True) -> List[responses.Reward]:
         payload = self.call('artifactChestOpen', {'amount': amount, 'free': is_free}).payload
         return list(map(responses.Reward.parse, payload['chestReward']))
+
+    # Boss.
+    # ------------------------------------------------------------------------------------------------------------------
+
+    def get_current_boss(self) -> responses.Boss:
+        return responses.Boss.parse(self.call('bossGetCurrent').payload)
+
+    def attack_boss(self, boss_id: types.BossID, hero_ids: Iterable[types.HeroID]) -> responses.Battle:
+        return responses.Battle.parse(self.call('bossAttack', {'bossId': boss_id, 'heroes': list(hero_ids)}).payload)
+
+    def end_boss_battle(self, seed: int, hero_ids: Iterable[types.HeroID]) -> responses.Quests:
+        return self.call('bossEndBattle', {
+            'progress': [{
+                'seed': seed,
+                'v': 123,
+                'defenders': {'heroes': {}, 'input': []},
+                'b': 0,
+                'attackers': {
+                    'heroes': {hero_id: {'isDead': False, 'energy': 0, 'hp': 1} for hero_id in hero_ids},
+                    'input': ["auto", 0, 0, "auto", 0, 0],
+                },
+              },
+            ],
+            'result': {'stars': 3, 'win': True},
+        }).quests
