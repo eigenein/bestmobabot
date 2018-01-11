@@ -117,16 +117,16 @@ class API(contextlib.AbstractContextManager):
         self.request_id = 0
         self.session_id = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(14))
 
-    def call(self, name: str, arguments: Optional[Dict[str, Any]] = None) -> responses.Response:
+    def call(self, name: str, arguments: Optional[Dict[str, Any]] = None, random_sleep=True) -> responses.Response:
         try:
-            return self._call(name, arguments)
+            return self._call(name, arguments=arguments, random_sleep=random_sleep)
         except (InvalidSessionError, InvalidSignatureError) as e:
             logger.warning('😱 Invalid session: %s.', e)
             self.start(state=None)
             logger.info('🔔 Retrying the call…')
-            return self._call(name, arguments)
+            return self._call(name, arguments=arguments, random_sleep=random_sleep)
 
-    def _call(self, name: str, arguments: Optional[Dict[str, Any]] = None) -> responses.Response:
+    def _call(self, name: str, *, arguments: Optional[Dict[str, Any]] = None, random_sleep=True) -> responses.Response:
         self.request_id += 1
         logger.info('🔔 #%s %s(%r)', self.request_id, name, arguments or {})
 
@@ -150,7 +150,7 @@ class API(contextlib.AbstractContextManager):
             headers['X-Auth-Session-Init'] = '1'
         headers["X-Auth-Signature"] = self.sign_request(data, headers)
 
-        if self.request_id != 1:
+        if random_sleep and self.request_id != 1:
             # Emulate human behavior a little bit.
             self.sleep(random.uniform(5.0, 15.0))
 
@@ -335,7 +335,7 @@ class API(contextlib.AbstractContextManager):
                 },
             }],
             'result': {'stars': 3, 'win': True},
-        }).quests
+        }, random_sleep=False).quests
 
     def open_boss_chest(self, boss_id: types.BossID) -> Tuple[responses.Reward, responses.Quests]:
         response = self.call('bossOpenChest', {'bossId': boss_id})
