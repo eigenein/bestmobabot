@@ -43,7 +43,7 @@ def main(remixsid: str, no_experience: bool, battle_log: Optional[TextIO], verbo
                     'datetime': datetime.now().timestamp(),
                     **api.state,
                     **bot.state,
-                }, indent=2))
+                }, indent=2, ensure_ascii=False))
                 raise
 
 
