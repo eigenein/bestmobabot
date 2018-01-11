@@ -146,12 +146,14 @@ class ArenaEnemy(NamedTuple):
 class ArenaResult(NamedTuple):
     win: bool
     battles: List['BattleResult']
+    reward: Reward
 
     @staticmethod
     def parse(item: Dict) -> 'ArenaResult':
         return ArenaResult(
             win=item['win'],
             battles=list(map(BattleResult.parse, item['battles'])),
+            reward=Reward.parse(item['reward'] or {}),
         )
 
 

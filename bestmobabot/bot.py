@@ -243,7 +243,11 @@ class Bot(contextlib.AbstractContextManager):
         # Attack and collect results.
         result, quests = self.api.attack_arena(enemy.user.id, [hero.id for hero in heroes])
         battle = result.battles[0]
-        logger.info('👊 Win: %s %s %s ➡ %s', result.win, '⭐' * battle.stars, battle.old_place, battle.new_place)
+        if result.win:
+            logger.info('🎉 %s %s ➡ %s', '⭐' * battle.stars, battle.old_place, battle.new_place)
+        else:
+            logger.info('😞 You lose!')
+        self.print_reward(result.reward)
         self.farm_quests(quests)
 
         # Save battle result.
