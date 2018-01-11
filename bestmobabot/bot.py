@@ -22,18 +22,18 @@ class Task(NamedTuple):
 
     @staticmethod
     def at(*, hour: int, minute: int, tz: Optional[tzinfo] = timezone.utc) -> WhenCallable:
-        def should_execute(since: datetime) -> datetime:
+        def when(since: datetime) -> datetime:
             since = since.astimezone(tz)
             upcoming = since.replace(hour=hour, minute=minute, second=0, microsecond=0)
             return upcoming if upcoming > since else upcoming + timedelta(days=1)
-        return should_execute
+        return when
 
     @staticmethod
     def every_n_seconds(seconds: float, *, tz: Optional[tzinfo] = timezone.utc, offset: timedelta = timedelta()) -> WhenCallable:
-        def should_execute(since: datetime) -> datetime:
+        def when(since: datetime) -> datetime:
             since = since.astimezone(tz)
             return since + timedelta(seconds=(seconds - (since.timestamp() - offset.total_seconds()) % seconds))
-        return should_execute
+        return when
 
     @staticmethod
     def every_n_minutes(minutes: float, *, tz: Optional[tzinfo] = timezone.utc, offset: timedelta = timedelta()) -> WhenCallable:

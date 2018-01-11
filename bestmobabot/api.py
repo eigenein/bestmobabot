@@ -40,6 +40,10 @@ class NotFoundError(ApiError):
     pass
 
 
+class ArgumentError(ApiError):
+    pass
+
+
 class InvalidResponseError(ValueError):
     pass
 
@@ -154,6 +158,7 @@ class API(contextlib.AbstractContextManager):
             # Emulate human behavior a little bit.
             self.sleep(random.uniform(5.0, 15.0))
 
+        logger.debug('🔔 #%s %s', self.request_id, data)
         with self.session.post(self.API_URL, data=data, headers=headers) as response:
             self.last_responses.append(response.text)
             response.raise_for_status()
@@ -168,7 +173,7 @@ class API(contextlib.AbstractContextManager):
 
         if 'results' in result:
             response = responses.Response.parse(result['results'][0]['result'])
-            if 'error' in response.payload:
+            if response.payload and 'error' in response.payload:
                 raise ResponseError(response.payload)
             return response
         if 'error' in result:
@@ -200,6 +205,7 @@ class API(contextlib.AbstractContextManager):
         'NotEnough': NotEnoughError,
         'NotAvailable': NotAvailableError,
         'NotFound': NotFoundError,
+        'ArgumentError': ArgumentError,
     }
 
     @classmethod
