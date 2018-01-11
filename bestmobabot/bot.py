@@ -21,7 +21,7 @@ class Task(NamedTuple):
         return f'{self.execute.__name__}{self.args}'
 
     @staticmethod
-    def fixed_time(*, hour: int, minute: int, tz: Optional[tzinfo] = timezone.utc) -> WhenCallable:
+    def at(*, hour: int, minute: int, tz: Optional[tzinfo] = timezone.utc) -> WhenCallable:
         def should_execute(since: datetime) -> datetime:
             since = since.astimezone(tz)
             upcoming = since.replace(hour=hour, minute=minute, second=0, microsecond=0)
@@ -79,23 +79,25 @@ class Bot(contextlib.AbstractContextManager):
 
         self.tasks = [
             # Stamina quests depend on player's time zone.
-            Task(when=Task.fixed_time(hour=9, minute=30, tz=self.user.tz), execute=self.farm_quests),
-            Task(when=Task.fixed_time(hour=14, minute=30, tz=self.user.tz), execute=self.farm_quests),
-            Task(when=Task.fixed_time(hour=21, minute=30, tz=self.user.tz), execute=self.farm_quests),
+            Task(when=Task.at(hour=9, minute=30, tz=self.user.tz), execute=self.farm_quests),
+            Task(when=Task.at(hour=14, minute=30, tz=self.user.tz), execute=self.farm_quests),
+            Task(when=Task.at(hour=21, minute=30, tz=self.user.tz), execute=self.farm_quests),
             # Other quests are simultaneous for everyone. Day starts at 4:00 UTC.
             Task(when=Task.every_n_minutes(24 * 60 // 5, offset=timedelta(hours=-1)), execute=self.attack_arena),
             Task(when=Task.every_n_hours(6, offset=timedelta(minutes=15)), execute=self.farm_mail),
             Task(when=Task.every_n_hours(6, offset=timedelta(minutes=30)), execute=self.check_freebie),
-            Task(when=Task.fixed_time(hour=3, minute=0), execute=self.farm_expeditions),
-            Task(when=Task.fixed_time(hour=8, minute=0), execute=self.farm_daily_bonus),
-            Task(when=Task.fixed_time(hour=8, minute=30), execute=self.buy_chest),
-            Task(when=Task.fixed_time(hour=9, minute=0), execute=self.send_daily_gift),
-            Task(when=Task.fixed_time(hour=10, minute=0), execute=self.farm_zeppelin_gift),
+            Task(when=Task.at(hour=3, minute=0), execute=self.farm_expeditions),
+            Task(when=Task.at(hour=8, minute=0), execute=self.farm_daily_bonus),
+            Task(when=Task.at(hour=8, minute=30), execute=self.buy_chest),
+            Task(when=Task.at(hour=9, minute=0), execute=self.send_daily_gift),
+            Task(when=Task.at(hour=10, minute=0), execute=self.farm_zeppelin_gift),
 
             # Debug tasks. Uncomment when needed.
             # Task(when=Task.every_n_minutes(1), execute=self.quack, args=('Quack 1!',)),
             # Task(when=Task.every_n_minutes(1), execute=self.quack, args=('Quack 2!',)),
             # Task(when=Task.fixed_time(hour=22, minute=14, tz=None), execute=self.quack, args=('Fixed time!',)),
+
+            Task(when=Task.at(hour=11, minute=37), execute=self.attack_boss),
         ]
 
     def run(self):
@@ -292,7 +294,30 @@ class Bot(contextlib.AbstractContextManager):
         Выполняет бой в Запределье.
         """
         logger.info('👊 Attacking a boss…')
+
+        # Get current boss.
         boss, *_ = self.api.get_current_boss()
-        self.api.attack_boss(boss.id, ...)
-        # heroes = sorted(self.api.get_all_heroes(), key=self.get_power, reverse=True)[:5]
-        ...
+        logger.info('👊 Boss %s.', boss.id)
+
+        # Find appropriate heroes.
+        heroes = sorted([
+            hero
+            for hero in self.api.get_all_heroes()
+            if hero.id in API.RECOMMENDED_HEROES[boss.id]
+        ], key=self.get_power, reverse=True)[:5]
+        if not heroes:
+            logger.warning('😞 No appropriate heroes.')
+            return
+
+        # Attack boss.
+        hero_ids = [hero.id for hero in heroes]
+        battle = self.api.attack_boss(boss.id, hero_ids)
+        logger.warning('👊 Seed %s.', battle.seed)
+        self.api.sleep(20.0)
+        quests = self.api.end_boss_battle(battle.seed, hero_ids)
+
+        # Farm rewards.
+        self.farm_quests(quests)
+        reward, quests = self.api.open_boss_chest(boss.id)
+        self.print_reward(reward)
+        self.farm_quests(quests)

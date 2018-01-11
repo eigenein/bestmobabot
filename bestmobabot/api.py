@@ -36,11 +36,19 @@ class NotAvailableError(ApiError):
     pass
 
 
+class NotFoundError(ApiError):
+    pass
+
+
 class InvalidResponseError(ValueError):
     pass
 
 
 class InvalidSignatureError(ValueError):
+    pass
+
+
+class ResponseError(ValueError):
     pass
 
 
@@ -144,8 +152,7 @@ class API(contextlib.AbstractContextManager):
 
         if self.request_id != 1:
             # Emulate human behavior a little bit.
-            logger.debug('💤 Sleeping…')
-            sleep(random.uniform(5.0, 15.0))
+            self.sleep(random.uniform(5.0, 15.0))
 
         with self.session.post(self.API_URL, data=data, headers=headers) as response:
             self.last_responses.append(response.text)
@@ -160,7 +167,10 @@ class API(contextlib.AbstractContextManager):
                     raise InvalidResponseError(response.text) from e
 
         if 'results' in result:
-            return responses.Response.parse(result['results'][0]['result'])
+            response = responses.Response.parse(result['results'][0]['result'])
+            if 'error' in response.payload:
+                raise ResponseError(response.payload)
+            return response
         if 'error' in result:
             raise self.make_exception(result['error'])
         raise ValueError(result)
@@ -189,6 +199,7 @@ class API(contextlib.AbstractContextManager):
         'common\\rpc\\exception\\InvalidSession': InvalidSessionError,
         'NotEnough': NotEnoughError,
         'NotAvailable': NotAvailableError,
+        'NotFound': NotFoundError,
     }
 
     @classmethod
@@ -196,6 +207,11 @@ class API(contextlib.AbstractContextManager):
         name = error.get('name')
         description = error.get('description')
         return cls.exception_classes.get(name, ApiError)(name, description)
+
+    @staticmethod
+    def sleep(seconds: float):
+        logger.debug('💤 Sleeping for %.1f seconds…', seconds)
+        sleep(seconds)
 
     # User.
     # ------------------------------------------------------------------------------------------------------------------
@@ -288,7 +304,7 @@ class API(contextlib.AbstractContextManager):
     # ------------------------------------------------------------------------------------------------------------------
 
     # https://heroes.cdnvideo.ru/vk/v0312/lib/lib.json.gz
-    RECOMMENDED_HEROES: Dict[str, Set[types.HeroID]] = {
+    RECOMMENDED_HEROES: Dict[types.BossID, Set[types.HeroID]] = {
         '1': {'1', '4', '5', '6', '7', '9', '10', '12', '13', '17', '18', '21', '22', '23', '26', '29', '32', '33', '34', '35', '36'},
         '2': {'8', '14', '15', '19', '20', '30', '31'},
         '3': {'2', '3', '11', '16', '25', '24', '27', '28', '37', '38', '39', '40'},
@@ -315,10 +331,9 @@ class API(contextlib.AbstractContextManager):
                 'b': 0,
                 'attackers': {
                     'heroes': {hero_id: {'isDead': False, 'energy': 0, 'hp': 1} for hero_id in hero_ids},
-                    'input': ["auto", 0, 0, "auto", 0, 0],
+                    'input': ['auto', 0, 0, 'auto', 0, 0],
                 },
-              },
-            ],
+            }],
             'result': {'stars': 3, 'win': True},
         }).quests
 
