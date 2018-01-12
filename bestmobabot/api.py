@@ -139,6 +139,7 @@ class API(contextlib.AbstractContextManager):
         data = json.dumps({"session": None, "calls": calls})
         if self.api_log:
             print(data, file=self.api_log)
+            self.api_log.flush()
         headers = {
             'User-Agent': self.USER_AGENT,
             'X-Auth-Application-Id': '5327745',
