@@ -5,7 +5,7 @@ import random
 import re
 import string
 from time import sleep
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Set, TextIO, Tuple
 
 import requests
 
@@ -62,8 +62,9 @@ class API(contextlib.AbstractContextManager):
     API_URL = 'https://heroes-vk.nextersglobal.com/api/'
     USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Safari/537.36'
 
-    def __init__(self, remixsid: str):
+    def __init__(self, remixsid: str, api_log: Optional[TextIO]):
         self.remixsid = remixsid
+        self.api_log = api_log
         self.auth_token: str = None
         self.user_id: str = None
         self.request_id: int = None
@@ -136,6 +137,8 @@ class API(contextlib.AbstractContextManager):
 
         calls = [{'ident': name, 'name': name, 'args': arguments or {}}]
         data = json.dumps({"session": None, "calls": calls})
+        if self.api_log:
+            print(data, file=self.api_log)
         headers = {
             'User-Agent': self.USER_AGENT,
             'X-Auth-Application-Id': '5327745',
@@ -160,7 +163,9 @@ class API(contextlib.AbstractContextManager):
 
         logger.debug('🔔 #%s %s', self.request_id, data)
         with self.session.post(self.API_URL, data=data, headers=headers) as response:
-            self.last_responses.append(response.text)
+            self.last_responses.append(response.text.strip())
+            if self.api_log:
+                print(response.text.strip(), file=self.api_log)
             response.raise_for_status()
             try:
                 result = response.json()
@@ -329,6 +334,7 @@ class API(contextlib.AbstractContextManager):
         return responses.Battle.parse(self.call('bossAttack', {'bossId': boss_id, 'heroes': list(hero_ids)}).payload)
 
     def end_boss_battle(self, seed: int, hero_ids: Iterable[types.HeroID]) -> responses.Quests:
+        # FIXME: this doesn't work (still).
         return self.call('bossEndBattle', {
             'progress': [{
                 'seed': seed,

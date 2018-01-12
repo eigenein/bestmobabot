@@ -135,7 +135,7 @@ class Bot(contextlib.AbstractContextManager):
         except Exception as e:
             logger.critical('😱 Uncaught error.', exc_info=e)
             for result in self.api.last_responses:
-                logger.critical('💬 API result: %s', result.strip())
+                logger.critical('💬 API result: %s', result)
         else:
             logger.info('✅ Well done.')
 
