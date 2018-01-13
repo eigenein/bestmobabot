@@ -78,6 +78,7 @@ class Bot(contextlib.AbstractContextManager):
             self.user = self.api.get_user_info()
 
         self.tasks = [
+            Task(when=Task.at(hour=7, minute=30, tz=self.user.tz), execute=self.authenticate),
             # Stamina quests depend on player's time zone.
             Task(when=Task.at(hour=9, minute=30, tz=self.user.tz), execute=self.farm_quests),
             Task(when=Task.at(hour=14, minute=30, tz=self.user.tz), execute=self.farm_quests),
@@ -166,6 +167,12 @@ class Bot(contextlib.AbstractContextManager):
         """
         logger.info('🦆 %s', text)
         sleep(1.0)
+
+    def authenticate(self):
+        """
+        Заново заходит в игру, это нужно для появления ежедневных задач в событиях.
+        """
+        self.api.start(state=None)
 
     def farm_daily_bonus(self):
         """
