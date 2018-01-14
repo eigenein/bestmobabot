@@ -78,7 +78,7 @@ class Bot(contextlib.AbstractContextManager):
             self.user = self.api.get_user_info()
 
         self.tasks = [
-            Task(when=Task.at(hour=7, minute=30, tz=self.user.tz), execute=self.authenticate),
+            Task(when=Task.at(hour=11, minute=0, tz=self.user.tz), execute=self.authenticate),
             # Stamina quests depend on player's time zone.
             Task(when=Task.at(hour=9, minute=30, tz=self.user.tz), execute=self.farm_quests),
             Task(when=Task.at(hour=14, minute=30, tz=self.user.tz), execute=self.farm_quests),
