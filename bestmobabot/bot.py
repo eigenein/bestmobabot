@@ -90,7 +90,7 @@ class Bot(contextlib.AbstractContextManager):
             Task(next_run_at=Task.every_n_minutes(24 * 60 // 5, offset=timedelta(hours=-1)), execute=self.attack_arena),
             Task(next_run_at=Task.every_n_hours(6, offset=timedelta(minutes=15)), execute=self.farm_mail),
             Task(next_run_at=Task.every_n_hours(6, offset=timedelta(minutes=30)), execute=self.check_freebie),
-            Task(next_run_at=Task.at(hour=3, minute=0), execute=self.farm_expeditions),
+            Task(next_run_at=Task.every_n_hours(8), execute=self.farm_expeditions),
             Task(next_run_at=Task.at(hour=8, minute=0), execute=self.farm_daily_bonus),
             Task(next_run_at=Task.at(hour=8, minute=30), execute=self.buy_chest),
             Task(next_run_at=Task.at(hour=9, minute=0), execute=self.send_daily_gift),
