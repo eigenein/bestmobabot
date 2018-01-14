@@ -5,7 +5,7 @@ import random
 import re
 import string
 from time import sleep
-from typing import Any, Dict, Iterable, List, Optional, Set, TextIO, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 
 import requests
 
@@ -62,9 +62,8 @@ class API(contextlib.AbstractContextManager):
     API_URL = 'https://heroes-vk.nextersglobal.com/api/'
     USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Safari/537.36'
 
-    def __init__(self, remixsid: str, api_log: Optional[TextIO]):
+    def __init__(self, remixsid: str):
         self.remixsid = remixsid
-        self.api_log = api_log
         self.auth_token: str = None
         self.user_id: str = None
         self.request_id: int = None
@@ -135,11 +134,12 @@ class API(contextlib.AbstractContextManager):
         self.request_id += 1
         logger.info('🔔 #%s %s(%r)', self.request_id, name, arguments or {})
 
+        # Emulate human behavior a little bit.
+        if random_sleep and self.request_id != 1:
+            self.sleep(random.uniform(5.0, 15.0))
+
         calls = [{'ident': name, 'name': name, 'args': arguments or {}}]
         data = json.dumps({"session": None, "calls": calls})
-        if self.api_log:
-            print(data, file=self.api_log)
-            self.api_log.flush()
         headers = {
             'User-Agent': self.USER_AGENT,
             'X-Auth-Application-Id': '5327745',
@@ -158,14 +158,8 @@ class API(contextlib.AbstractContextManager):
             headers['X-Auth-Session-Init'] = '1'
         headers["X-Auth-Signature"] = self.sign_request(data, headers)
 
-        if random_sleep and self.request_id != 1:
-            # Emulate human behavior a little bit.
-            self.sleep(random.uniform(5.0, 15.0))
-
         with self.session.post(self.API_URL, data=data, headers=headers) as response:
             self.last_responses.append(response.text.strip())
-            if self.api_log:
-                print(response.text.strip(), file=self.api_log)
             response.raise_for_status()
             try:
                 result = response.json()
@@ -180,7 +174,7 @@ class API(contextlib.AbstractContextManager):
             response = responses.Response.parse(result['results'][0]['result'])
             if response.payload and 'error' in response.payload:
                 raise ResponseError(response.payload)
-            logger.debug('🔔 Ok! %s', response)
+            logger.info('🔔 Ok.')
             return response
         if 'error' in result:
             raise self.make_exception(result['error'])

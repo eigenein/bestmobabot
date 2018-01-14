@@ -15,17 +15,9 @@ from bestmobabot.logger import logger
 @click.option('-s', '--remixsid', help='VK.com remixsid cookie.', envvar='BESTMOBABOT_REMIXSID', required=True)
 @click.option('--no-experience', help='Do not farm experience.', envvar='BESTMOBABOT_NO_EXPERIENCE', is_flag=True)
 @click.option('--battle-log', help='Log battles results into JSON Lines file.', envvar='BESTMOBABOT_BATTLE_LOG', type=click.File('at'))
-@click.option('--api-log', help='Log full API requests and responses into JSON Lines file.', envvar='BESTMOBABOT_API_LOG', type=click.File('at'))
 @click.option('-v', '--verbose', help='Increase verbosity.', is_flag=True)
 @click.option('-l', '--log-file', help='Log file.', envvar='BESTMOBABOT_LOGFILE', type=click.File('at'), default=click.get_text_stream('stderr'))
-def main(
-    remixsid: str,
-    no_experience: bool,
-    battle_log: Optional[TextIO],
-    api_log: Optional[TextIO],
-    verbose: bool,
-    log_file: TextIO,
-):
+def main(remixsid: str, no_experience: bool, battle_log: Optional[TextIO], verbose: bool, log_file: TextIO):
     """
     Hero Wars bot.
     """
@@ -33,7 +25,7 @@ def main(
     coloredlogs.install(fmt='%(asctime)s %(levelname)s %(message)s', level=level, logger=logger, stream=log_file)
     logger.info('🤖 Bot is starting.')
 
-    with API(remixsid, api_log) as api:
+    with API(remixsid) as api:
         # Try to read cached state.
         state_path = Path(f'remixsid-{remixsid}.json')
         state = read_state(state_path)

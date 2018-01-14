@@ -100,7 +100,7 @@ class Bot(contextlib.AbstractContextManager):
             # Task(when=Task.every_n_minutes(1), execute=self.quack, args=('Quack 1!',)),
             # Task(when=Task.every_n_minutes(1), execute=self.quack, args=('Quack 2!',)),
             # Task(when=Task.fixed_time(hour=22, minute=14, tz=None), execute=self.quack, args=('Fixed time!',)),
-            # Task(when=Task.at(hour=12, minute=1), execute=self.attack_boss),
+            # Task(when=Task.at(hour=11, minute=15), execute=self.farm_quests),
         ]
 
     def run(self):
