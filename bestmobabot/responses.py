@@ -34,7 +34,7 @@ class User(NamedTuple):
             name=item['name'],
             tz=tz,
             clan_id=item.get('clanId'),
-            next_day=datetime.fromtimestamp(item['nextDayTs'], tz),
+            next_day=datetime.fromtimestamp(item.get('nextDayTs', 0), tz),
         )
 
     def is_from_clan(self, clan_id: Optional[str]) -> bool:
