@@ -1,4 +1,4 @@
-from datetime import timedelta, timezone, tzinfo
+from datetime import datetime, timedelta, timezone, tzinfo
 from typing import Any, Dict, List, NamedTuple, Optional
 
 from bestmobabot import types
@@ -22,16 +22,19 @@ class User(NamedTuple):
     name: str
     tz: tzinfo
     clan_id: types.ClanID
+    next_day: datetime
     item: Dict
 
     @staticmethod
     def parse(item: Dict) -> 'User':
+        tz = timezone(timedelta(hours=item.get('timeZone', 0)))
         return User(
             item=item,
             id=str(item['id']),
             name=item['name'],
-            tz=timezone(timedelta(hours=item.get('timeZone', 0))),
+            tz=tz,
             clan_id=item.get('clanId'),
+            next_day=datetime.fromtimestamp(item['nextDayTs'], tz),
         )
 
     def is_from_clan(self, clan_id: Optional[str]) -> bool:

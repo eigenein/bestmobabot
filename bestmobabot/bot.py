@@ -78,12 +78,15 @@ class Bot(contextlib.AbstractContextManager):
             self.user = self.api.get_user_info()
 
         self.tasks = [
-            Task(when=Task.at(hour=11, minute=0, tz=self.user.tz), execute=self.authenticate),
+            # Re-registration task.
+            Task(when=Task.at(hour=8, minute=0, tz=self.user.tz), execute=self.register),
+
             # Stamina quests depend on player's time zone.
             Task(when=Task.at(hour=9, minute=30, tz=self.user.tz), execute=self.farm_quests),
             Task(when=Task.at(hour=14, minute=30, tz=self.user.tz), execute=self.farm_quests),
             Task(when=Task.at(hour=21, minute=30, tz=self.user.tz), execute=self.farm_quests),
-            # Other quests are simultaneous for everyone. Day starts at 4:00 UTC.
+
+            # Other quests are simultaneous for everyone. Day starts at 3:00 UTC.
             Task(when=Task.every_n_minutes(24 * 60 // 5, offset=timedelta(hours=-1)), execute=self.attack_arena),
             Task(when=Task.every_n_hours(6, offset=timedelta(minutes=15)), execute=self.farm_mail),
             Task(when=Task.every_n_hours(6, offset=timedelta(minutes=30)), execute=self.check_freebie),
@@ -97,7 +100,6 @@ class Bot(contextlib.AbstractContextManager):
             # Task(when=Task.every_n_minutes(1), execute=self.quack, args=('Quack 1!',)),
             # Task(when=Task.every_n_minutes(1), execute=self.quack, args=('Quack 2!',)),
             # Task(when=Task.fixed_time(hour=22, minute=14, tz=None), execute=self.quack, args=('Fixed time!',)),
-
             # Task(when=Task.at(hour=12, minute=1), execute=self.attack_boss),
         ]
 
@@ -168,11 +170,12 @@ class Bot(contextlib.AbstractContextManager):
         logger.info('🦆 %s', text)
         sleep(1.0)
 
-    def authenticate(self):
+    def register(self):
         """
         Заново заходит в игру, это нужно для появления ежедневных задач в событиях.
         """
         self.api.start(state=None)
+        self.api.register()
 
     def farm_daily_bonus(self):
         """

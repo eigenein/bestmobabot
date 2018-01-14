@@ -162,7 +162,6 @@ class API(contextlib.AbstractContextManager):
             # Emulate human behavior a little bit.
             self.sleep(random.uniform(5.0, 15.0))
 
-        logger.debug('🔔 #%s %s', self.request_id, data)
         with self.session.post(self.API_URL, data=data, headers=headers) as response:
             self.last_responses.append(response.text.strip())
             if self.api_log:
@@ -181,6 +180,7 @@ class API(contextlib.AbstractContextManager):
             response = responses.Response.parse(result['results'][0]['result'])
             if response.payload and 'error' in response.payload:
                 raise ResponseError(response.payload)
+            logger.debug('🔔 Ok! %s', response)
             return response
         if 'error' in result:
             raise self.make_exception(result['error'])
@@ -227,6 +227,9 @@ class API(contextlib.AbstractContextManager):
 
     # User.
     # ------------------------------------------------------------------------------------------------------------------
+
+    def register(self):
+        self.call('registration', {'user': {'referrer': {'type': 'menu', 'id': '0'}}})
 
     def get_user_info(self) -> responses.User:
         return responses.User.parse(self.call('userGetInfo').payload)

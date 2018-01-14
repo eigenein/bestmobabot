@@ -42,6 +42,7 @@ def main(
         with Bot(api, no_experience, battle_log) as bot:
             bot.start(state)
             logger.info(f'👋 Welcome {bot.user.name}! Your game time is {datetime.now(bot.user.tz):%H:%M:%S}.')
+            logger.info('👋 Next day starts at %s.', bot.user.next_day)
             try:
                 bot.run()
             except KeyboardInterrupt:
