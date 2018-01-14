@@ -4,6 +4,7 @@ import json
 import random
 import re
 import string
+from datetime import datetime
 from time import sleep
 from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 
@@ -245,6 +246,10 @@ class API(contextlib.AbstractContextManager):
 
     def farm_expedition(self, expedition_id: types.ExpeditionID) -> responses.Reward:
         return responses.Reward.parse(self.call('expeditionFarm', {'expeditionId': expedition_id}).payload)
+
+    def send_expedition_heroes(self, expedition_id: types.ExpeditionID, hero_ids: types.HeroIDs) -> Tuple[datetime, responses.Quests]:
+        response = self.call('expeditionSendHeroes', {'expeditionId': expedition_id, 'heroes': list(hero_ids)})
+        return datetime.fromtimestamp(response.payload['endTime']).astimezone(), response.quests
 
     # Quests.
     # ------------------------------------------------------------------------------------------------------------------

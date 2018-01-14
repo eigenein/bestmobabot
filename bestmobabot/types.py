@@ -1,4 +1,4 @@
-from typing import NewType
+from typing import Iterable, NewType
 
 BossID = NewType('BossID', str)
 ClanID = NewType('ClanID', str)
@@ -14,3 +14,5 @@ QuestState = NewType('QuestState', int)
 Stamina = NewType('Stamina', int)
 StarMoney = NewType('StarMoney', int)
 UserID = NewType('UserID', str)
+
+HeroIDs = Iterable[HeroID]

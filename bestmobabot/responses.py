@@ -44,13 +44,30 @@ class User(NamedTuple):
 class Expedition(NamedTuple):
     id: types.ExpeditionID
     status: int
+    end_time: Optional[datetime]
+    power: int
+    duration: timedelta
+    hero_ids: types.HeroIDs
 
     @staticmethod
     def parse(item: Dict) -> 'Expedition':
+        end_time = datetime.fromtimestamp(item['endTime']).astimezone() if item.get('endTime') else None
         return Expedition(
             id=str(item['id']),
             status=item['status'],
+            end_time=end_time,
+            power=item['power'],
+            duration=timedelta(seconds=item['duration']),
+            hero_ids=[str(hero_id) for hero_id in item.get('heroes', [])],
         )
+
+    @property
+    def is_available(self) -> bool:
+        return self.status == 1
+
+    @property
+    def is_started(self) -> bool:
+        return self.status == 2
 
 
 class Reward(NamedTuple):
@@ -91,6 +108,10 @@ class Quest(NamedTuple):
             progress=item['progress'],
             reward=Reward.parse(item['reward']),
         )
+
+    @property
+    def is_reward_available(self) -> bool:
+        return self.state == 2
 
 
 Quests = List[Quest]

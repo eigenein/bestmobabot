@@ -4,43 +4,43 @@ from datetime import datetime, timedelta, timezone, tzinfo
 from time import sleep
 from typing import Any, Dict, Callable, Iterable, List, NamedTuple, Optional, Set, TextIO, Tuple, Union
 
-from bestmobabot import constants, responses
+from bestmobabot import responses, types
 from bestmobabot.api import AlreadyError, API, InvalidResponseError, NotEnoughError
 from bestmobabot.logger import logger
 from bestmobabot.vk import VK
 
-WhenCallable = Callable[[datetime], datetime]
+NextRunAtCallable = Callable[[datetime], datetime]
 
 
 class Task(NamedTuple):
-    when: WhenCallable
-    execute: Callable
+    next_run_at: NextRunAtCallable
+    execute: Callable[..., Optional[datetime]]
     args: Tuple = ()
 
     def __str__(self):
         return f'{self.execute.__name__}{self.args}'
 
     @staticmethod
-    def at(*, hour: int, minute: int, tz: Optional[tzinfo] = timezone.utc) -> WhenCallable:
-        def when(since: datetime) -> datetime:
+    def at(*, hour: int, minute: int, tz: Optional[tzinfo] = timezone.utc) -> NextRunAtCallable:
+        def next_run_at(since: datetime) -> datetime:
             since = since.astimezone(tz)
             upcoming = since.replace(hour=hour, minute=minute, second=0, microsecond=0)
             return upcoming if upcoming > since else upcoming + timedelta(days=1)
-        return when
+        return next_run_at
 
     @staticmethod
-    def every_n_seconds(seconds: float, *, tz: Optional[tzinfo] = timezone.utc, offset: timedelta = timedelta()) -> WhenCallable:
-        def when(since: datetime) -> datetime:
+    def every_n_seconds(seconds: float, *, tz: Optional[tzinfo] = timezone.utc, offset: timedelta = timedelta()) -> NextRunAtCallable:
+        def next_run_at(since: datetime) -> datetime:
             since = since.astimezone(tz)
             return since + timedelta(seconds=(seconds - (since.timestamp() - offset.total_seconds()) % seconds))
-        return when
+        return next_run_at
 
     @staticmethod
-    def every_n_minutes(minutes: float, *, tz: Optional[tzinfo] = timezone.utc, offset: timedelta = timedelta()) -> WhenCallable:
+    def every_n_minutes(minutes: float, *, tz: Optional[tzinfo] = timezone.utc, offset: timedelta = timedelta()) -> NextRunAtCallable:
         return Task.every_n_seconds(minutes * 60.0, tz=tz, offset=offset)
 
     @staticmethod
-    def every_n_hours(hours: float, *, tz: Optional[tzinfo] = timezone.utc, offset: timedelta = timedelta()) -> WhenCallable:
+    def every_n_hours(hours: float, *, tz: Optional[tzinfo] = timezone.utc, offset: timedelta = timedelta()) -> NextRunAtCallable:
         return Task.every_n_minutes(hours * 60.0, tz=tz, offset=offset)
 
 
@@ -79,59 +79,59 @@ class Bot(contextlib.AbstractContextManager):
 
         self.tasks = [
             # Re-registration task.
-            Task(when=Task.at(hour=8, minute=0, tz=self.user.tz), execute=self.register),
+            Task(next_run_at=Task.at(hour=8, minute=0, tz=self.user.tz), execute=self.register),
 
             # Stamina quests depend on player's time zone.
-            Task(when=Task.at(hour=9, minute=30, tz=self.user.tz), execute=self.farm_quests),
-            Task(when=Task.at(hour=14, minute=30, tz=self.user.tz), execute=self.farm_quests),
-            Task(when=Task.at(hour=21, minute=30, tz=self.user.tz), execute=self.farm_quests),
+            Task(next_run_at=Task.at(hour=9, minute=30, tz=self.user.tz), execute=self.farm_quests),
+            Task(next_run_at=Task.at(hour=14, minute=30, tz=self.user.tz), execute=self.farm_quests),
+            Task(next_run_at=Task.at(hour=21, minute=30, tz=self.user.tz), execute=self.farm_quests),
 
             # Other quests are simultaneous for everyone. Day starts at 3:00 UTC.
-            Task(when=Task.every_n_minutes(24 * 60 // 5, offset=timedelta(hours=-1)), execute=self.attack_arena),
-            Task(when=Task.every_n_hours(6, offset=timedelta(minutes=15)), execute=self.farm_mail),
-            Task(when=Task.every_n_hours(6, offset=timedelta(minutes=30)), execute=self.check_freebie),
-            Task(when=Task.at(hour=3, minute=0), execute=self.farm_expeditions),
-            Task(when=Task.at(hour=8, minute=0), execute=self.farm_daily_bonus),
-            Task(when=Task.at(hour=8, minute=30), execute=self.buy_chest),
-            Task(when=Task.at(hour=9, minute=0), execute=self.send_daily_gift),
-            Task(when=Task.at(hour=10, minute=0), execute=self.farm_zeppelin_gift),
+            Task(next_run_at=Task.every_n_minutes(24 * 60 // 5, offset=timedelta(hours=-1)), execute=self.attack_arena),
+            Task(next_run_at=Task.every_n_hours(6, offset=timedelta(minutes=15)), execute=self.farm_mail),
+            Task(next_run_at=Task.every_n_hours(6, offset=timedelta(minutes=30)), execute=self.check_freebie),
+            Task(next_run_at=Task.at(hour=3, minute=0), execute=self.farm_expeditions),
+            Task(next_run_at=Task.at(hour=8, minute=0), execute=self.farm_daily_bonus),
+            Task(next_run_at=Task.at(hour=8, minute=30), execute=self.buy_chest),
+            Task(next_run_at=Task.at(hour=9, minute=0), execute=self.send_daily_gift),
+            Task(next_run_at=Task.at(hour=10, minute=0), execute=self.farm_zeppelin_gift),
 
             # Debug tasks. Uncomment when needed.
-            # Task(when=Task.every_n_minutes(1), execute=self.quack, args=('Quack 1!',)),
-            # Task(when=Task.every_n_minutes(1), execute=self.quack, args=('Quack 2!',)),
-            # Task(when=Task.fixed_time(hour=22, minute=14, tz=None), execute=self.quack, args=('Fixed time!',)),
-            # Task(when=Task.at(hour=11, minute=15), execute=self.farm_quests),
+            # Task(next_run_at=Task.every_n_minutes(1), execute=self.quack, args=('Quack 1!',)),
+            # Task(next_run_at=Task.every_n_minutes(1), execute=self.quack, args=('Quack 2!',)),
+            # Task(next_run_at=Task.fixed_time(hour=22, minute=14, tz=None), execute=self.quack, args=('Fixed time!',)),
+            # Task(next_run_at=Task.at(hour=14, minute=25), execute=self.farm_expeditions),
         ]
 
     def run(self):
         # Initialise the execution time for each task.
         logger.info('🤖 Initialising task queue.')
         now = datetime.now().astimezone()
-        next_execution = [task.when(now) for task in self.tasks]
+        schedule = [task.next_run_at(now) for task in self.tasks]
 
         logger.info('🤖 Running task queue.')
         while True:
             # Find the earliest task.
-            when, index = min((when, index) for index, when in enumerate(next_execution))
+            run_at, index = min((run_at, index) for index, run_at in enumerate(schedule))
             task = self.tasks[index]
-            logger.info('💤 Next is %s at %s local time.', task, when.astimezone().strftime('%H:%M:%S'))
+            logger.info('💤 Next is %s at %s local time.', task, run_at.astimezone().strftime('%H:%M:%S'))
             # Sleep until the execution time.
-            sleep_time = (when - datetime.now().astimezone()).total_seconds()
+            sleep_time = (run_at - datetime.now().astimezone()).total_seconds()
             if sleep_time >= 0.0:
                 sleep(sleep_time)
             # Execute the task.
-            self.execute(task)
+            next_run_at = self.execute(task)
             # Update its execution time.
-            next_execution[index] = task.when(max(datetime.now().astimezone(), when + timedelta(seconds=1)))
+            schedule[index] = next_run_at or task.next_run_at(max(datetime.now().astimezone(), run_at + timedelta(seconds=1)))
 
-    def execute(self, task: Task):
+    def execute(self, task: Task) -> Optional[datetime]:
         self.api.last_responses.clear()
         try:
-            task.execute(*task.args)
+            next_run_at = task.execute(*task.args)
         except AlreadyError as e:
-            logger.info('🤔 Already done: %s.', e.description)
+            logger.error('🤔 Already done: %s.', e.description)
         except NotEnoughError as e:
-            logger.info('🤔 Not enough: %s.', e.description)
+            logger.error('🤔 Not enough: %s.', e.description)
         except InvalidResponseError as e:
             logger.error('😱 API returned something bad:')
             logger.error('😱 %s', e)
@@ -141,6 +141,7 @@ class Bot(contextlib.AbstractContextManager):
                 logger.critical('💬 API result: %s', result)
         else:
             logger.info('✅ Well done.')
+            return next_run_at
 
     @staticmethod
     def print_reward(reward: responses.Reward):
@@ -158,6 +159,17 @@ class Bot(contextlib.AbstractContextManager):
     @staticmethod
     def get_item(response: Union[responses.User, responses.Hero]) -> Dict:
         return response.item
+
+    @staticmethod
+    def get_duration(expedition: responses.Expedition) -> timedelta:
+        return expedition.duration
+
+    def get_most_powerful_team(self, heroes: Iterable[responses.Hero]) -> List[responses.Hero]:
+        return sorted(heroes, key=self.get_power, reverse=True)[:5]
+
+    @staticmethod
+    def get_hero_ids(heroes: Iterable[responses.Hero]) -> types.HeroIDs:
+        return [hero.id for hero in heroes]
 
     # Actual tasks.
     # ------------------------------------------------------------------------------------------------------------------
@@ -184,15 +196,57 @@ class Bot(contextlib.AbstractContextManager):
         logger.info('💰 Farming daily bonus…')
         self.print_reward(self.api.farm_daily_bonus())
 
-    def farm_expeditions(self):
+    def farm_expeditions(self) -> Optional[datetime]:
         """
         Собирает награду с экспедиций в дирижабле.
         """
+        now = datetime.now().astimezone()
+
         logger.info('💰 Farming expeditions…')
         expeditions = self.api.list_expeditions()
         for expedition in expeditions:
-            if expedition.status == constants.EXPEDITION_COLLECT_REWARD:
+            if expedition.is_started and expedition.end_time < now:
                 self.print_reward(self.api.farm_expedition(expedition.id))
+
+        return self.send_expedition()  # farm expeditions once finished
+
+    def send_expedition(self) -> Optional[datetime]:
+        logger.info('👊 Sending an expedition…')
+
+        # Check started expeditions.
+        expeditions = self.api.list_expeditions()
+        for expedition in expeditions:
+            if expedition.is_started:
+                logger.info('✅ Started expedition ends at %s.', expedition.end_time)
+                return expedition.end_time
+
+        # Get all busy heroes.
+        busy_hero_ids = set.union(*(set(expedition.hero_ids) for expedition in expeditions))
+        logger.info('👊 Busy heroes: %s.', busy_hero_ids)
+
+        # Choose the most powerful available heroes.
+        heroes = self.get_most_powerful_team(hero for hero in self.api.get_all_heroes() if hero.id not in busy_hero_ids)
+        if not heroes:
+            logger.info('✅ No heroes available.')
+            return None
+        team_power = sum(hero.power for hero in heroes)
+
+        # Find available expeditions.
+        expeditions = [
+            expedition
+            for expedition in self.api.list_expeditions()
+            if expedition.is_available and expedition.power <= team_power
+        ]
+        if not expeditions:
+            logger.info('✅ No expeditions available.')
+            return None
+        expedition = min(expeditions, key=self.get_duration)  # choose the fastest expedition
+
+        # Send the expedition.
+        end_time, quests = self.api.send_expedition_heroes(expedition.id, self.get_hero_ids(heroes))
+        logger.info('⏰ The expedition ends at %s.', end_time)
+        self.farm_quests(quests)
+        return end_time
 
     def farm_quests(self, quests: responses.Quests = None):
         """
@@ -202,7 +256,7 @@ class Bot(contextlib.AbstractContextManager):
         if quests is None:
             quests = self.api.get_all_quests()
         for quest in quests:
-            if quest.state != constants.QUEST_COLLECT_REWARD:
+            if not quest.is_reward_available:
                 continue
             if self.no_experience and quest.reward.experience:
                 logger.warning('🙈 Ignoring %s experience reward for quest %s.', quest.reward.experience, quest.id)
@@ -232,7 +286,7 @@ class Bot(contextlib.AbstractContextManager):
         Отправляет сердечки друзьям.
         """
         logger.info('🎁 Sending daily gift…')
-        self.farm_quests(self.api.send_daily_gift(['15664420', '209336881', '386801200']))
+        self.farm_quests(self.api.send_daily_gift(['15664420', '209336881', '386801200', '386796029']))
 
     def attack_arena(self):
         """
@@ -247,11 +301,9 @@ class Bot(contextlib.AbstractContextManager):
             if enemy.user is not None and not enemy.user.is_from_clan(self.user.clan_id)
         ], key=self.get_power)
 
-        # Find the most powerful heroes.
-        heroes = sorted(self.api.get_all_heroes(), key=self.get_power, reverse=True)[:5]
-
         # Attack and collect results.
-        result, quests = self.api.attack_arena(enemy.user.id, [hero.id for hero in heroes])
+        heroes = self.get_most_powerful_team(self.api.get_all_heroes())
+        result, quests = self.api.attack_arena(enemy.user.id, self.get_hero_ids(heroes))
         battle = result.battles[0]
         if result.win:
             logger.info('🎉 %s %s ➡ %s', '⭐' * battle.stars, battle.old_place, battle.new_place)
@@ -324,7 +376,7 @@ class Bot(contextlib.AbstractContextManager):
             return
 
         # Attack boss.
-        hero_ids = [hero.id for hero in heroes]
+        hero_ids = self.get_hero_ids(heroes)
         battle = self.api.attack_boss(boss.id, hero_ids)
         logger.warning('👊 Seed %s.', battle.seed)
         self.api.sleep(20.0)
