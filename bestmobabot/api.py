@@ -242,7 +242,7 @@ class API(contextlib.AbstractContextManager):
     # ------------------------------------------------------------------------------------------------------------------
 
     def list_expeditions(self) -> List[responses.Expedition]:
-        return list(map(responses.Expedition.parse, self.call('expeditionGet').payload.values()))
+        return list(map(responses.Expedition.parse, self.call('expeditionGet').payload))
 
     def farm_expedition(self, expedition_id: types.ExpeditionID) -> responses.Reward:
         return responses.Reward.parse(self.call('expeditionFarm', {'expeditionId': expedition_id}).payload)
