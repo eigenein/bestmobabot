@@ -132,12 +132,12 @@ class API(contextlib.AbstractContextManager):
             return self._call(name, arguments=arguments, random_sleep=random_sleep)
 
     def _call(self, name: str, *, arguments: Optional[Dict[str, Any]] = None, random_sleep=True) -> responses.Response:
-        self.request_id += 1
-        logger.info('🔔 #%s %s(%r)', self.request_id, name, arguments or {})
-
         # Emulate human behavior a little bit.
         if random_sleep and self.request_id != 1:
             self.sleep(random.uniform(5.0, 15.0))
+
+        self.request_id += 1
+        logger.info('🔔 #%s %s(%r)', self.request_id, name, arguments or {})
 
         calls = [{'ident': name, 'name': name, 'args': arguments or {}}]
         data = json.dumps({"session": None, "calls": calls})
@@ -167,15 +167,14 @@ class API(contextlib.AbstractContextManager):
             except ValueError as e:
                 result = {}  # just for PyCharm
                 if response.text == 'Invalid signature':
-                    raise InvalidSignatureError(response.text) from e
+                    raise InvalidSignatureError(response.text)
                 else:
-                    raise InvalidResponseError(response.text) from e
+                    raise InvalidResponseError(response.text)
 
         if 'results' in result:
             response = responses.Response.parse(result['results'][0]['result'])
             if response.payload and 'error' in response.payload:
                 raise ResponseError(response.payload)
-            logger.info('🔔 Ok.')
             return response
         if 'error' in result:
             raise self.make_exception(result['error'])

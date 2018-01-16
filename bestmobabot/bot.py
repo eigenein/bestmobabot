@@ -29,19 +29,18 @@ class Task(NamedTuple):
         return next_run_at
 
     @staticmethod
-    def every_n_seconds(seconds: float, *, tz: Optional[tzinfo] = timezone.utc, offset: timedelta = timedelta()) -> NextRunAtCallable:
+    def every_n_seconds(seconds: float, *, offset: timedelta = timedelta()) -> NextRunAtCallable:
         def next_run_at(since: datetime) -> datetime:
-            since = since.astimezone(tz)
             return since + timedelta(seconds=(seconds - (since.timestamp() - offset.total_seconds()) % seconds))
         return next_run_at
 
     @staticmethod
-    def every_n_minutes(minutes: float, *, tz: Optional[tzinfo] = timezone.utc, offset: timedelta = timedelta()) -> NextRunAtCallable:
-        return Task.every_n_seconds(minutes * 60.0, tz=tz, offset=offset)
+    def every_n_minutes(minutes: float, *, offset: timedelta = timedelta()) -> NextRunAtCallable:
+        return Task.every_n_seconds(minutes * 60.0, offset=offset)
 
     @staticmethod
-    def every_n_hours(hours: float, *, tz: Optional[tzinfo] = timezone.utc, offset: timedelta = timedelta()) -> NextRunAtCallable:
-        return Task.every_n_minutes(hours * 60.0, tz=tz, offset=offset)
+    def every_n_hours(hours: float, *, offset: timedelta = timedelta()) -> NextRunAtCallable:
+        return Task.every_n_minutes(hours * 60.0, offset=offset)
 
 
 class Bot(contextlib.AbstractContextManager):
@@ -104,25 +103,30 @@ class Bot(contextlib.AbstractContextManager):
         ]
 
     def run(self):
-        # Initialise the execution time for each task.
         logger.info('🤖 Initialising task queue.')
-        now = datetime.now().astimezone()
-        schedule = [task.next_run_at(now) for task in self.tasks]
+        now = self.now()
+        schedule = [task.next_run_at(now).astimezone() for task in self.tasks]
 
         logger.info('🤖 Running task queue.')
         while True:
             # Find the earliest task.
             run_at, index = min((run_at, index) for index, run_at in enumerate(schedule))
             task = self.tasks[index]
-            logger.info('💤 Next is %s at %s local time.', task, run_at.astimezone().strftime('%H:%M:%S'))
+            logger.info('💤 Next is %s at %s.', task, run_at.strftime('%H:%M:%S'))
             # Sleep until the execution time.
-            sleep_time = (run_at - datetime.now().astimezone()).total_seconds()
+            sleep_time = (run_at - self.now()).total_seconds()
             if sleep_time >= 0.0:
                 sleep(sleep_time)
             # Execute the task.
-            next_run_at = self.execute(task)
+            next_run_at = self.execute(task) or task.next_run_at(max(self.now(), run_at + timedelta(seconds=1)))
+            next_run_at = next_run_at.astimezone()  # keeping them in the local time zone
             # Update its execution time.
-            schedule[index] = next_run_at or task.next_run_at(max(datetime.now().astimezone(), run_at + timedelta(seconds=1)))
+            logger.info('💤 Next run at %s.', next_run_at.strftime('%H:%M:%S'))
+            schedule[index] = next_run_at
+
+    @staticmethod
+    def now():
+        return datetime.now().astimezone()
 
     def execute(self, task: Task) -> Optional[datetime]:
         self.api.last_responses.clear()
@@ -200,7 +204,7 @@ class Bot(contextlib.AbstractContextManager):
         """
         Собирает награду с экспедиций в дирижабле.
         """
-        now = datetime.now().astimezone()
+        now = self.now()
 
         logger.info('💰 Farming expeditions…')
         expeditions = self.api.list_expeditions()
