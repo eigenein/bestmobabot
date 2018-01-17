@@ -9,6 +9,7 @@ from time import sleep
 from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 
 import requests
+from requests.adapters import HTTPAdapter
 
 from bestmobabot import responses, types
 from bestmobabot.logger import logger
@@ -70,6 +71,7 @@ class API(contextlib.AbstractContextManager):
         self.request_id: int = None
         self.session_id: str = None
         self.session = requests.Session()
+        self.session.mount('https://', HTTPAdapter(max_retries=5))
 
         # Store last API results for debugging.
         self.last_responses: List[str] = []
