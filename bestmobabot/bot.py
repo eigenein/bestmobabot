@@ -330,6 +330,7 @@ class Bot(contextlib.AbstractContextManager):
             if replay.id in self.logged_replay_ids:
                 continue
             print(json.dumps({
+                'replay_id': replay.id,
                 'win': replay.win,
                 'attackers': [hero.dump() for hero in replay.attackers],
                 'defenders': [hero.dump() for defenders in replay.defenders for hero in defenders],
