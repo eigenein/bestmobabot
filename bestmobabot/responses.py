@@ -144,6 +144,14 @@ class Hero(NamedTuple):
             item=item,
         )
 
+    def dump(self) -> dict:
+        return {
+            'id': self.id,
+            'level': self.level,
+            'color': self.color,
+            'star': self.star,
+        }
+
 
 class ArenaEnemy(NamedTuple):
     user_id: types.UserID
@@ -222,3 +230,21 @@ class Battle(NamedTuple):
     @staticmethod
     def parse(item: Dict) -> 'Battle':
         return Battle(seed=item['seed'])
+
+
+class Replay(NamedTuple):
+    id: types.ReplayID
+    win: bool
+    stars: int
+    attackers: List[Hero]
+    defenders: List[List[Hero]]
+
+    @staticmethod
+    def parse(item: Dict) -> 'Replay':
+        return Replay(
+            id=item['id'],
+            win=item['result']['win'],
+            stars=item['result']['stars'],
+            attackers=list(map(Hero.parse, item['attackers'].values())),
+            defenders=[list(map(Hero.parse, defenders.values())) for defenders in item['defenders']],
+        )

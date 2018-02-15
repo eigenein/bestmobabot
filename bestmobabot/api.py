@@ -314,7 +314,14 @@ class API(contextlib.AbstractContextManager):
         payload = self.call('artifactChestOpen', {'amount': amount, 'free': is_free}).payload
         return list(map(responses.Reward.parse, payload['chestReward']))
 
-    # Boss.
+    # Battles.
+    # ------------------------------------------------------------------------------------------------------------------
+
+    def get_battle_by_type(self, type_='arena', offset=0, limit=20) -> List[responses.Replay]:
+        payload = self.call('battleGetByType', {'type': type_, 'offset': offset, 'limit': limit}).payload
+        return list(map(responses.Replay.parse, payload['replays']))
+
+    # Boss. Doesn't work.
     # https://github.com/eigenein/bestmobabot/wiki/Boss
     # ------------------------------------------------------------------------------------------------------------------
 

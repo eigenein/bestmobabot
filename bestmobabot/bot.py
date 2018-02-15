@@ -53,6 +53,7 @@ class Bot(contextlib.AbstractContextManager):
         self.vk = VK()
         self.user: responses.User = None
         self.collected_gift_ids: Set[str] = set()
+        self.logged_replay_ids: Set[str] = set()
         self.tasks: List[Task] = []
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -64,6 +65,7 @@ class Bot(contextlib.AbstractContextManager):
         return {
             'user': json.dumps(self.user.item),
             'collected_gift_ids': list(self.collected_gift_ids),
+            'logged_replay_ids': list(self.logged_replay_ids),
             'description': {
                 'name': self.user.name,
             },
@@ -73,6 +75,7 @@ class Bot(contextlib.AbstractContextManager):
         if state:
             self.user = responses.User.parse(json.loads(state['user']))
             self.collected_gift_ids = set(state['collected_gift_ids'])
+            self.logged_replay_ids = set(state.get('logged_replay_ids', []))
         else:
             self.user = self.api.get_user_info()
 
@@ -98,9 +101,11 @@ class Bot(contextlib.AbstractContextManager):
             # Debug tasks. Uncomment when needed.
             # Task(next_run_at=Task.every_n_minutes(1), execute=self.quack, args=('Quack 1!',)),
             # Task(next_run_at=Task.every_n_minutes(1), execute=self.quack, args=('Quack 2!',)),
-            # Task(next_run_at=Task.fixed_time(hour=22, minute=14, tz=None), execute=self.quack, args=('Fixed time!',)),
+            # Task(next_run_at=Task.at(hour=22, minute=14, tz=None), execute=self.quack, args=('Fixed time!',)),
             # Task(next_run_at=Task.at(hour=14, minute=25), execute=self.farm_expeditions),
         ]
+        if self.battle_log:
+            self.tasks.append(Task(next_run_at=Task.every_n_hours(12), execute=self.get_arena_replays))
 
     def run(self):
         logger.info('🤖 Initialising task queue.')
@@ -316,15 +321,22 @@ class Bot(contextlib.AbstractContextManager):
         self.print_reward(result.reward)
         self.farm_quests(quests)
 
-        # Save battle result.
-        if self.battle_log:
+    def get_arena_replays(self):
+        """
+        Читает и сохраняет журнал арены.
+        """
+        logger.info('📒 Reading arena log…')
+        for replay in self.api.get_battle_by_type():
+            if replay.id in self.logged_replay_ids:
+                continue
             print(json.dumps({
-                'win': result.win,
-                'stars': battle.stars,
-                'player': [self.get_item(hero) for hero in heroes],
-                'enemies': [self.get_item(hero) for hero in enemy.heroes],
+                'win': replay.win,
+                'attackers': [hero.dump() for hero in replay.attackers],
+                'defenders': [hero.dump() for defenders in replay.defenders for hero in defenders],
             }), file=self.battle_log)
             self.battle_log.flush()
+            self.logged_replay_ids.add(replay.id)
+            logger.info('📒 Saved %s.', replay.id)
 
     def check_freebie(self):
         """
