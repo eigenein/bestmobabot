@@ -321,7 +321,15 @@ class API(contextlib.AbstractContextManager):
         payload = self.call('battleGetByType', {'type': type_, 'offset': offset, 'limit': limit}).payload
         return list(map(responses.Replay.parse, payload['replays']))
 
-    # Boss. Doesn't work.
+    # Raids.
+    # https://github.com/eigenein/bestmobabot/wiki/Raids
+    # ------------------------------------------------------------------------------------------------------------------
+
+    def raid_mission(self, mission_id: types.MissionID, times=1) -> List[responses.Reward]:
+        payload = self.call('missionRaid', {'times': times, 'id': mission_id}).payload
+        return list(map(responses.Reward.parse, payload.values()))
+
+    # Boss.
     # https://github.com/eigenein/bestmobabot/wiki/Boss
     # ------------------------------------------------------------------------------------------------------------------
 
@@ -343,22 +351,6 @@ class API(contextlib.AbstractContextManager):
 
     def attack_boss(self, boss_id: types.BossID, hero_ids: Iterable[types.HeroID]) -> responses.Battle:
         return responses.Battle.parse(self.call('bossAttack', {'bossId': boss_id, 'heroes': list(hero_ids)}).payload)
-
-    def end_boss_battle(self, seed: int, hero_ids: Iterable[types.HeroID]) -> responses.Quests:
-        # FIXME: this doesn't work (still).
-        return self.call('bossEndBattle', {
-            'progress': [{
-                'seed': seed,
-                'v': 123,
-                'defenders': {'heroes': {}, 'input': []},
-                'b': 0,
-                'attackers': {
-                    'heroes': {hero_id: {'isDead': False, 'energy': 0, 'hp': 1} for hero_id in hero_ids},
-                    'input': ['auto', 0, 0, 'auto', 0, 0],
-                },
-            }],
-            'result': {'stars': 3, 'win': True},
-        }, random_sleep=False).quests
 
     def open_boss_chest(self, boss_id: types.BossID) -> Tuple[responses.Reward, responses.Quests]:
         response = self.call('bossOpenChest', {'bossId': boss_id})

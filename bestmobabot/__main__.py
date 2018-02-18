@@ -1,7 +1,7 @@
 import json
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, Optional, TextIO
+from typing import Dict, Optional, TextIO, Tuple
 
 import click
 import coloredlogs
@@ -14,10 +14,18 @@ from bestmobabot.logger import logger
 @click.command()
 @click.option('-s', '--remixsid', help='VK.com remixsid cookie.', envvar='BESTMOBABOT_REMIXSID', required=True)
 @click.option('--no-experience', help='Do not farm experience.', envvar='BESTMOBABOT_NO_EXPERIENCE', is_flag=True)
+@click.option('raids', '--raid', help='Raid the mission specified by its ID and number of raids per day.', envvar='BESTMOBABOT_RAID', type=(str, int), multiple=True)
 @click.option('--battle-log', help='Log battles results into JSON Lines file.', envvar='BESTMOBABOT_BATTLE_LOG', type=click.File('at'))
 @click.option('-v', '--verbose', help='Increase verbosity.', is_flag=True)
 @click.option('-l', '--log-file', help='Log file.', envvar='BESTMOBABOT_LOGFILE', type=click.File('at'), default=click.get_text_stream('stderr'))
-def main(remixsid: str, no_experience: bool, battle_log: Optional[TextIO], verbose: bool, log_file: TextIO):
+def main(
+    remixsid: str,
+    no_experience: bool,
+    raids: Tuple[Tuple[str, int], ...],
+    battle_log: Optional[TextIO],
+    verbose: bool,
+    log_file: TextIO,
+):
     """
     Hero Wars bot.
     """
@@ -31,7 +39,7 @@ def main(remixsid: str, no_experience: bool, battle_log: Optional[TextIO], verbo
         state = read_state(state_path)
         # Start the bot.
         api.start(state)
-        with Bot(api, no_experience, battle_log) as bot:
+        with Bot(api, no_experience, list(raids), battle_log) as bot:
             bot.start(state)
             logger.info(f'👋 Welcome {bot.user.name}! Your game time is {datetime.now(bot.user.tz):%H:%M:%S}.')
             logger.info('👋 Next day starts at %s.', bot.user.next_day)

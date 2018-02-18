@@ -46,10 +46,12 @@ class Task(NamedTuple):
 class Bot(contextlib.AbstractContextManager):
     MAX_OPEN_ARTIFACT_CHESTS = 5
 
-    def __init__(self, api: API, no_experience: bool, battle_log: Optional[TextIO]):
+    def __init__(self, api: API, no_experience: bool, raids: List[Tuple[str, int]], battle_log: Optional[TextIO]):
         self.api = api
         self.no_experience = no_experience
+        self.raids = raids
         self.battle_log = battle_log
+
         self.vk = VK()
         self.user: responses.User = None
         self.collected_gift_ids: Set[str] = set()
@@ -104,6 +106,9 @@ class Bot(contextlib.AbstractContextManager):
             # Task(next_run_at=Task.at(hour=22, minute=14, tz=None), execute=self.quack, args=('Fixed time!',)),
             # Task(next_run_at=Task.at(hour=14, minute=25), execute=self.farm_expeditions),
         ]
+        for mission_id, number in self.raids:
+            task = Task(next_run_at=Task.every_n_hours(24 / number), execute=self.raid_mission, args=(mission_id,))
+            self.tasks.append(task)
         if self.battle_log:
             self.tasks.append(Task(next_run_at=Task.every_n_hours(12), execute=self.get_arena_replays))
 
@@ -372,6 +377,14 @@ class Bot(contextlib.AbstractContextManager):
         else:
             logger.info('💬 All chests have been opened.')
 
+    def raid_mission(self, mission_id: str):
+        """
+        Ходит в рейд в миссию в кампании за предметами.
+        """
+        logger.info('👊 Raid mission #%s…', mission_id)
+        self.print_rewards(self.api.raid_mission(mission_id))
+
+    '''
     def attack_boss(self):
         """
         Выполняет бой в Запределье.
@@ -404,3 +417,4 @@ class Bot(contextlib.AbstractContextManager):
         reward, quests = self.api.open_boss_chest(boss.id)
         self.print_reward(reward)
         self.farm_quests(quests)
+    '''
