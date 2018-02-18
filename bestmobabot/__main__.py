@@ -1,4 +1,5 @@
 import json
+import signal
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, Optional, TextIO, Tuple
@@ -29,6 +30,7 @@ def main(
     """
     Hero Wars bot.
     """
+    signal.signal(signal.SIGTERM, handle_sigterm)
     level = 'DEBUG' if verbose else 'INFO'
     coloredlogs.install(fmt='%(asctime)s %(levelname)s %(message)s', level=level, logger=logger, stream=log_file)
     logger.info('🤖 Bot is starting.')
@@ -66,6 +68,11 @@ def read_state(path: Path) -> Optional[Dict]:
         logger.warning('😐 Saved state is too old.')
         return None
     return state
+
+
+# noinspection PyUnusedLocal
+def handle_sigterm(signum, frame):
+    raise KeyboardInterrupt
 
 
 if __name__ == '__main__':
