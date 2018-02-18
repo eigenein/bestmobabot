@@ -3,15 +3,14 @@ MAINTAINER Pavel Perestoronin <eigenein@gmail.com>
 
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
+ENV PYTHONPATH=/opt/bestmobabot:$PYTHONPATH
 
 RUN apt update && apt -y install python3.6 python3-pip
-
 COPY . /opt/bestmobabot
-WORKDIR /opt/bestmobabot
-
-RUN python3.6 -m pip install -r requirements.txt
+RUN python3.6 -m pip install -r /opt/bestmobabot/requirements.txt
 
 RUN mkdir -p /srv/bestmobabot
 VOLUME /srv/bestmobabot
+WORKDIR /srv/bestmobabot
 
 CMD ["python3.6", "-m", "bestmobabot", "-v"]
