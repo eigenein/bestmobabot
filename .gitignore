@@ -1,7 +1,6 @@
 *.env
 *.log
 remixsid-*.json
-*.jsonl
 
 # Created by https://www.gitignore.io/api/macos,python,jetbrains,virtualenv,jupyternotebook
 
