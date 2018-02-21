@@ -1,3 +1,7 @@
+"""
+The bot logic.
+"""
+
 import contextlib
 import json
 from datetime import datetime, timedelta, timezone, tzinfo

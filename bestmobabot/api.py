@@ -1,3 +1,7 @@
+"""
+Game API wrapper.
+"""
+
 import contextlib
 import hashlib
 import json

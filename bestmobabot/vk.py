@@ -1,3 +1,7 @@
+"""
+VK.com API wrapper.
+"""
+
 import contextlib
 import re
 from typing import Any, Dict, Iterable

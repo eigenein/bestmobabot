@@ -1,3 +1,7 @@
+"""
+Logger initialisation.
+"""
+
 import logging
 
 

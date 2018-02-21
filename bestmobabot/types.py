@@ -1,3 +1,7 @@
+"""
+Game API parameter types.
+"""
+
 from typing import Iterable, NewType
 
 BossID = NewType('BossID', str)

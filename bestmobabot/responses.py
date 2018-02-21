@@ -1,3 +1,7 @@
+"""
+Game API response wrappers.
+"""
+
 from datetime import datetime, timedelta, timezone, tzinfo
 from typing import Any, Dict, List, NamedTuple, Optional
 
