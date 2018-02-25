@@ -321,8 +321,8 @@ class API(contextlib.AbstractContextManager):
     # Battles.
     # ------------------------------------------------------------------------------------------------------------------
 
-    def get_battle_by_type(self, type_='arena', offset=0, limit=20) -> List[responses.Replay]:
-        payload = self.call('battleGetByType', {'type': type_, 'offset': offset, 'limit': limit}).payload
+    def get_battle_by_type(self, battle_type: types.BattleType, offset=0, limit=20) -> List[responses.Replay]:
+        payload = self.call('battleGetByType', {'type': battle_type.value, 'offset': offset, 'limit': limit}).payload
         return list(map(responses.Replay.parse, payload['replays']))
 
     # Raids.

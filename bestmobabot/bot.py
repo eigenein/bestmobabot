@@ -5,6 +5,7 @@ The bot logic.
 import contextlib
 import json
 from datetime import datetime, timedelta, timezone, tzinfo
+from itertools import chain
 from time import sleep
 from typing import Any, Dict, Callable, Iterable, List, NamedTuple, Optional, Set, TextIO, Tuple, Union
 
@@ -332,10 +333,14 @@ class Bot(contextlib.AbstractContextManager):
 
     def get_arena_replays(self):
         """
-        Читает и сохраняет журнал арены.
+        Читает и сохраняет журналы арен.
         """
-        logger.info('📒 Reading arena log…')
-        for replay in self.api.get_battle_by_type():
+        logger.info('📒 Reading arena logs…')
+        replays: List[responses.Replay] = list(chain(
+            self.api.get_battle_by_type(types.BattleType.ARENA),
+            self.api.get_battle_by_type(types.BattleType.GRAND),
+        ))
+        for replay in replays:
             if replay.id in self.logged_replay_ids:
                 continue
             print(json.dumps({
