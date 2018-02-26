@@ -3,13 +3,17 @@ The bot logic.
 """
 
 import contextlib
+import itertools
 import json
 from datetime import datetime, timedelta, timezone, tzinfo
 from itertools import chain
+from operator import itemgetter
 from time import sleep
 from typing import Any, Dict, Callable, Iterable, List, NamedTuple, Optional, Set, TextIO, Tuple, Union
 
-from bestmobabot import responses, types
+import numpy
+
+from bestmobabot import model, responses, types
 from bestmobabot.api import AlreadyError, API, InvalidResponseError, NotEnoughError
 from bestmobabot.logger import logger
 from bestmobabot.vk import VK
@@ -51,9 +55,17 @@ class Task(NamedTuple):
 class Bot(contextlib.AbstractContextManager):
     MAX_OPEN_ARTIFACT_CHESTS = 5
 
-    def __init__(self, api: API, no_experience: bool, raids: List[Tuple[str, int]], battle_log: Optional[TextIO]):
+    def __init__(
+        self,
+        api: API,
+        no_experience: bool,
+        with_model: bool,
+        raids: List[Tuple[str, int]],
+        battle_log: Optional[TextIO],
+    ):
         self.api = api
         self.no_experience = no_experience
+        self.with_model = with_model
         self.raids = raids
         self.battle_log = battle_log
 
@@ -183,12 +195,34 @@ class Bot(contextlib.AbstractContextManager):
     def get_duration(expedition: responses.Expedition) -> timedelta:
         return expedition.duration
 
-    def get_most_powerful_team(self, heroes: Iterable[responses.Hero]) -> List[responses.Hero]:
-        return sorted(heroes, key=self.get_power, reverse=True)[:5]
-
     @staticmethod
     def get_hero_ids(heroes: Iterable[responses.Hero]) -> types.HeroIDs:
         return [hero.id for hero in heroes]
+
+    @staticmethod
+    def get_most_powerful_team(heroes: Iterable[responses.Hero]) -> List[responses.Hero]:
+        return sorted(heroes, key=Bot.get_power, reverse=True)[:5]
+
+    @staticmethod
+    def select_attackers(heroes: Iterable[responses.Hero], defenders: Iterable[responses.Hero]) -> (float, Iterable[responses.Hero]):
+        logger.info('👊 Defenders:')
+        for defender in defenders:
+            logger.info('👊 %s', defender)
+        attackers_list: List[Tuple[responses.Hero, ...]] = list(itertools.combinations(heroes, 5))
+        x = numpy.array([Bot.get_features(attackers) for attackers in attackers_list])
+        x -= Bot.get_features(defenders)
+        y: numpy.ndarray = model.MODEL.predict_proba(x)[:, 1]
+        index = y.argmax()
+        logger.info('👊 Selected attackers:')
+        for attacker in attackers_list[index]:
+            logger.info('👊 %s', attacker)
+        logger.info('👊 Probability: %.0f%%', y[index] * 100.0)
+        return y[index], attackers_list[index]
+
+    @staticmethod
+    def get_features(heroes: Iterable[responses.Hero]) -> numpy.ndarray:
+        features = {key: value for hero in heroes for key, value in hero.features}
+        return numpy.array([features[key] for key in model.FEATURE_NAMES])
 
     # Actual tasks.
     # ------------------------------------------------------------------------------------------------------------------
@@ -313,16 +347,25 @@ class Bot(contextlib.AbstractContextManager):
         """
         logger.info('👊 Attacking arena…')
 
-        # Find the best enemy.
-        enemy = min([
+        # Filter out bad enemies.
+        enemies = [
             enemy
             for enemy in self.api.find_arena_enemies()
             if enemy.user is not None and not enemy.user.is_from_clan(self.user.clan_id)
-        ], key=self.get_power)
+        ]
 
-        # Attack and collect results.
-        heroes = self.get_most_powerful_team(self.api.get_all_heroes())
-        result, quests = self.api.attack_arena(enemy.user.id, self.get_hero_ids(heroes))
+        # Pick an enemy and select attackers.
+        heroes = self.api.get_all_heroes()
+        if not self.with_model:
+            enemy = min(enemies, key=self.get_power)
+            attackers = self.get_most_powerful_team(heroes)
+        else:
+            raise NotImplementedError
+
+        # Attack!
+        result, quests = self.api.attack_arena(enemy.user.id, self.get_hero_ids(attackers))
+
+        # Collect results.
         battle = result.battles[0]
         if result.win:
             logger.info('🎉 %s %s ➡ %s', '⭐' * battle.stars, battle.old_place, battle.new_place)

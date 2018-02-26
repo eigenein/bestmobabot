@@ -7,7 +7,7 @@ from typing import Any, Dict, List, NamedTuple, Optional
 
 from bestmobabot import types
 from bestmobabot.logger import logger
-from bestmobabot.resources import COLORS, HERO_NAMES
+from bestmobabot.resources import COLORS, NAMES
 
 
 class Response(NamedTuple):
@@ -159,8 +159,16 @@ class Hero(NamedTuple):
             'star': self.star,
         }
 
+    @property
+    def features(self):
+        return {
+            f'color_{self.id}': self.color,
+            f'level_{self.id}': self.level,
+            f'star_{self.id}': self.star,
+        }
+
     def __str__(self):
-        return f'{"⭐" * self.star} {HERO_NAMES.get(self.id, self.id)} ~{self.level}~ {COLORS.get(self.color, self.color)}'
+        return f'{"⭐" * self.star} {NAMES.get(self.id, self.id)} ~{self.level}~ {COLORS.get(self.color, self.color)}'
 
 
 class ArenaEnemy(NamedTuple):
