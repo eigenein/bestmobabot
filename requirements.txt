@@ -3,3 +3,4 @@ click
 coloredlogs
 numpy
 scikit-learn
+scipy
