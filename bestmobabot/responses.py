@@ -162,13 +162,13 @@ class Hero(NamedTuple):
     @property
     def features(self):
         return {
-            f'color_{self.id}': self.color,
-            f'level_{self.id}': self.level,
-            f'star_{self.id}': self.star,
+            f'color_{self.id}': float(self.color),
+            f'level_{self.id}': float(self.level),
+            f'star_{self.id}': float(self.star),
         }
 
     def __str__(self):
-        return f'{"⭐" * self.star} {NAMES.get(self.id, self.id)} ~{self.level}~ {COLORS.get(self.color, self.color)}'
+        return f'{"⭐" * self.star} {NAMES.get(self.id, self.id)} ({self.level}) {COLORS.get(self.color, self.color)}'
 
 
 class ArenaEnemy(NamedTuple):
