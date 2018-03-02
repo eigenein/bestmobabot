@@ -11,6 +11,6 @@ WORKDIR /srv/bestmobabot
 
 RUN apt update && apt -y install python3.6 python3-pip
 COPY . /opt/bestmobabot
-RUN python3.6 -m pip install -r /opt/bestmobabot/requirements.txt
+RUN python3.6 -m pip install --no-cache-dir -r /opt/bestmobabot/requirements.txt
 
 CMD ["python3.6", "-m", "bestmobabot", "-v"]
