@@ -339,6 +339,8 @@ class Bot(contextlib.AbstractContextManager):
         """
         logger.info('👊 Attacking arena…')
 
+        # TODO: https://en.wikipedia.org/wiki/Secretary_problem
+
         # Filter out bad enemies.
         for _ in range(10):
             enemies = self.api.find_arena_enemies()
