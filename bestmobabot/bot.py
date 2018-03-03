@@ -3,17 +3,13 @@ The bot logic.
 """
 
 import contextlib
-import itertools
 import json
 from datetime import datetime, timedelta, timezone, tzinfo
 from itertools import chain
-from operator import itemgetter
 from time import sleep
-from typing import Any, Dict, Callable, Iterable, List, NamedTuple, Optional, Set, TextIO, Tuple, Union
+from typing import Any, Dict, Callable, Iterable, List, NamedTuple, Optional, Set, TextIO, Tuple
 
-import numpy
-
-from bestmobabot import model, responses, types
+from bestmobabot import arena, responses, types
 from bestmobabot.api import AlreadyError, API, InvalidResponseError, NotEnoughError
 from bestmobabot.logger import logger
 from bestmobabot.vk import VK
@@ -184,37 +180,12 @@ class Bot(contextlib.AbstractContextManager):
             Bot.print_reward(reward)
 
     @staticmethod
-    def get_power(enemy: Union[responses.ArenaEnemy, responses.Hero]) -> int:
-        return enemy.power
-
-    @staticmethod
-    def get_item(response: Union[responses.User, responses.Hero]) -> Dict:
-        return response.item
-
-    @staticmethod
     def get_duration(expedition: responses.Expedition) -> timedelta:
         return expedition.duration
 
     @staticmethod
     def get_hero_ids(heroes: Iterable[responses.Hero]) -> types.HeroIDs:
         return [hero.id for hero in heroes]
-
-    @staticmethod
-    def get_most_powerful_team(heroes: Iterable[responses.Hero]) -> Tuple[responses.Hero, ...]:
-        return tuple(sorted(heroes, key=Bot.get_power, reverse=True)[:5])
-
-    @staticmethod
-    def select_attackers(heroes: Iterable[responses.Hero], defenders: Iterable[responses.Hero]) -> (float, Iterable[responses.Hero]):
-        attackers_list: List[Tuple[responses.Hero, ...]] = list(itertools.combinations(heroes, 5))
-        x = numpy.array([Bot.get_features(attackers) for attackers in attackers_list]) - Bot.get_features(defenders)
-        y: numpy.ndarray = model.model.predict_proba(x)[:, 1]
-        index = y.argmax()
-        return y[index], attackers_list[index]
-
-    @staticmethod
-    def get_features(heroes: Iterable[responses.Hero]) -> numpy.ndarray:
-        features = {key: value for hero in heroes for key, value in hero.features.items()}
-        return numpy.array([features.get(key, 0.0) for key in model.feature_names])
 
     # Actual tasks.
     # ------------------------------------------------------------------------------------------------------------------
@@ -270,7 +241,7 @@ class Bot(contextlib.AbstractContextManager):
         logger.info('👊 Busy heroes: %s.', busy_hero_ids)
 
         # Choose the most powerful available heroes.
-        heroes = self.get_most_powerful_team(hero for hero in self.api.get_all_heroes() if hero.id not in busy_hero_ids)
+        heroes = arena.naive_select_attackers(hero for hero in self.api.get_all_heroes() if hero.id not in busy_hero_ids)
         if not heroes:
             logger.info('✅ No heroes available.')
             return None
@@ -339,8 +310,6 @@ class Bot(contextlib.AbstractContextManager):
         """
         logger.info('👊 Attacking arena…')
 
-        # TODO: https://en.wikipedia.org/wiki/Secretary_problem
-
         # Filter out bad enemies.
         for _ in range(10):
             enemies = self.api.find_arena_enemies()
@@ -353,23 +322,9 @@ class Bot(contextlib.AbstractContextManager):
         # Pick an enemy and select attackers.
         heroes = self.api.get_all_heroes()
         if not self.with_model:
-            enemy = min(enemies, key=self.get_power)
-            attackers = self.get_most_powerful_team(heroes)
+            enemy, attackers = arena.naive_select(enemies, heroes)
         else:
-            # Maximise win probability.
-            # noinspection PyTupleAssignmentBalance
-            probability, attackers, enemy = max([
-                (*self.select_attackers(heroes, enemy.heroes), enemy)
-                for enemy in enemies
-            ], key=itemgetter(0))  # type: Tuple[float, Tuple[responses.Hero, ...], responses.ArenaEnemy]
-            # Print debugging info.
-            logger.info('👊 Attackers:')
-            for attacker in attackers:
-                logger.info('👊 %s', attacker)
-            logger.info('👊 Defenders:')
-            for defender in enemy.heroes:
-                logger.info('👊 %s', defender)
-            logger.info('👊 Chance: %.1f%%', probability * 100.0)
+            enemy, attackers = arena.model_select(enemies, heroes)
 
         # Attack!
         result, quests = self.api.attack_arena(enemy.user.id, self.get_hero_ids(attackers))
