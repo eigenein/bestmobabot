@@ -6,7 +6,6 @@ from datetime import datetime, timedelta, timezone, tzinfo
 from typing import Any, Dict, List, NamedTuple, Optional
 
 from bestmobabot import types
-from bestmobabot.logger import logger
 from bestmobabot.resources import COLORS, NAMES
 
 
@@ -180,10 +179,8 @@ class ArenaEnemy(NamedTuple):
 
     @staticmethod
     def parse(item: Dict) -> 'ArenaEnemy':
-        # Somehow some enemies have no user.
+        # Some enemies can't be attacked.
         user = User.parse(item['user']) if item.get('user') else None
-        if user is None:
-            logger.warning('🤔 Arena enemy have no user.')
         return ArenaEnemy(
             user_id=str(item['userId']),
             place=item['place'],
@@ -191,6 +188,12 @@ class ArenaEnemy(NamedTuple):
             power=int(item['power']),
             user=user,
         )
+
+    def is_good(self, clan_id: Optional[types.ClanID]) -> bool:
+        """
+        Check if enemy can be attacked and it's not from the same clan.
+        """
+        return self.user is not None and not self.user.is_from_clan(clan_id)
 
 
 class ArenaResult(NamedTuple):

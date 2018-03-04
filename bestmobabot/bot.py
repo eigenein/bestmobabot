@@ -6,12 +6,13 @@ import contextlib
 import json
 from datetime import datetime, timedelta, timezone, tzinfo
 from itertools import chain
+from operator import itemgetter
 from time import sleep
 from typing import Any, Dict, Callable, Iterable, List, NamedTuple, Optional, Set, TextIO, Tuple
 
 from bestmobabot import arena, responses, types
 from bestmobabot.api import AlreadyError, API, InvalidResponseError, NotEnoughError
-from bestmobabot.logger import logger
+from bestmobabot.logger import log_heroes, log_reward, log_rewards, logger
 from bestmobabot.vk import VK
 
 NextRunAtCallable = Callable[[datetime], datetime]
@@ -50,6 +51,7 @@ class Task(NamedTuple):
 
 class Bot(contextlib.AbstractContextManager):
     MAX_OPEN_ARTIFACT_CHESTS = 5
+    MAX_GET_ARENA_ENEMIES = 5
 
     def __init__(
         self,
@@ -117,7 +119,7 @@ class Bot(contextlib.AbstractContextManager):
             # Task(next_run_at=Task.every_n_minutes(1), execute=self.quack, args=('Quack 1!',)),
             # Task(next_run_at=Task.every_n_minutes(1), execute=self.quack, args=('Quack 2!',)),
             # Task(next_run_at=Task.at(hour=22, minute=14, tz=None), execute=self.quack, args=('Fixed time!',)),
-            # Task(next_run_at=Task.at(hour=23, minute=58, tz=None), execute=self.attack_arena),
+            Task(next_run_at=Task.at(hour=21, minute=26, tz=None), execute=self.attack_arena),
         ]
         for mission_id, number in self.raids:
             task = Task(next_run_at=Task.every_n_hours(24 / number), execute=self.raid_mission, args=(mission_id,))
@@ -171,15 +173,6 @@ class Bot(contextlib.AbstractContextManager):
             return next_run_at
 
     @staticmethod
-    def print_reward(reward: responses.Reward):
-        logger.info('📈 %s', reward)
-
-    @staticmethod
-    def print_rewards(rewards: Iterable[responses.Reward]):
-        for reward in rewards:
-            Bot.print_reward(reward)
-
-    @staticmethod
     def get_duration(expedition: responses.Expedition) -> timedelta:
         return expedition.duration
 
@@ -210,7 +203,7 @@ class Bot(contextlib.AbstractContextManager):
         Забирает ежедневный подарок.
         """
         logger.info('💰 Farming daily bonus…')
-        self.print_reward(self.api.farm_daily_bonus())
+        log_reward(self.api.farm_daily_bonus())
 
     def farm_expeditions(self) -> Optional[datetime]:
         """
@@ -222,7 +215,7 @@ class Bot(contextlib.AbstractContextManager):
         expeditions = self.api.list_expeditions()
         for expedition in expeditions:
             if expedition.is_started and expedition.end_time < now:
-                self.print_reward(self.api.farm_expedition(expedition.id))
+                log_reward(self.api.farm_expedition(expedition.id))
 
         return self.send_expedition()  # farm expeditions once finished
 
@@ -277,7 +270,7 @@ class Bot(contextlib.AbstractContextManager):
             if self.no_experience and quest.reward.experience:
                 logger.warning('🙈 Ignoring %s experience reward for quest %s.', quest.reward.experience, quest.id)
                 continue
-            self.print_reward(self.api.farm_quest(quest.id))
+            log_reward(self.api.farm_quest(quest.id))
 
     def farm_mail(self):
         """
@@ -288,14 +281,14 @@ class Bot(contextlib.AbstractContextManager):
         if not letters:
             return
         logger.info('📩 %s letters.', len(letters))
-        self.print_rewards(self.api.farm_mail(int(letter.id) for letter in letters).values())
+        log_rewards(self.api.farm_mail(int(letter.id) for letter in letters).values())
 
     def buy_chest(self):
         """
         Открывает ежедневный бесплатный сундук.
         """
         logger.info('📦 Buying chest…')
-        self.print_rewards(self.api.buy_chest())
+        log_rewards(self.api.buy_chest())
 
     def send_daily_gift(self):
         """
@@ -310,21 +303,20 @@ class Bot(contextlib.AbstractContextManager):
         """
         logger.info('👊 Attacking arena…')
 
-        # Filter out bad enemies.
-        for _ in range(10):
-            enemies = self.api.find_arena_enemies()
-            if all(enemy.user is not None and not enemy.user.is_from_clan(self.user.clan_id) for enemy in enemies):
-                break
-        else:
-            logger.error('All attempts failed.')
-            return
-
         # Pick an enemy and select attackers.
+        select = arena.naive_select if not self.with_model else arena.model_select
         heroes = self.api.get_all_heroes()
-        if not self.with_model:
-            enemy, attackers = arena.naive_select(enemies, heroes)
-        else:
-            enemy, attackers = arena.model_select(enemies, heroes)
+        (enemy, attackers, score), _ = arena.secretary_max((
+            select(arena.filter_enemies(self.api.find_arena_enemies(), self.user.clan_id), heroes)
+            for _ in range(self.MAX_GET_ARENA_ENEMIES)
+        ), self.MAX_GET_ARENA_ENEMIES, key=itemgetter(2))
+
+        # Debugging.
+        logger.info('👊 Attackers:')
+        log_heroes(attackers)
+        logger.info('👊 Defenders:')
+        log_heroes(enemy.heroes)
+        logger.info('👊 Score: %.3f.', score)
 
         # Attack!
         result, quests = self.api.attack_arena(enemy.user.id, self.get_hero_ids(attackers))
@@ -332,10 +324,10 @@ class Bot(contextlib.AbstractContextManager):
         # Collect results.
         battle = result.battles[0]
         if result.win:
-            logger.info('🎉 %s %s ➡ %s', '⭐' * battle.stars, battle.old_place, battle.new_place)
+            logger.info('👍 %s %s ➡ %s', '⭐' * battle.stars, battle.old_place, battle.new_place)
         else:
-            logger.info('😞 You lose!')
-        self.print_reward(result.reward)
+            logger.info('👎 You lose.')
+        log_reward(result.reward)
         self.farm_quests(quests)
 
     def get_arena_replays(self):
@@ -383,10 +375,10 @@ class Bot(contextlib.AbstractContextManager):
         Собирает ключ у валькирии и открывает артефактные сундуки.
         """
         logger.info('🎁 Farming zeppelin gift…')
-        self.print_reward(self.api.farm_zeppelin_gift())
+        log_reward(self.api.farm_zeppelin_gift())
         for _ in range(self.MAX_OPEN_ARTIFACT_CHESTS):
             try:
-                self.print_rewards(self.api.open_artifact_chest())
+                log_rewards(self.api.open_artifact_chest())
             except NotEnoughError:
                 logger.info('💬 All keys are spent.')
                 break
@@ -398,7 +390,7 @@ class Bot(contextlib.AbstractContextManager):
         Ходит в рейд в миссию в кампании за предметами.
         """
         logger.info('👊 Raid mission #%s…', mission_id)
-        self.print_rewards(self.api.raid_mission(mission_id))
+        log_rewards(self.api.raid_mission(mission_id))
 
     '''
     def attack_boss(self):
