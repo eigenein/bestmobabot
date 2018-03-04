@@ -89,3 +89,11 @@ def secretary_max(items: Iterable[T1], n: int, key: Optional[Callable[[T1], T2]]
             break
     # noinspection PyUnboundLocalVariable
     return item, item_key
+
+
+def grand_arena_score(p1: float, p2: float, p3: float) -> float:
+    """
+    Compute probability of 2 or 3 successes out of 3 trials.
+    https://en.wikipedia.org/wiki/Poisson_binomial_distribution
+    """
+    return p1 * p2 * p3 + p1 * p2 * (1.0 - p3) + p2 * p3 * (1.0 - p1) + p1 * p3 * (1.0 - p2)
