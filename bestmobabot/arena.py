@@ -36,7 +36,7 @@ def naive_select(enemies: Iterable[ArenaEnemy], heroes: Iterable[Hero]) -> Tuple
     Select the least powerful enemy and the most powerful heroes.
     """
     enemy = min(enemies, key=attrgetter('power'))
-    logger.debug('👊 Naive selector power: %s.', enemy.power)
+    logger.debug('👊 Naive selector enemy power: %s.', enemy.power)
     return enemy, naive_select_attackers(heroes), -enemy.power
 
 
