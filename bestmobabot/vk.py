@@ -15,7 +15,7 @@ class VK(contextlib.AbstractContextManager):
     URL = 'https://api.vk.com/method/wall.get'
     PARAMS = {
         # Only valid for public methods so I don't care.
-        'access_token': '05268efb05268efb05268efbef0546f6f20052605268efb5f7665c22235e9206e22f11b',
+        'access_token': '05268efb05268efb05268efbef0546f6f20052605268efb5f7665c22235e9206e22f11b',  # FIXME
         # https://vk.com/bestmobagroup
         'owner_id': '-116039030',
         'count': '5',

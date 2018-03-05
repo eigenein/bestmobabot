@@ -293,7 +293,7 @@ class Bot(contextlib.AbstractContextManager):
         Отправляет сердечки друзьям.
         """
         logger.info('🎁 Sending daily gift…')
-        self.farm_quests(self.api.send_daily_gift(['15664420', '209336881', '386801200', '386796029']))
+        self.farm_quests(self.api.send_daily_gift(['15664420', '209336881', '386801200', '386796029']))  # FIXME
 
     def attack_arena(self):
         """
