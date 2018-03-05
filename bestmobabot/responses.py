@@ -198,6 +198,8 @@ class ArenaEnemy(NamedTuple):
 
 class ArenaResult(NamedTuple):
     win: bool
+    arena_place: Optional[str]
+    grand_place: Optional[str]
     battles: List['BattleResult']
     reward: Reward
 
@@ -205,6 +207,8 @@ class ArenaResult(NamedTuple):
     def parse(item: Dict) -> 'ArenaResult':
         return ArenaResult(
             win=item['win'],
+            arena_place=item['state'].get('arenaPlace'),
+            grand_place=item['state'].get('grandPlace'),
             battles=list(map(BattleResult.parse, item['battles'])),
             reward=Reward.parse(item['reward'] or {}),
         )
@@ -213,8 +217,6 @@ class ArenaResult(NamedTuple):
 class BattleResult(NamedTuple):
     win: bool
     stars: int
-    old_place: str
-    new_place: str
 
     @staticmethod
     def parse(item: Dict) -> 'BattleResult':
@@ -222,8 +224,6 @@ class BattleResult(NamedTuple):
         return BattleResult(
             win=result['win'],
             stars=result.get('stars', 0),
-            old_place=result.get('oldPlace'),
-            new_place=result.get('newPlace'),
         )
 
 

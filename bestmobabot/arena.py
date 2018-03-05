@@ -31,15 +31,6 @@ def naive_select_attackers(heroes: Iterable[Hero]) -> Tuple[Hero, ...]:
     return tuple(sorted(heroes, key=attrgetter('power'), reverse=True)[:TEAM_SIZE])
 
 
-def naive_select(enemies: Iterable[ArenaEnemy], heroes: Iterable[Hero]) -> Tuple[ArenaEnemy, Tuple[Hero, ...], float]:
-    """
-    Select the least powerful enemy and the most powerful heroes.
-    """
-    enemy = min(enemies, key=attrgetter('power'))
-    logger.debug('👊 Naive selector enemy power: %s.', enemy.power)
-    return enemy, naive_select_attackers(heroes), -enemy.power
-
-
 def model_select(enemies: Iterable[ArenaEnemy], heroes: Iterable[Hero]) -> Tuple[ArenaEnemy, Tuple[Hero, ...], float]:
     """
     Select enemy and attackers to maximise win probability.
@@ -56,11 +47,11 @@ def model_select_attackers(heroes: Iterable[Hero], defenders: Iterable[Hero]) ->
     """
     Select attackers for the given enemy to maximise win probability.
     """
-    attackers_list: List[Tuple[Hero, ...]] = list(itertools.combinations(heroes, 5))
+    attackers_list: List[Tuple[Hero, ...]] = list(itertools.combinations(heroes, TEAM_SIZE))
     x = numpy.array([get_model_features(attackers) for attackers in attackers_list]) - get_model_features(defenders)
     y: numpy.ndarray = model.predict_proba(x)[:, 1]
     index: int = y.argmax()
-    logger.debug('👊 Model selector probability: %.3f.', y[index])
+    logger.debug('👊 Test probability: %.1f%%.', 100.0 * y[index])
     return attackers_list[index], y[index]
 
 

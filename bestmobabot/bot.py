@@ -12,7 +12,7 @@ from typing import Any, Dict, Callable, Iterable, List, NamedTuple, Optional, Se
 
 from bestmobabot import arena, responses, types
 from bestmobabot.api import AlreadyError, API, InvalidResponseError, NotEnoughError
-from bestmobabot.logger import log_heroes, log_reward, log_rewards, logger
+from bestmobabot.logger import log_arena_result, log_heroes, log_reward, log_rewards, logger
 from bestmobabot.vk import VK
 
 NextRunAtCallable = Callable[[datetime], datetime]
@@ -57,13 +57,11 @@ class Bot(contextlib.AbstractContextManager):
         self,
         api: API,
         no_experience: bool,
-        with_model: bool,
         raids: List[Tuple[str, int]],
         battle_log: Optional[TextIO],
     ):
         self.api = api
         self.no_experience = no_experience
-        self.with_model = with_model
         self.raids = raids
         self.battle_log = battle_log
 
@@ -119,7 +117,7 @@ class Bot(contextlib.AbstractContextManager):
             # Task(next_run_at=Task.every_n_minutes(1), execute=self.quack, args=('Quack 1!',)),
             # Task(next_run_at=Task.every_n_minutes(1), execute=self.quack, args=('Quack 2!',)),
             # Task(next_run_at=Task.at(hour=22, minute=14, tz=None), execute=self.quack, args=('Fixed time!',)),
-            # Task(next_run_at=Task.at(hour=21, minute=46, tz=None), execute=self.attack_arena),
+            # Task(next_run_at=Task.at(hour=23, minute=40, tz=None), execute=self.attack_arena),
         ]
         for mission_id, number in self.raids:
             task = Task(next_run_at=Task.every_n_hours(24 / number), execute=self.raid_mission, args=(mission_id,))
@@ -304,10 +302,9 @@ class Bot(contextlib.AbstractContextManager):
         logger.info('👊 Attacking arena…')
 
         # Pick an enemy and select attackers.
-        select = arena.naive_select if not self.with_model else arena.model_select
         heroes = self.api.get_all_heroes()
-        (enemy, attackers, score), _ = arena.secretary_max((
-            select(arena.filter_enemies(self.api.find_arena_enemies(), self.user.clan_id), heroes)
+        (enemy, attackers, probability), _ = arena.secretary_max((
+            arena.model_select(arena.filter_enemies(self.api.find_arena_enemies(), self.user.clan_id), heroes)
             for _ in range(self.MAX_GET_ARENA_ENEMIES)
         ), self.MAX_GET_ARENA_ENEMIES, key=itemgetter(2))
 
@@ -316,18 +313,14 @@ class Bot(contextlib.AbstractContextManager):
         log_heroes(attackers)
         logger.info('👊 Defenders:')
         log_heroes(enemy.heroes)
-        logger.info('👊 Score: %.3f.', score)
+        logger.info('👊 Probability: %.1f%%.', 100.0 * probability)
 
         # Attack!
         result, quests = self.api.attack_arena(enemy.user.id, self.get_hero_ids(attackers))
 
         # Collect results.
-        battle = result.battles[0]
-        if result.win:
-            logger.info('👍 %s %s ➡ %s', '⭐' * battle.stars, battle.old_place, battle.new_place)
-        else:
-            logger.info('👎 You lose.')
-        log_reward(result.reward)
+        log_arena_result(result)
+        logger.info('👊 Current place: %s', result.arena_place)
         self.farm_quests(quests)
 
     def get_arena_replays(self):

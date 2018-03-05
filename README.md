@@ -21,7 +21,6 @@ services:
       - BESTMOBABOT_NO_EXPERIENCE=true
       - BESTMOBABOT_BATTLE_LOG=/srv/bestmobabot/bestmobabot-battle-log-1.jsonl
       - BESTMOBABOT_RAID=16 3 57 3
-      - BESTMOBABOT_WITH_MODEL=true
     volumes:
       - /srv/bestmobabot:/srv/bestmobabot
       - /etc/timezone:/etc/timezone:ro
