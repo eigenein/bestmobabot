@@ -84,6 +84,7 @@ class Reward(NamedTuple):
     hero_fragment: Dict[types.HeroID, int]
     artifact_fragment: Dict[str, int]
     gear_fragment: Dict[str, int]
+    gear: Dict[str, str]
 
     @staticmethod
     def parse(item: Dict) -> 'Reward':
@@ -97,6 +98,7 @@ class Reward(NamedTuple):
             hero_fragment=item.get('fragmentHero', {}),
             artifact_fragment=item.get('fragmentArtifact', {}),
             gear_fragment=item.get('fragmentGear', {}),
+            gear=item.get('gear', {})
         )
 
 

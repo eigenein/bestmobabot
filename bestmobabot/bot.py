@@ -58,12 +58,14 @@ class Bot(contextlib.AbstractContextManager):
         api: API,
         no_experience: bool,
         raids: List[Tuple[str, int]],
+        shops: List[Tuple[str, str]],
         battle_log: Optional[TextIO],
     ):
         self.api = api
         self.no_experience = no_experience
         self.raids = raids
         self.battle_log = battle_log
+        self.shops = shops
 
         self.vk = VK()
         self.user: responses.User = None
@@ -112,12 +114,13 @@ class Bot(contextlib.AbstractContextManager):
             Task(next_run_at=Task.at(hour=8, minute=30), execute=self.buy_chest),
             Task(next_run_at=Task.at(hour=9, minute=0), execute=self.send_daily_gift),
             Task(next_run_at=Task.at(hour=10, minute=0), execute=self.farm_zeppelin_gift),
+            Task(next_run_at=Task.every_n_hours(8, offset=timedelta(minutes=1)), execute=self.shop),
 
             # Debug tasks. Uncomment when needed.
             # Task(next_run_at=Task.every_n_minutes(1), execute=self.quack, args=('Quack 1!',)),
             # Task(next_run_at=Task.every_n_minutes(1), execute=self.quack, args=('Quack 2!',)),
             # Task(next_run_at=Task.at(hour=22, minute=14, tz=None), execute=self.quack, args=('Fixed time!',)),
-            # Task(next_run_at=Task.at(hour=23, minute=40, tz=None), execute=self.attack_arena),
+            Task(next_run_at=Task.at(hour=21, minute=36, tz=None), execute=self.shop),
         ]
         for mission_id, number in self.raids:
             task = Task(next_run_at=Task.every_n_hours(24 / number), execute=self.raid_mission, args=(mission_id,))
@@ -384,6 +387,18 @@ class Bot(contextlib.AbstractContextManager):
         """
         logger.info('👊 Raid mission #%s…', mission_id)
         log_rewards(self.api.raid_mission(mission_id))
+
+    def shop(self):
+        """
+        Покупает в магазине вещи.
+        """
+        for shop_id, slot_id in self.shops:
+            logger.info('🛒 Buy slot #%s in shop #%s…', slot_id, shop_id)
+            try:
+                log_reward(self.api.shop(shop_id=shop_id, slot_id=slot_id))
+            except (NotEnoughError, AlreadyError) as e:
+                logger.warning('🛒 %s', e.description)
+
 
     '''
     def attack_boss(self):
