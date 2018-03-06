@@ -114,13 +114,14 @@ class Bot(contextlib.AbstractContextManager):
             Task(next_run_at=Task.at(hour=8, minute=30), execute=self.buy_chest),
             Task(next_run_at=Task.at(hour=9, minute=0), execute=self.send_daily_gift),
             Task(next_run_at=Task.at(hour=10, minute=0), execute=self.farm_zeppelin_gift),
-            Task(next_run_at=Task.every_n_hours(8, offset=timedelta(minutes=1)), execute=self.shop),
+            Task(next_run_at=Task.at(hour=11, minute=1), execute=self.shop, args=(['6', '9'],)),
+            Task(next_run_at=Task.every_n_hours(8, offset=timedelta(minutes=1)), execute=self.shop, args=(['1'],)),
 
             # Debug tasks. Uncomment when needed.
             # Task(next_run_at=Task.every_n_minutes(1), execute=self.quack, args=('Quack 1!',)),
             # Task(next_run_at=Task.every_n_minutes(1), execute=self.quack, args=('Quack 2!',)),
             # Task(next_run_at=Task.at(hour=22, minute=14, tz=None), execute=self.quack, args=('Fixed time!',)),
-            Task(next_run_at=Task.at(hour=21, minute=36, tz=None), execute=self.shop),
+            # Task(next_run_at=Task.at(hour=22, minute=11, tz=None), execute=self.shop, args=(['1'],)),
         ]
         for mission_id, number in self.raids:
             task = Task(next_run_at=Task.every_n_hours(24 / number), execute=self.raid_mission, args=(mission_id,))
@@ -388,11 +389,14 @@ class Bot(contextlib.AbstractContextManager):
         logger.info('👊 Raid mission #%s…', mission_id)
         log_rewards(self.api.raid_mission(mission_id))
 
-    def shop(self):
+    def shop(self, shop_ids):
         """
         Покупает в магазине вещи.
         """
         for shop_id, slot_id in self.shops:
+            if shop_id not in shop_ids:
+                logger.debug('🛒 Ignoring shop #%s.', shop_id)
+                continue
             logger.info('🛒 Buy slot #%s in shop #%s…', slot_id, shop_id)
             try:
                 log_reward(self.api.shop(shop_id=shop_id, slot_id=slot_id))
