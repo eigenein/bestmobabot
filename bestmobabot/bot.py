@@ -399,7 +399,6 @@ class Bot(contextlib.AbstractContextManager):
             except (NotEnoughError, AlreadyError) as e:
                 logger.warning('🛒 %s', e.description)
 
-
     '''
     def attack_boss(self):
         """
