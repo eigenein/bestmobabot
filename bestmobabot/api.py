@@ -359,3 +359,9 @@ class API(contextlib.AbstractContextManager):
     def open_boss_chest(self, boss_id: types.BossID) -> Tuple[responses.Reward, responses.Quests]:
         response = self.call('bossOpenChest', {'bossId': boss_id})
         return responses.Reward.parse(response.payload['reward']), response.quests
+
+    # Shop.
+    # ------------------------------------------------------------------------------------------------------------------
+
+    def shop(self, *, slot_id, shop_id):
+        return responses.Reward.parse(self.call('shopBuy', {'slot': slot_id, 'shopId': shop_id}).payload)

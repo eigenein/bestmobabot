@@ -19,6 +19,8 @@ from bestmobabot.logger import logger
 @click.option('--battle-log', help='Log battles results into JSON Lines file.', envvar='BESTMOBABOT_BATTLE_LOG', type=click.File('at'))
 @click.option('-v', '--verbose', help='Increase verbosity.', is_flag=True)
 @click.option('-l', '--log-file', help='Log file.', envvar='BESTMOBABOT_LOGFILE', type=click.File('at'), default=click.get_text_stream('stderr'))
+@click.option('shops', '--shop', help='Buy goods specified by shop_id and slot_id every day', envvar='BESTMOBABOT_SHOP', type=(str, str), multiple=True)
+
 def main(
     remixsid: str,
     no_experience: bool,
@@ -26,6 +28,7 @@ def main(
     battle_log: Optional[TextIO],
     verbose: bool,
     log_file: TextIO,
+    shops: Tuple[Tuple[str, str], ...],
 ):
     """
     Hero Wars bot.
@@ -41,7 +44,7 @@ def main(
         state = read_state(state_path)
         # Start the bot.
         api.start(state)
-        with Bot(api, no_experience, list(raids), battle_log) as bot:
+        with Bot(api, no_experience, list(raids), list(shops), battle_log) as bot:
             bot.start(state)
             logger.info(f'👋 Welcome {bot.user.name}! Your game time is {datetime.now(bot.user.tz):%H:%M:%S}.')
             logger.info('👋 Next day starts at %s.', bot.user.next_day)
