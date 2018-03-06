@@ -4,6 +4,7 @@ remixsid-*.json
 .idea/bestmobabot.iml
 .idea/codeStyles/codeStyleConfig.xml
 .idea/misc.xml
+.idea/modules.xml
 
 # Created by https://www.gitignore.io/api/macos,python,jetbrains,virtualenv,jupyternotebook
 

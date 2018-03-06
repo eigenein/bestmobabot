@@ -20,7 +20,6 @@ from bestmobabot.logger import logger
 @click.option('-v', '--verbose', help='Increase verbosity.', is_flag=True)
 @click.option('-l', '--log-file', help='Log file.', envvar='BESTMOBABOT_LOGFILE', type=click.File('at'), default=click.get_text_stream('stderr'))
 @click.option('shops', '--shop', help='Buy goods specified by shop_id and slot_id every day', envvar='BESTMOBABOT_SHOP', type=(str, str), multiple=True)
-
 def main(
     remixsid: str,
     no_experience: bool,
