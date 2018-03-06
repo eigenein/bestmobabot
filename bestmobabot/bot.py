@@ -51,7 +51,7 @@ class Task(NamedTuple):
 
 class Bot(contextlib.AbstractContextManager):
     MAX_OPEN_ARTIFACT_CHESTS = 5
-    MAX_GET_ARENA_ENEMIES = 5
+    MAX_GET_ARENA_ENEMIES = 10  # FIXME: make configurable
 
     def __init__(
         self,
