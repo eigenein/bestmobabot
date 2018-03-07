@@ -41,6 +41,10 @@ class User(NamedTuple):
             next_day=datetime.fromtimestamp(item.get('nextDayTs', 0), tz),
         )
 
+    @staticmethod
+    def parse_optional(item: Optional[Dict]) -> Optional['User']:
+        return User.parse(item) if item is not None else None
+
     def is_from_clan(self, clan_id: Optional[str]) -> bool:
         return clan_id and self.clan_id and self.clan_id == clan_id
 
@@ -51,7 +55,7 @@ class Expedition(NamedTuple):
     end_time: Optional[datetime]
     power: int
     duration: timedelta
-    hero_ids: types.HeroIDs
+    hero_ids: List[types.HeroID]
 
     @staticmethod
     def parse(item: Dict) -> 'Expedition':
@@ -181,24 +185,39 @@ class ArenaEnemy(NamedTuple):
 
     @staticmethod
     def parse(item: Dict) -> 'ArenaEnemy':
-        # Some enemies can't be attacked.
-        user = User.parse(item['user']) if item.get('user') else None
         return ArenaEnemy(
             user_id=str(item['userId']),
             place=item['place'],
             heroes=list(map(Hero.parse, item['heroes'])),
             power=int(item['power']),
-            user=user,
+            user=User.parse_optional(item.get('user')),
         )
 
-    def is_good(self, clan_id: Optional[types.ClanID]) -> bool:
-        """
-        Check if enemy can be attacked and it's not from the same clan.
-        """
-        return self.user is not None and not self.user.is_from_clan(clan_id)
+
+# FIXME: join with ArenaEnemy?
+class GrandArenaEnemy(NamedTuple):
+    user_id: types.UserID
+    place: str
+    heroes: List[List[Hero]]
+    power: int
+    user: Optional[User]
+
+    @staticmethod
+    def parse(item: Dict) -> 'GrandArenaEnemy':
+        return GrandArenaEnemy(
+            user_id=str(item['userId']),
+            place=item['place'],
+            heroes=[[Hero.parse(item) for item in items] for items in item['heroes']],
+            power=int(item['power']),
+            user=User.parse_optional(item.get('user')),
+        )
 
 
 class ArenaResult(NamedTuple):
+    """
+    Unified arena result for normal arena and grand arena.
+    """
+
     win: bool
     arena_place: Optional[str]
     grand_place: Optional[str]

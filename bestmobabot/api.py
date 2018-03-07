@@ -252,8 +252,8 @@ class API(contextlib.AbstractContextManager):
     def farm_expedition(self, expedition_id: types.ExpeditionID) -> responses.Reward:
         return responses.Reward.parse(self.call('expeditionFarm', {'expeditionId': expedition_id}).payload)
 
-    def send_expedition_heroes(self, expedition_id: types.ExpeditionID, hero_ids: types.HeroIDs) -> Tuple[datetime, responses.Quests]:
-        response = self.call('expeditionSendHeroes', {'expeditionId': expedition_id, 'heroes': list(hero_ids)})
+    def send_expedition_heroes(self, expedition_id: types.ExpeditionID, hero_ids: List[types.HeroID]) -> Tuple[datetime, responses.Quests]:
+        response = self.call('expeditionSendHeroes', {'expeditionId': expedition_id, 'heroes': hero_ids})
         return datetime.fromtimestamp(response.payload['endTime']).astimezone(), response.quests
 
     # Quests.
@@ -296,6 +296,13 @@ class API(contextlib.AbstractContextManager):
 
     def attack_arena(self, user_id: types.UserID, hero_ids: Iterable[types.HeroID]) -> Tuple[responses.ArenaResult, responses.Quests]:
         response = self.call('arenaAttack', {'userId': user_id, 'heroes': list(hero_ids)})
+        return responses.ArenaResult.parse(response.payload), response.quests
+
+    def find_grand_enemies(self) -> List[responses.GrandArenaEnemy]:
+        return list(map(responses.GrandArenaEnemy.parse, self.call('grandFindEnemies').payload))
+
+    def attack_grand(self, user_id: types.UserID, hero_ids: List[List[types.HeroID]]) -> Tuple[responses.ArenaResult, responses.Quests]:
+        response = self.call('grandAttack', {'userId': user_id, 'heroes': hero_ids})
         return responses.ArenaResult.parse(response.payload), response.quests
 
     # Freebie.

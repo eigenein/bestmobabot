@@ -11,9 +11,8 @@ from bestmobabot import responses
 logger = logging.getLogger('bestmobabot')
 
 
-def log_heroes(heroes: Iterable[responses.Hero]):
-    for hero in heroes:
-        logger.info('👊 %s', hero)
+def log_heroes(message: str, heroes: Iterable[responses.Hero]):
+    logger.info('👊 %s %s', message, ' '.join(f'[ {hero} ]' for hero in heroes))
 
 
 def log_reward(reward: responses.Reward):

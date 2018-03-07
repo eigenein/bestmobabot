@@ -21,7 +21,7 @@ T2 = TypeVar('T2')
 
 
 def filter_enemies(enemies: Iterable[ArenaEnemy], clan_id: Optional[types.ClanID]) -> List[ArenaEnemy]:
-    return [enemy for enemy in enemies if enemy.is_good(clan_id)]
+    return [enemy for enemy in enemies if enemy.user is not None and not enemy.user.is_from_clan(clan_id)]
 
 
 def naive_select_attackers(heroes: Iterable[Hero]) -> Tuple[Hero, ...]:

@@ -179,7 +179,7 @@ class Bot(contextlib.AbstractContextManager):
         return expedition.duration
 
     @staticmethod
-    def get_hero_ids(heroes: Iterable[responses.Hero]) -> types.HeroIDs:
+    def get_hero_ids(heroes: Iterable[responses.Hero]) -> List[types.HeroID]:
         return [hero.id for hero in heroes]
 
     # Actual tasks.
@@ -313,10 +313,8 @@ class Bot(contextlib.AbstractContextManager):
         ), self.MAX_GET_ARENA_ENEMIES, key=itemgetter(2))
 
         # Debugging.
-        logger.info('👊 Attackers:')
-        log_heroes(attackers)
-        logger.info('👊 Defenders:')
-        log_heroes(enemy.heroes)
+        log_heroes('Attackers:', attackers)
+        log_heroes('Defenders:', enemy.heroes)
         logger.info('👊 Probability: %.1f%%.', 100.0 * probability)
 
         # Attack!

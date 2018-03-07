@@ -3,7 +3,7 @@ Game API parameter types.
 """
 
 from enum import Enum
-from typing import Iterable, NewType
+from typing import NewType
 
 BossID = NewType('BossID', str)
 ClanID = NewType('ClanID', str)
@@ -21,8 +21,6 @@ ReplayID = NewType('ReplayID', str)
 Stamina = NewType('Stamina', int)
 StarMoney = NewType('StarMoney', int)
 UserID = NewType('UserID', str)
-
-HeroIDs = Iterable[HeroID]
 
 
 class BattleType(Enum):
