@@ -15,7 +15,6 @@ from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 import requests
 from requests.adapters import HTTPAdapter
 
-from bestmobabot import types
 from bestmobabot.logger import logger
 from bestmobabot.responses import (
     ArenaEnemy,
@@ -32,6 +31,16 @@ from bestmobabot.responses import (
     Response,
     Reward,
     User,
+)
+from bestmobabot.types import (
+    BattleType,
+    BossID,
+    ExpeditionID,
+    HeroID,
+    LetterID,
+    MissionID,
+    QuestID,
+    UserID,
 )
 
 
@@ -265,10 +274,10 @@ class API(contextlib.AbstractContextManager):
     def list_expeditions(self) -> List[Expedition]:
         return list(map(Expedition.parse, self.call('expeditionGet').payload))
 
-    def farm_expedition(self, expedition_id: types.ExpeditionID) -> Reward:
+    def farm_expedition(self, expedition_id: ExpeditionID) -> Reward:
         return Reward.parse(self.call('expeditionFarm', {'expeditionId': expedition_id}).payload)
 
-    def send_expedition_heroes(self, expedition_id: types.ExpeditionID, hero_ids: List[types.HeroID]) -> Tuple[datetime, Quests]:
+    def send_expedition_heroes(self, expedition_id: ExpeditionID, hero_ids: List[HeroID]) -> Tuple[datetime, Quests]:
         response = self.call('expeditionSendHeroes', {'expeditionId': expedition_id, 'heroes': hero_ids})
         return datetime.fromtimestamp(response.payload['endTime']).astimezone(), response.quests
 
@@ -278,7 +287,7 @@ class API(contextlib.AbstractContextManager):
     def get_all_quests(self) -> Quests:
         return list(map(Quest.parse, self.call('questGetAll').payload))
 
-    def farm_quest(self, quest_id: types.QuestID) -> Reward:
+    def farm_quest(self, quest_id: QuestID) -> Reward:
         return Reward.parse(self.call('questFarm', {'questId': quest_id}).payload)
 
     # Mail.
@@ -287,7 +296,7 @@ class API(contextlib.AbstractContextManager):
     def get_all_mail(self) -> List[Letter]:
         return list(map(Letter.parse, self.call('mailGetAll').payload['letters']))
 
-    def farm_mail(self, letter_ids: Iterable[types.LetterID]) -> Dict[str, Reward]:
+    def farm_mail(self, letter_ids: Iterable[LetterID]) -> Dict[str, Reward]:
         response = self.call('mailFarm', {'letterIds': list(letter_ids)})
         return {letter_id: Reward.parse(item or {}) for letter_id, item in response.payload.items()}
 
@@ -301,7 +310,7 @@ class API(contextlib.AbstractContextManager):
     # Daily gift.
     # ------------------------------------------------------------------------------------------------------------------
 
-    def send_daily_gift(self, ids: Iterable[types.UserID]) -> Quests:
+    def send_daily_gift(self, ids: Iterable[UserID]) -> Quests:
         return self.call('friendsSendDailyGift', {'ids': list(ids)}).quests
 
     # Arena.
@@ -310,14 +319,14 @@ class API(contextlib.AbstractContextManager):
     def find_arena_enemies(self) -> List[ArenaEnemy]:
         return list(map(ArenaEnemy.parse, self.call('arenaFindEnemies').payload))
 
-    def attack_arena(self, user_id: types.UserID, hero_ids: Iterable[types.HeroID]) -> Tuple[ArenaResult, Quests]:
+    def attack_arena(self, user_id: UserID, hero_ids: Iterable[HeroID]) -> Tuple[ArenaResult, Quests]:
         response = self.call('arenaAttack', {'userId': user_id, 'heroes': list(hero_ids)})
         return ArenaResult.parse(response.payload), response.quests
 
     def find_grand_enemies(self) -> List[GrandArenaEnemy]:
         return list(map(GrandArenaEnemy.parse, self.call('grandFindEnemies').payload))
 
-    def attack_grand(self, user_id: types.UserID, hero_ids: List[List[types.HeroID]]) -> Tuple[ArenaResult, Quests]:
+    def attack_grand(self, user_id: UserID, hero_ids: List[List[HeroID]]) -> Tuple[ArenaResult, Quests]:
         response = self.call('grandAttack', {'userId': user_id, 'heroes': hero_ids})
         return ArenaResult.parse(response.payload), response.quests
 
@@ -344,7 +353,7 @@ class API(contextlib.AbstractContextManager):
     # Battles.
     # ------------------------------------------------------------------------------------------------------------------
 
-    def get_battle_by_type(self, battle_type: types.BattleType, offset=0, limit=20) -> List[Replay]:
+    def get_battle_by_type(self, battle_type: BattleType, offset=0, limit=20) -> List[Replay]:
         payload = self.call('battleGetByType', {'type': battle_type.value, 'offset': offset, 'limit': limit}).payload
         return list(map(Replay.parse, payload['replays']))
 
@@ -352,7 +361,7 @@ class API(contextlib.AbstractContextManager):
     # https://github.com/eigenein/bestmobabot/wiki/Raids
     # ------------------------------------------------------------------------------------------------------------------
 
-    def raid_mission(self, mission_id: types.MissionID, times=1) -> List[Reward]:
+    def raid_mission(self, mission_id: MissionID, times=1) -> List[Reward]:
         payload = self.call('missionRaid', {'times': times, 'id': mission_id}).payload
         return list(map(Reward.parse, payload.values()))
 
@@ -361,7 +370,7 @@ class API(contextlib.AbstractContextManager):
     # ------------------------------------------------------------------------------------------------------------------
 
     # https://heroes.cdnvideo.ru/vk/v0312/lib/lib.json.gz
-    RECOMMENDED_HEROES: Dict[types.BossID, Set[types.HeroID]] = {
+    RECOMMENDED_HEROES: Dict[BossID, Set[HeroID]] = {
         '1': {'1', '4', '5', '6', '7', '9', '10', '12', '13', '17', '18', '21', '22', '23', '26', '29', '32', '33', '34', '35', '36'},
         '2': {'8', '14', '15', '19', '20', '30', '31'},
         '3': {'2', '3', '11', '16', '25', '24', '27', '28', '37', '38', '39', '40'},
@@ -376,10 +385,10 @@ class API(contextlib.AbstractContextManager):
     def get_current_boss(self) -> List[Boss]:
         return list(map(Boss.parse, self.call('bossGetCurrent').payload))
 
-    def attack_boss(self, boss_id: types.BossID, hero_ids: Iterable[types.HeroID]) -> Battle:
+    def attack_boss(self, boss_id: BossID, hero_ids: Iterable[HeroID]) -> Battle:
         return Battle.parse(self.call('bossAttack', {'bossId': boss_id, 'heroes': list(hero_ids)}).payload)
 
-    def open_boss_chest(self, boss_id: types.BossID) -> Tuple[Reward, Quests]:
+    def open_boss_chest(self, boss_id: BossID) -> Tuple[Reward, Quests]:
         response = self.call('bossOpenChest', {'bossId': boss_id})
         return Reward.parse(response.payload['reward']), response.quests
 
