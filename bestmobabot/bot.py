@@ -52,7 +52,8 @@ class Task(NamedTuple):
 
 class Bot(contextlib.AbstractContextManager):
     MAX_OPEN_ARTIFACT_CHESTS = 5
-    MAX_GET_ARENA_ENEMIES = 10  # FIXME: make configurable
+    MAX_ARENA_ENEMIES = 10  # FIXME: make configurable
+    MAX_GRAND_ARENA_ENEMIES = 3  # FIXME: make configurable
 
     def __init__(
         self,
@@ -108,7 +109,7 @@ class Bot(contextlib.AbstractContextManager):
 
             # Other quests are simultaneous for everyone. Day starts at 3:00 UTC.
             Task(next_run_at=Task.every_n_minutes(24 * 60 // 5, offset=timedelta(hours=-1)), execute=self.attack_arena),
-            # TODO: Task(next_run_at=Task.every_n_minutes(24 * 60 // 5, offset=timedelta(hours=+1)), execute=self.attack_grand_arena),
+            Task(next_run_at=Task.every_n_minutes(24 * 60 // 5, offset=timedelta(minutes=-30)), execute=self.attack_grand_arena),
             Task(next_run_at=Task.every_n_hours(6, offset=timedelta(minutes=15)), execute=self.farm_mail),
             Task(next_run_at=Task.every_n_hours(6, offset=timedelta(minutes=30)), execute=self.check_freebie),
             Task(next_run_at=Task.every_n_hours(8), execute=self.farm_expeditions),
@@ -124,7 +125,7 @@ class Bot(contextlib.AbstractContextManager):
             # Task(next_run_at=Task.every_n_minutes(1), execute=self.quack, args=('Quack 2!',)),
             # Task(next_run_at=Task.at(hour=22, minute=14, tz=None), execute=self.quack, args=('Fixed time!',)),
             # Task(next_run_at=Task.at(hour=22, minute=11, tz=None), execute=self.shop, args=(['1'],)),
-            Task(next_run_at=Task.at(hour=18, minute=12, tz=None), execute=self.attack_grand_arena),
+            # Task(next_run_at=Task.at(hour=20, minute=0, tz=None), execute=self.attack_grand_arena),
         ]
         for mission_id, number in self.raids:
             task = Task(next_run_at=Task.every_n_hours(24 / number), execute=self.raid_mission, args=(mission_id,))
@@ -316,9 +317,9 @@ class Bot(contextlib.AbstractContextManager):
                 arena.filter_enemies(self.api.find_arena_enemies(), self.user.clan_id),
                 heroes,
                 arena.model_select_attackers,
-            ) for _ in range(self.MAX_GET_ARENA_ENEMIES)
+            ) for _ in range(self.MAX_ARENA_ENEMIES)
         )
-        (enemy, attackers, probability), _ = arena.secretary_max(results, self.MAX_GET_ARENA_ENEMIES, key=itemgetter(2))
+        (enemy, attackers, probability), _ = arena.secretary_max(results, self.MAX_ARENA_ENEMIES, key=itemgetter(2))
 
         # Debugging.
         log_heroes('Attackers:', attackers)
@@ -351,14 +352,14 @@ class Bot(contextlib.AbstractContextManager):
                 arena.filter_enemies(self.api.find_grand_enemies(), self.user.clan_id),
                 heroes,
                 arena.model_grand_select_attackers,
-            ) for _ in range(self.MAX_GET_ARENA_ENEMIES)
+            ) for _ in range(self.MAX_GRAND_ARENA_ENEMIES)
         )
-        (enemy, attacker_teams, probability), _ = arena.secretary_max(results, self.MAX_GET_ARENA_ENEMIES, key=itemgetter(2))
+        (enemy, attacker_teams, probability), _ = arena.secretary_max(results, self.MAX_GRAND_ARENA_ENEMIES, key=itemgetter(2))
 
         # Debugging.
-        for attackers in attacker_teams:
+        for i, (attackers, defenders) in enumerate(zip(attacker_teams, enemy.heroes), start=1):
+            logger.info('👊 Battle #%s.', i)
             log_heroes('Attackers:', attackers)
-        for defenders in enemy.heroes:
             log_heroes('Defenders:', defenders)
         logger.info('👊 Probability: %.1f%%.', 100.0 * probability)
 

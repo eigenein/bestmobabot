@@ -3,15 +3,16 @@ Arena hero selection logic.
 """
 
 import math
+from functools import reduce
 from itertools import combinations
 from operator import attrgetter, itemgetter
-from typing import Any, Callable, Iterable, List, Tuple, Optional, TypeVar
+from typing import Callable, Iterable, List, Tuple, Optional, TypeVar
 
 import numpy
 
 from bestmobabot import types
 from bestmobabot.logger import logger
-from bestmobabot.model import feature_names, model
+from bestmobabot.model import model
 from bestmobabot.responses import ArenaEnemy, GrandArenaEnemy, Hero
 
 TEAM_SIZE = 5  # heroes
@@ -76,18 +77,23 @@ def model_grand_select_attackers(heroes: Iterable[Hero], defender_teams: Iterabl
     """
 
     # Select GRAND_SIZE most powerful heroes. Otherwise, we would had to check a lot more combinations.
-    heroes = sorted(heroes, key=attrgetter('power'), reverse=True)[:GRAND_SIZE]
+    heroes = tuple(sorted(heroes, key=attrgetter('power'), reverse=True)[:GRAND_SIZE])
 
     # Construct possible options to choose teams.
-    teams_choices = list(choose_multiple(heroes, GRAND_TEAMS, TEAM_SIZE, attrgetter('id')))
+    # FIXME: ~5 sec.
+    logger.debug('👊 Generating teams…')
+    teams_choices = tuple(choose_multiple(heroes, GRAND_TEAMS, TEAM_SIZE))
 
     # Construct GRAND_TEAMS arrays for prediction. Each array consists of possibilities for only one team.
+    # FIXME: ~15 sec.
+    logger.debug('👊 Constructing attackers features…')
     xs = [
         numpy.array([get_model_features(attackers) for attackers in team_attackers])
         for team_attackers in zip(*teams_choices)
     ]
 
     # Subtract defenders features as in model_select_attackers.
+    logger.debug('👊 Applying defenders features…')
     for x, defenders in zip(xs, defender_teams):
         x -= get_model_features(defenders)
 
@@ -100,7 +106,7 @@ def model_grand_select_attackers(heroes: Iterable[Hero], defender_teams: Iterabl
 
     # Ok, now choose the teams with the highest win probability as usual.
     index: int = y.argmax()
-    logger.debug('👊 Test probability: %.1f%%.', 100.0 * y[index])
+    logger.debug('👊 Test probability: %.1f%% (from %.1f%%, %.1f%% and %.1f%%).', 100.0 * y[index], 100.0 * p1[index], 100.0 * p2[index], 100.0 * p3[index])
     return teams_choices[index], y[index]
 
 
@@ -111,8 +117,7 @@ def get_model_features(heroes: Iterable[Hero]) -> numpy.ndarray:
     """
     Build model features for the specified heroes.
     """
-    features = {key: value for hero in heroes for key, value in hero.features.items()}
-    return numpy.array([features.get(key, 0.0) for key in feature_names])
+    return reduce(numpy.add, (hero.features for hero in heroes))
 
 
 # Utilities.
@@ -137,14 +142,14 @@ def secretary_max(items: Iterable[T1], n: int, key: Optional[Callable[[T1], T2]]
     return item, item_key
 
 
-def choose_multiple(items: Iterable[T], n: int, k: int, key: Callable[[T], Any]) -> Iterable[Tuple[List[T], ...]]:
+def choose_multiple(items: Iterable[T], n: int, k: int) -> Iterable[Tuple[List[T], ...]]:
     """
     Choose n groups of size k.
     """
     if n == 0:
         yield ()
         return
-    for head in choose_multiple(items, n - 1, k, key):
-        used_keys = {key(item) for sub_items in head for item in sub_items}
-        for tail in combinations((item for item in items if key(item) not in used_keys), k):
-            yield (*head, list(tail))
+    for head in choose_multiple(items, n - 1, k):
+        used_keys = {item.id for sub_items in head for item in sub_items}
+        for tail in combinations((item for item in items if item.id not in used_keys), k):
+            yield (*head, [*tail])

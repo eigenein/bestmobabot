@@ -1,3 +1,5 @@
+from typing import NamedTuple
+
 # noinspection PyPackageRequirements
 import pytest
 
@@ -33,4 +35,9 @@ def test_secretary_max(items, expected, next_):
     (range(1), 1, 1, [([0],)]),
 ])
 def test_choose_multiple(items, n, k, expected):
-    assert sorted(choose_multiple(items, n, k, lambda item: item)) == sorted(expected)
+    class Item(NamedTuple):
+        id: int
+    assert sorted(choose_multiple([Item(item) for item in items], n, k)) == sorted(
+        tuple([Item(item) for item in items] for items in choice)
+        for choice in expected
+    )

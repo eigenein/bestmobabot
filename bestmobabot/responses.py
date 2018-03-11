@@ -2,10 +2,14 @@
 Game API response wrappers.
 """
 
+import logging
 from abc import ABC, ABCMeta
 from datetime import datetime, timedelta, timezone, tzinfo
 from typing import Any, Dict, List, Optional
 
+import numpy
+
+from bestmobabot.model import feature_names
 from bestmobabot.resources import COLORS, NAMES
 from bestmobabot.types import *
 
@@ -76,6 +80,28 @@ class Reward(BaseResponse):
         self.gear_fragment: Dict[str, int] = item.get('fragmentGear', {})
         self.gear: Dict[str, str] = item.get('gear', {})
 
+    def log(self, logger: logging.Logger):
+        if self.stamina:
+            logger.info('📈 Stamina: %s.', self.stamina)
+        if self.gold:
+            logger.info('📈 Gold: %s.', self.stamina)
+        if self.experience:
+            logger.info('📈 Experience: %s.', self.experience)
+        if self.consumable:
+            logger.info('📈 Consumable: %s.', self.consumable)
+        if self.star_money:
+            logger.info('📈 Star money: %s.', self.star_money)
+        if self.coin:
+            logger.info('📈 Coin: %s.', self.coin)
+        if self.hero_fragment:
+            logger.info('📈 Hero fragment: %s.', self.hero_fragment)
+        if self.artifact_fragment:
+            logger.info('📈 Artifact fragment: %s.', self.artifact_fragment)
+        if self.gear_fragment:
+            logger.info('📈 Gear fragment: %s.', self.gear_fragment)
+        if self.gear:
+            logger.info('📈 Gear: %s.', self.gear)
+
 
 class Quest(BaseResponse):
     def __init__(self, item: Dict):
@@ -106,6 +132,13 @@ class Hero(BaseResponse):
         self.color: int = item['color']
         self.star: int = item['star']
         self.power: Optional[int] = item.get('power')
+        # Prediction model features.
+        features = {
+            f'color_{self.id}': float(self.color),
+            f'level_{self.id}': float(self.level),
+            f'star_{self.id}': float(self.star),
+        }
+        self.features = numpy.fromiter((features.get(key, 0.0) for key in feature_names), numpy.float)
 
     def dump(self) -> dict:
         return {
@@ -113,14 +146,6 @@ class Hero(BaseResponse):
             'level': self.level,
             'color': self.color,
             'star': self.star,
-        }
-
-    @property
-    def features(self):
-        return {
-            f'color_{self.id}': float(self.color),
-            f'level_{self.id}': float(self.level),
-            f'star_{self.id}': float(self.star),
         }
 
     def order(self):
