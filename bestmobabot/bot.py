@@ -6,7 +6,7 @@ import contextlib
 import json
 from datetime import datetime, timedelta, timezone, tzinfo
 from itertools import chain
-from operator import itemgetter
+from operator import attrgetter, itemgetter
 from time import sleep
 from typing import Any, Dict, Callable, Iterable, List, NamedTuple, Optional, Set, TextIO, Tuple
 
@@ -90,7 +90,7 @@ class Bot(contextlib.AbstractContextManager):
 
     def start(self, state: Optional[Dict[str, Any]]):
         if state:
-            self.user = responses.User.parse(json.loads(state['user']))
+            self.user = responses.User(json.loads(state['user']))
             self.collected_gift_ids = set(state['collected_gift_ids'])
             self.logged_replay_ids = set(state.get('logged_replay_ids', []))
         else:
@@ -175,10 +175,6 @@ class Bot(contextlib.AbstractContextManager):
             return next_run_at
 
     @staticmethod
-    def get_duration(expedition: responses.Expedition) -> timedelta:
-        return expedition.duration
-
-    @staticmethod
     def get_hero_ids(heroes: Iterable[responses.Hero]) -> List[types.HeroID]:
         return [hero.id for hero in heroes]
 
@@ -251,7 +247,7 @@ class Bot(contextlib.AbstractContextManager):
         if not expeditions:
             logger.info('✅ No expeditions available.')
             return None
-        expedition = min(expeditions, key=self.get_duration)  # choose the fastest expedition
+        expedition = min(expeditions, key=attrgetter('duration'))  # choose the fastest expedition
 
         # Send the expedition.
         end_time, quests = self.api.send_expedition_heroes(expedition.id, self.get_hero_ids(heroes))

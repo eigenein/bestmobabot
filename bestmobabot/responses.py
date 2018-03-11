@@ -2,72 +2,56 @@
 Game API response wrappers.
 """
 
+from abc import ABC
 from datetime import datetime, timedelta, timezone, tzinfo
-from typing import Any, Dict, List, NamedTuple, Optional
+from typing import Any, Dict, List, Optional
 
-from bestmobabot import types
 from bestmobabot.resources import COLORS, NAMES
+from bestmobabot.types import *
 
 
-class Response(NamedTuple):
-    quests: 'Quests'
-    payload: Any
+class BaseResponse(ABC):
+    """
+    Base for all response classes.
+    """
 
-    @staticmethod
-    def parse(item: Dict) -> 'Response':
-        return Response(
-            payload=item['response'],
-            quests=list(map(Quest.parse, item.get('quests', []))),
-        )
+    def __init__(self, item: Dict):
+        self.item = item
 
 
-class User(NamedTuple):
-    id: types.UserID
-    name: str
-    tz: tzinfo
-    clan_id: types.ClanID
-    next_day: datetime
-    item: Dict
+class Result(BaseResponse):
+    """
+    Top-most result class.
+    """
 
-    @staticmethod
-    def parse(item: Dict) -> 'User':
-        tz = timezone(timedelta(hours=item.get('timeZone', 0)))
-        return User(
-            item=item,
-            id=str(item['id']),
-            name=item['name'],
-            tz=tz,
-            clan_id=item.get('clanId'),
-            next_day=datetime.fromtimestamp(item.get('nextDayTs', 0), tz),
-        )
+    def __init__(self, item: Dict):
+        super().__init__(item)
+        self.payload: Any = item['response']
+        self.quests: 'Quests' = [Quest(quest) for quest in item.get('quests', [])]
 
-    @staticmethod
-    def parse_optional(item: Optional[Dict]) -> Optional['User']:
-        return User.parse(item) if item is not None else None
+
+class User(BaseResponse):
+    def __init__(self, item: Dict):
+        super().__init__(item)
+        self.id: UserID = UserID(item['id'])
+        self.name: str = item['name']
+        self.tz: tzinfo = timezone(timedelta(hours=item.get('timeZone', 0)))
+        self.clan_id: ClanID = item.get('clanId')
+        self.next_day: datetime = datetime.fromtimestamp(item.get('nextDayTs', 0), self.tz)
 
     def is_from_clan(self, clan_id: Optional[str]) -> bool:
         return clan_id and self.clan_id and self.clan_id == clan_id
 
 
-class Expedition(NamedTuple):
-    id: types.ExpeditionID
-    status: int
-    end_time: Optional[datetime]
-    power: int
-    duration: timedelta
-    hero_ids: List[types.HeroID]
-
-    @staticmethod
-    def parse(item: Dict) -> 'Expedition':
-        end_time = datetime.fromtimestamp(item['endTime']).astimezone() if item.get('endTime') else None
-        return Expedition(
-            id=str(item['id']),
-            status=item['status'],
-            end_time=end_time,
-            power=item['power'],
-            duration=timedelta(seconds=item['duration']),
-            hero_ids=[str(hero_id) for hero_id in item.get('heroes', [])],
-        )
+class Expedition(BaseResponse):
+    def __init__(self, item: Dict):
+        super().__init__(item)
+        self.id: ExpeditionID = str(item['id'])
+        self.status: int = item['status']
+        self.end_time: Optional[datetime] = datetime.fromtimestamp(item['endTime']).astimezone() if item.get('endTime') else None
+        self.power: int = item['power']
+        self.duration: timedelta = timedelta(seconds=item['duration'])
+        self.hero_ids: List[HeroID] = [str(hero_id) for hero_id in item.get('heroes', [])]
 
     @property
     def is_available(self) -> bool:
@@ -78,48 +62,28 @@ class Expedition(NamedTuple):
         return self.status == 2
 
 
-class Reward(NamedTuple):
-    stamina: types.Stamina
-    gold: types.Gold
-    experience: types.Experience
-    consumable: Dict[str, int]
-    star_money: types.StarMoney
-    coin: Dict[str, str]
-    hero_fragment: Dict[types.HeroID, int]
-    artifact_fragment: Dict[str, int]
-    gear_fragment: Dict[str, int]
-    gear: Dict[str, str]
-
-    @staticmethod
-    def parse(item: Dict) -> 'Reward':
-        return Reward(
-            stamina=item.get('stamina', 0),
-            gold=item.get('gold', 0),
-            experience=item.get('experience', 0),
-            consumable=item.get('consumable', {}),
-            star_money=item.get('starmoney', 0),
-            coin=item.get('coin', {}),
-            hero_fragment=item.get('fragmentHero', {}),
-            artifact_fragment=item.get('fragmentArtifact', {}),
-            gear_fragment=item.get('fragmentGear', {}),
-            gear=item.get('gear', {})
-        )
+class Reward(BaseResponse):
+    def __init__(self, item: Dict):
+        super().__init__(item)
+        self.stamina: Stamina = item.get('stamina', 0)
+        self.gold: Gold = item.get('gold', 0)
+        self.experience: Experience = item.get('experience', 0)
+        self.consumable: Dict[str, int] = item.get('consumable', {})
+        self.star_money: StarMoney = item.get('starmoney', 0)
+        self.coin: Dict[str, str] = item.get('coin', {})
+        self.hero_fragment: Dict[HeroID, int] = item.get('fragmentHero', {})
+        self.artifact_fragment: Dict[str, int] = item.get('fragmentArtifact', {})
+        self.gear_fragment: Dict[str, int] = item.get('fragmentGear', {})
+        self.gear: Dict[str, str] = item.get('gear', {})
 
 
-class Quest(NamedTuple):
-    id: types.QuestID
-    state: types.QuestState
-    progress: int
-    reward: Reward
-
-    @staticmethod
-    def parse(item: Dict) -> 'Quest':
-        return Quest(
-            id=str(item['id']),
-            state=item['state'],
-            progress=item['progress'],
-            reward=Reward.parse(item['reward']),
-        )
+class Quest(BaseResponse):
+    def __init__(self, item: Dict):
+        super().__init__(item)
+        self.id: QuestID = str(item['id'])
+        self.state: QuestState = item['state']
+        self.progress: int = item['progress']
+        self.reward: Reward = Reward(item['reward'])
 
     @property
     def is_reward_available(self) -> bool:
@@ -129,32 +93,19 @@ class Quest(NamedTuple):
 Quests = List[Quest]
 
 
-class Letter(NamedTuple):
-    id: types.LetterID
-
-    @staticmethod
-    def parse(item: Dict) -> 'Letter':
-        return Letter(id=str(item['id']))
+class Letter:
+    def __init__(self, item: Dict):
+        self.id: LetterID = str(item['id'])
 
 
-class Hero(NamedTuple):
-    id: types.HeroID
-    level: int
-    color: int
-    star: int
-    power: Optional[int]
-    item: Dict
-
-    @staticmethod
-    def parse(item: Dict) -> 'Hero':
-        return Hero(
-            id=str(item['id']),
-            level=item['level'],
-            color=item['color'],
-            star=item['star'],
-            power=item.get('power'),
-            item=item,
-        )
+class Hero(BaseResponse):
+    def __init__(self, item: Dict):
+        super().__init__(item)
+        self.id: HeroID = str(item['id'])
+        self.level: int = item['level']
+        self.color: int = item['color']
+        self.star: int = item['star']
+        self.power: Optional[int] = item.get('power')
 
     def dump(self) -> dict:
         return {
@@ -176,117 +127,65 @@ class Hero(NamedTuple):
         return f'{"⭐" * self.star} {NAMES.get(self.id, self.id)} ({self.level}) {COLORS.get(self.color, self.color)}'
 
 
-class ArenaEnemy(NamedTuple):
-    user_id: types.UserID
-    place: str
-    heroes: List[Hero]
-    power: int
-    user: Optional[User]
-
-    @staticmethod
-    def parse(item: Dict) -> 'ArenaEnemy':
-        return ArenaEnemy(
-            user_id=str(item['userId']),
-            place=item['place'],
-            heroes=list(map(Hero.parse, item['heroes'])),
-            power=int(item['power']),
-            user=User.parse_optional(item.get('user')),
-        )
+class BaseArenaEnemy(ABC, BaseResponse):
+    def __init__(self, item: Dict):
+        super().__init__(item)
+        self.user_id: UserID = str(item['userId'])
+        self.place: str = item['place']
+        self.power: int = int(item['power'])
+        self.user: Optional[User] = User(item['user']) if item.get('user') else None
 
 
-# FIXME: join with ArenaEnemy?
-class GrandArenaEnemy(NamedTuple):
-    user_id: types.UserID
-    place: str
-    heroes: List[List[Hero]]
-    power: int
-    user: Optional[User]
-
-    @staticmethod
-    def parse(item: Dict) -> 'GrandArenaEnemy':
-        return GrandArenaEnemy(
-            user_id=str(item['userId']),
-            place=item['place'],
-            heroes=[[Hero.parse(item) for item in items] for items in item['heroes']],
-            power=int(item['power']),
-            user=User.parse_optional(item.get('user')),
-        )
+class ArenaEnemy(BaseArenaEnemy):
+    def __init__(self, item: Dict):
+        super().__init__(item)
+        self.heroes: List[Hero] = [Hero(hero) for hero in item['heroes']]
 
 
-class ArenaResult(NamedTuple):
+class GrandArenaEnemy(BaseArenaEnemy):
+    def __init__(self, item: Dict):
+        super().__init__(item)
+        self.heroes: List[List[Hero]] = [[Hero(hero) for hero in heroes] for heroes in item['heroes']]
+
+
+class ArenaResult(BaseResponse):
     """
     Unified arena result for normal arena and grand arena.
     """
 
-    win: bool
-    arena_place: Optional[str]
-    grand_place: Optional[str]
-    battles: List['BattleResult']
-    reward: Reward
-
-    @staticmethod
-    def parse(item: Dict) -> 'ArenaResult':
-        return ArenaResult(
-            win=item['win'],
-            arena_place=item['state'].get('arenaPlace'),
-            grand_place=item['state'].get('grandPlace'),
-            battles=list(map(BattleResult.parse, item['battles'])),
-            reward=Reward.parse(item['reward'] or {}),
-        )
+    def __init__(self, item: Dict):
+        super().__init__(item)
+        self.win: bool = item['win']
+        self.arena_place: Optional[str] = item['state'].get('arenaPlace')
+        self.grand_place: Optional[str] = item['state'].get('grandPlace')
+        self.battles: List['BattleResult'] = [BattleResult(result) for result in item['battles']]
+        self.reward: Reward = Reward(item['reward'] or {})
 
 
-class BattleResult(NamedTuple):
-    win: bool
-    stars: int
-
-    @staticmethod
-    def parse(item: Dict) -> 'BattleResult':
-        result = item['result']
-        return BattleResult(
-            win=result['win'],
-            stars=result.get('stars', 0),
-        )
+class BattleResult(BaseResponse):
+    def __init__(self, item: Dict):
+        super().__init__(item)
+        self.win: bool = item['result']['win']
+        self.stars: int = item['result'].get('stars', 0)
 
 
-class Freebie(NamedTuple):
-    reward: Reward
-
-    @staticmethod
-    def parse(item: Dict) -> 'Freebie':
-        return Freebie(
-            reward=Reward.parse(item['reward']),
-        )
+class Boss(BaseResponse):
+    def __init__(self, item: Dict):
+        super().__init__(item)
+        self.id: BossID = str(item['id'])
 
 
-class Boss(NamedTuple):
-    id: types.BossID
-
-    @staticmethod
-    def parse(item: Dict) -> 'Boss':
-        return Boss(id=str(item['id']))
+class Battle(BaseResponse):
+    def __init__(self, item: Dict):
+        super().__init__(item)
+        self.seed: int = item['seed']
 
 
-class Battle(NamedTuple):
-    seed: int
-
-    @staticmethod
-    def parse(item: Dict) -> 'Battle':
-        return Battle(seed=item['seed'])
-
-
-class Replay(NamedTuple):
-    id: types.ReplayID
-    win: bool
-    stars: int
-    attackers: List[Hero]
-    defenders: List[List[Hero]]
-
-    @staticmethod
-    def parse(item: Dict) -> 'Replay':
-        return Replay(
-            id=item['id'],
-            win=item['result']['win'],
-            stars=item['result']['stars'],
-            attackers=list(map(Hero.parse, item['attackers'].values())),
-            defenders=[list(map(Hero.parse, defenders.values())) for defenders in item['defenders']],
-        )
+class Replay(BaseResponse):
+    def __init__(self, item: Dict):
+        super().__init__(item)
+        self.id: ReplayID = item['id']
+        self.win: bool = item['result']['win']
+        self.stars: int = item['result']['stars']
+        self.attackers: List[Hero] = [Hero(hero) for hero in item['attackers'].values()]
+        self.defenders: List[List[Hero]] = [[Hero(hero) for hero in defenders.values()] for defenders in item['defenders']]
