@@ -2,7 +2,7 @@
 Game API response wrappers.
 """
 
-from abc import ABC
+from abc import ABC, ABCMeta
 from datetime import datetime, timedelta, timezone, tzinfo
 from typing import Any, Dict, List, Optional
 
@@ -123,11 +123,17 @@ class Hero(BaseResponse):
             f'star_{self.id}': float(self.star),
         }
 
+    def order(self):
+        """
+        Get comparison order.
+        """
+        return self.star, self.color, self.level
+
     def __str__(self):
         return f'{"⭐" * self.star} {NAMES.get(self.id, self.id)} ({self.level}) {COLORS.get(self.color, self.color)}'
 
 
-class BaseArenaEnemy(ABC, BaseResponse):
+class BaseArenaEnemy(BaseResponse, metaclass=ABCMeta):
     def __init__(self, item: Dict):
         super().__init__(item)
         self.user_id: UserID = str(item['userId'])
@@ -189,3 +195,24 @@ class Replay(BaseResponse):
         self.stars: int = item['result']['stars']
         self.attackers: List[Hero] = [Hero(hero) for hero in item['attackers'].values()]
         self.defenders: List[List[Hero]] = [[Hero(hero) for hero in defenders.values()] for defenders in item['defenders']]
+
+
+__all__ = [
+    'BaseResponse',
+    'Result',
+    'User',
+    'Expedition',
+    'Reward',
+    'Quest',
+    'Quests',
+    'Letter',
+    'Hero',
+    'BaseArenaEnemy',
+    'ArenaEnemy',
+    'GrandArenaEnemy',
+    'ArenaResult',
+    'BattleResult',
+    'Boss',
+    'Battle',
+    'Replay',
+]

@@ -5,14 +5,15 @@ The bot logic.
 import contextlib
 import json
 from datetime import datetime, timedelta, timezone, tzinfo
-from itertools import chain
 from operator import attrgetter, itemgetter
 from time import sleep
 from typing import Any, Dict, Callable, Iterable, List, NamedTuple, Optional, Set, TextIO, Tuple
 
-from bestmobabot import arena, responses, types
+from bestmobabot import arena
 from bestmobabot.api import AlreadyError, API, InvalidResponseError, NotEnoughError
 from bestmobabot.logger import log_arena_result, log_heroes, log_reward, log_rewards, logger
+from bestmobabot.responses import *
+from bestmobabot.types import BattleType, HeroID
 from bestmobabot.vk import VK
 
 NextRunAtCallable = Callable[[datetime], datetime]
@@ -68,7 +69,7 @@ class Bot(contextlib.AbstractContextManager):
         self.shops = shops
 
         self.vk = VK()
-        self.user: responses.User = None
+        self.user: User = None
         self.collected_gift_ids: Set[str] = set()
         self.logged_replay_ids: Set[str] = set()
         self.tasks: List[Task] = []
@@ -90,7 +91,7 @@ class Bot(contextlib.AbstractContextManager):
 
     def start(self, state: Optional[Dict[str, Any]]):
         if state:
-            self.user = responses.User(json.loads(state['user']))
+            self.user = User(json.loads(state['user']))
             self.collected_gift_ids = set(state['collected_gift_ids'])
             self.logged_replay_ids = set(state.get('logged_replay_ids', []))
         else:
@@ -107,6 +108,7 @@ class Bot(contextlib.AbstractContextManager):
 
             # Other quests are simultaneous for everyone. Day starts at 3:00 UTC.
             Task(next_run_at=Task.every_n_minutes(24 * 60 // 5, offset=timedelta(hours=-1)), execute=self.attack_arena),
+            # TODO: Task(next_run_at=Task.every_n_minutes(24 * 60 // 5, offset=timedelta(hours=+1)), execute=self.attack_grand_arena),
             Task(next_run_at=Task.every_n_hours(6, offset=timedelta(minutes=15)), execute=self.farm_mail),
             Task(next_run_at=Task.every_n_hours(6, offset=timedelta(minutes=30)), execute=self.check_freebie),
             Task(next_run_at=Task.every_n_hours(8), execute=self.farm_expeditions),
@@ -122,6 +124,7 @@ class Bot(contextlib.AbstractContextManager):
             # Task(next_run_at=Task.every_n_minutes(1), execute=self.quack, args=('Quack 2!',)),
             # Task(next_run_at=Task.at(hour=22, minute=14, tz=None), execute=self.quack, args=('Fixed time!',)),
             # Task(next_run_at=Task.at(hour=22, minute=11, tz=None), execute=self.shop, args=(['1'],)),
+            Task(next_run_at=Task.at(hour=18, minute=12, tz=None), execute=self.attack_grand_arena),
         ]
         for mission_id, number in self.raids:
             task = Task(next_run_at=Task.every_n_hours(24 / number), execute=self.raid_mission, args=(mission_id,))
@@ -175,7 +178,7 @@ class Bot(contextlib.AbstractContextManager):
             return next_run_at
 
     @staticmethod
-    def get_hero_ids(heroes: Iterable[responses.Hero]) -> List[types.HeroID]:
+    def get_hero_ids(heroes: Iterable[Hero]) -> List[HeroID]:
         return [hero.id for hero in heroes]
 
     # Actual tasks.
@@ -255,7 +258,7 @@ class Bot(contextlib.AbstractContextManager):
         self.farm_quests(quests)
         return end_time
 
-    def farm_quests(self, quests: responses.Quests = None):
+    def farm_quests(self, quests: Quests = None):
         """
         Собирает награды из заданий.
         """
@@ -301,12 +304,21 @@ class Bot(contextlib.AbstractContextManager):
         """
         logger.info('👊 Attacking arena…')
 
-        # Pick an enemy and select attackers.
+        # Obtain our heroes.
         heroes = self.api.get_all_heroes()
-        (enemy, attackers, probability), _ = arena.secretary_max((
-            arena.model_select(arena.filter_enemies(self.api.find_arena_enemies(), self.user.clan_id), heroes)
-            for _ in range(self.MAX_GET_ARENA_ENEMIES)
-        ), self.MAX_GET_ARENA_ENEMIES, key=itemgetter(2))
+        if len(heroes) < arena.TEAM_SIZE:
+            logger.warning('😐 Not enough heroes.')
+            return
+
+        # Pick an enemy and select attackers.
+        results = (
+            arena.select_enemy(
+                arena.filter_enemies(self.api.find_arena_enemies(), self.user.clan_id),
+                heroes,
+                arena.model_select_attackers,
+            ) for _ in range(self.MAX_GET_ARENA_ENEMIES)
+        )
+        (enemy, attackers, probability), _ = arena.secretary_max(results, self.MAX_GET_ARENA_ENEMIES, key=itemgetter(2))
 
         # Debugging.
         log_heroes('Attackers:', attackers)
@@ -321,15 +333,55 @@ class Bot(contextlib.AbstractContextManager):
         logger.info('👊 Current place: %s', result.arena_place)
         self.farm_quests(quests)
 
+    def attack_grand_arena(self):
+        """
+        Совершает бой на гранд арене.
+        """
+        logger.info('👊 Attacking grand arena…')
+
+        # Obtain our heroes.
+        heroes = self.api.get_all_heroes()
+        if len(heroes) < arena.GRAND_SIZE:
+            logger.warning('😐 Not enough heroes.')
+            return
+
+        # Pick an enemy and select attackers.
+        results = (
+            arena.select_enemy(
+                arena.filter_enemies(self.api.find_grand_enemies(), self.user.clan_id),
+                heroes,
+                arena.model_grand_select_attackers,
+            ) for _ in range(self.MAX_GET_ARENA_ENEMIES)
+        )
+        (enemy, attacker_teams, probability), _ = arena.secretary_max(results, self.MAX_GET_ARENA_ENEMIES, key=itemgetter(2))
+
+        # Debugging.
+        for attackers in attacker_teams:
+            log_heroes('Attackers:', attackers)
+        for defenders in enemy.heroes:
+            log_heroes('Defenders:', defenders)
+        logger.info('👊 Probability: %.1f%%.', 100.0 * probability)
+
+        # Attack!
+        result, quests = self.api.attack_grand(enemy.user.id, [
+            [attacker.id for attacker in attackers]
+            for attackers in attacker_teams
+        ])
+
+        # Collect results.
+        log_arena_result(result)
+        logger.info('👊 Current place: %s', result.arena_place)
+        self.farm_quests(quests)
+
     def get_arena_replays(self):
         """
         Читает и сохраняет журналы арен.
         """
         logger.info('📒 Reading arena logs…')
-        replays: List[responses.Replay] = list(chain(
-            self.api.get_battle_by_type(types.BattleType.ARENA),
-            self.api.get_battle_by_type(types.BattleType.GRAND),
-        ))
+        replays: List[Replay] = [
+            *self.api.get_battle_by_type(BattleType.ARENA),
+            *self.api.get_battle_by_type(BattleType.GRAND),
+        ]
         for replay in replays:
             if replay.id in self.logged_replay_ids:
                 continue

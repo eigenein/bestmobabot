@@ -28,3 +28,26 @@ UserID = NewType('UserID', str)
 class BattleType(Enum):
     ARENA = 'arena'
     GRAND = 'grand'
+
+
+__all__ = [
+    'BossID',
+    'ClanID',
+    'ConsumableID',
+    'ExpeditionID',
+    'ExpeditionStatus',
+    'Experience',
+    'Gold',
+    'HeroID',
+    'LetterID',
+    'MissionID',
+    'QuestID',
+    'QuestState',
+    'ReplayID',
+    'ShopID',
+    'SlotID',
+    'Stamina',
+    'StarMoney',
+    'UserID',
+    'BattleType',
+]
