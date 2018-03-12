@@ -109,7 +109,7 @@ class Bot(contextlib.AbstractContextManager):
 
             # Other quests are simultaneous for everyone. Day starts at 3:00 UTC.
             Task(next_run_at=Task.every_n_minutes(24 * 60 // 5, offset=timedelta(hours=-1)), execute=self.attack_arena),
-            Task(next_run_at=Task.every_n_minutes(24 * 60 // 5, offset=timedelta(minutes=-30)), execute=self.attack_grand_arena),
+            # FIXME: Task(next_run_at=Task.every_n_minutes(24 * 60 // 5, offset=timedelta(minutes=-30)), execute=self.attack_grand_arena),
             Task(next_run_at=Task.every_n_hours(6, offset=timedelta(minutes=15)), execute=self.farm_mail),
             Task(next_run_at=Task.every_n_hours(6, offset=timedelta(minutes=30)), execute=self.check_freebie),
             Task(next_run_at=Task.every_n_hours(8), execute=self.farm_expeditions),
