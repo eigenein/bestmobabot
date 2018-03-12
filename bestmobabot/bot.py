@@ -371,7 +371,7 @@ class Bot(contextlib.AbstractContextManager):
 
         # Collect results.
         log_arena_result(result)
-        logger.info('👊 Current place: %s', result.arena_place)
+        logger.info('👊 Current place: %s', result.grand_place)
         self.farm_quests(quests)
 
     def get_arena_replays(self):
