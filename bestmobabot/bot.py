@@ -53,7 +53,7 @@ class Task(NamedTuple):
 class Bot(contextlib.AbstractContextManager):
     MAX_OPEN_ARTIFACT_CHESTS = 5
     MAX_ARENA_ENEMIES = 10  # FIXME: make configurable
-    MAX_GRAND_ARENA_ENEMIES = 3  # FIXME: make configurable
+    MAX_GRAND_ARENA_ENEMIES = 10  # FIXME: make configurable
 
     def __init__(
         self,
@@ -109,7 +109,7 @@ class Bot(contextlib.AbstractContextManager):
 
             # Other quests are simultaneous for everyone. Day starts at 3:00 UTC.
             Task(next_run_at=Task.every_n_minutes(24 * 60 // 5, offset=timedelta(hours=-1)), execute=self.attack_arena),
-            # FIXME: Task(next_run_at=Task.every_n_minutes(24 * 60 // 5, offset=timedelta(minutes=-30)), execute=self.attack_grand_arena),
+            Task(next_run_at=Task.every_n_minutes(24 * 60 // 5, offset=timedelta(minutes=-30)), execute=self.attack_grand_arena),
             Task(next_run_at=Task.every_n_hours(6, offset=timedelta(minutes=15)), execute=self.farm_mail),
             Task(next_run_at=Task.every_n_hours(6, offset=timedelta(minutes=30)), execute=self.check_freebie),
             Task(next_run_at=Task.every_n_hours(8), execute=self.farm_expeditions),
@@ -125,7 +125,7 @@ class Bot(contextlib.AbstractContextManager):
             # Task(next_run_at=Task.every_n_minutes(1), execute=self.quack, args=('Quack 2!',)),
             # Task(next_run_at=Task.at(hour=22, minute=14, tz=None), execute=self.quack, args=('Fixed time!',)),
             # Task(next_run_at=Task.at(hour=22, minute=11, tz=None), execute=self.shop, args=(['1'],)),
-            # Task(next_run_at=Task.at(hour=20, minute=0, tz=None), execute=self.attack_grand_arena),
+            # Task(next_run_at=Task.at(hour=22, minute=44, tz=None), execute=self.attack_grand_arena),
         ]
         for mission_id, number in self.raids:
             task = Task(next_run_at=Task.every_n_hours(24 / number), execute=self.raid_mission, args=(mission_id,))
@@ -351,7 +351,7 @@ class Bot(contextlib.AbstractContextManager):
             arena.select_enemy(
                 arena.filter_enemies(self.api.find_grand_enemies(), self.user.clan_id),
                 heroes,
-                arena.model_grand_select_attackers,
+                arena.model_grand_select_attackers_light,
             ) for _ in range(self.MAX_GRAND_ARENA_ENEMIES)
         )
         (enemy, attacker_teams, probability), _ = arena.secretary_max(results, self.MAX_GRAND_ARENA_ENEMIES, key=itemgetter(2))

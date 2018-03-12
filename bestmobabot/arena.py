@@ -59,7 +59,7 @@ def select_enemy(
 # Attackers selection.
 # ----------------------------------------------------------------------------------------------------------------------
 
-def model_select_attackers(heroes: Iterable[Hero], defenders: Iterable[Hero]) -> Tuple[List[Hero], float]:
+def model_select_attackers(heroes: Iterable[Hero], defenders: Iterable[Hero], verbose: bool = True) -> Tuple[List[Hero], float]:
     """
     Select attackers for the given enemy to maximise win probability.
     """
@@ -67,13 +67,15 @@ def model_select_attackers(heroes: Iterable[Hero], defenders: Iterable[Hero]) ->
     x = numpy.array([get_model_features(attackers) for attackers in attackers_list]) - get_model_features(defenders)
     y: numpy.ndarray = model.predict_proba(x)[:, 1]
     index: int = y.argmax()
-    logger.debug('👊 Test probability: %.1f%%.', 100.0 * y[index])
+    if verbose:
+        logger.debug('👊 Test probability: %.1f%%.', 100.0 * y[index])
     return attackers_list[index], y[index]
 
 
-def model_grand_select_attackers(heroes: Iterable[Hero], defender_teams: Iterable[Iterable[Hero]]) -> Tuple[Tuple[List[Hero], ...], float]:
+def model_grand_select_attackers_slow(heroes: Iterable[Hero], defender_teams: Iterable[Iterable[Hero]]) -> Tuple[Tuple[List[Hero], ...], float]:
     """
     Select 3 teams of attackers for the given enemy to maximise win probability.
+    It's very memory-consuming and slow.
     """
 
     # Select GRAND_SIZE most powerful heroes. Otherwise, we would had to check a lot more combinations.
@@ -108,6 +110,42 @@ def model_grand_select_attackers(heroes: Iterable[Hero], defender_teams: Iterabl
     index: int = y.argmax()
     logger.debug('👊 Test probability: %.1f%% (from %.1f%%, %.1f%% and %.1f%%).', 100.0 * y[index], 100.0 * p1[index], 100.0 * p2[index], 100.0 * p3[index])
     return teams_choices[index], y[index]
+
+
+def model_grand_select_attackers_light(heroes: Iterable[Hero], defender_teams: Iterable[Iterable[Hero]]) -> Tuple[Tuple[List[Hero], ...], float]:
+    """
+    Select 3 teams of attackers for the given enemy to maximise win probability.
+    It's not giving the best solution.
+    """
+
+    heroes = tuple(heroes)
+    defender_teams = tuple(defender_teams)
+
+    # First try to estimate which enemy team is the strongest for us. We're not going to beat it.
+    win_probabilities = [model_select_attackers(heroes, defenders, verbose=False)[1] for defenders in defender_teams]
+    p1, p2, p3 = win_probabilities
+    logger.debug('👊 Estimated probabilities: %.1f%% | %.1f%% | %.1f%%.', 100.0 * p1, 100.0 * p2, 100.0 * p3)
+    order = sorted(range(GRAND_TEAMS), key=win_probabilities.__getitem__)
+
+    # So, we ignore the strongest enemy.
+    # And from the other ones we first try to beat the strongest one.
+    # The ignored one is checked the last.
+    probabilities: List[float] = [0.0] * GRAND_TEAMS
+    attackers_teams: List[List[Hero]] = [[]] * GRAND_TEAMS
+    for i in (*order[1:], order[0]):
+        attackers, probability = model_select_attackers(heroes, defender_teams[i], verbose=False)
+        attackers_teams[i] = attackers
+        probabilities[i] = probability
+        # Exclude used heroes.
+        used_heroes = {hero.id for hero in attackers}
+        heroes = tuple(hero for hero in heroes if hero.id not in used_heroes)
+
+    # Compute probability of 2 or 3 successes out of 3 trials.
+    # https://en.wikipedia.org/wiki/Poisson_binomial_distribution
+    p1, p2, p3 = probabilities
+    p = p1 * p2 * p3 + p1 * p2 * (1.0 - p3) + p2 * p3 * (1.0 - p1) + p1 * p3 * (1.0 - p2)
+    logger.debug('👊 Test probability: %.1f%% (%.1f%% | %.1f%% | %.1f%%).', 100.0 * p, 100.0 * p1, 100.0 * p2, 100.0 * p3)
+    return tuple(attackers_teams), p
 
 
 # Features construction.
