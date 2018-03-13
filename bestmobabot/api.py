@@ -300,7 +300,8 @@ class API(contextlib.AbstractContextManager):
         return ArenaResult(response.payload), response.quests
 
     def find_grand_enemies(self) -> List[GrandArenaEnemy]:
-        return list(map(GrandArenaEnemy, self.call('grandFindEnemies').payload))
+        # Random sleep is turned off because model prediction takes some time already.
+        return list(map(GrandArenaEnemy, self.call('grandFindEnemies', random_sleep=False).payload))
 
     def attack_grand(self, user_id: UserID, hero_ids: List[List[HeroID]]) -> Tuple[ArenaResult, Quests]:
         response = self.call('grandAttack', {'userId': user_id, 'heroes': hero_ids})
