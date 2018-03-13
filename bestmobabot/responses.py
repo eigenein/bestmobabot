@@ -30,7 +30,7 @@ class Result(BaseResponse):
 
     def __init__(self, item: Dict):
         super().__init__(item)
-        self.payload: Any = item['response']
+        self.response: Any = item['response']
         self.quests: 'Quests' = [Quest(quest) for quest in item.get('quests', [])]
 
 
@@ -79,6 +79,7 @@ class Reward(BaseResponse):
         self.artifact_fragment: Dict[str, int] = item.get('fragmentArtifact', {})
         self.gear_fragment: Dict[str, int] = item.get('fragmentGear', {})
         self.gear: Dict[str, str] = item.get('gear', {})
+        self.scroll_fragment: Dict[str, str] = item.get('fragmentScroll', {})
 
     def log(self, logger: logging.Logger):
         if self.stamina:
@@ -222,6 +223,14 @@ class Replay(BaseResponse):
         self.defenders: List[List[Hero]] = [[Hero(hero) for hero in defenders.values()] for defenders in item['defenders']]
 
 
+class ShopSlot(BaseResponse):
+    def __init__(self, item: Dict):
+        super().__init__(item)
+        self.id: SlotID = str(item['id'])
+        self.is_bought: bool = bool(item['bought'])
+        self.reward: Reward = Reward(item['reward'])
+
+
 __all__ = [
     'BaseResponse',
     'Result',
@@ -240,4 +249,5 @@ __all__ = [
     'Boss',
     'Battle',
     'Replay',
+    'ShopSlot',
 ]

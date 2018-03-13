@@ -13,7 +13,7 @@ from bestmobabot import arena
 from bestmobabot.api import AlreadyError, API, InvalidResponseError, NotEnoughError
 from bestmobabot.logger import log_arena_result, log_heroes, log_reward, log_rewards, logger
 from bestmobabot.responses import *
-from bestmobabot.types import BattleType, HeroID
+from bestmobabot.types import *
 from bestmobabot.vk import VK
 
 NextRunAtCallable = Callable[[datetime], datetime]
@@ -124,7 +124,7 @@ class Bot(contextlib.AbstractContextManager):
             # Task(next_run_at=Task.every_n_minutes(1), execute=self.quack, args=('Quack 1!',)),
             # Task(next_run_at=Task.every_n_minutes(1), execute=self.quack, args=('Quack 2!',)),
             # Task(next_run_at=Task.at(hour=22, minute=14, tz=None), execute=self.quack, args=('Fixed time!',)),
-            # Task(next_run_at=Task.at(hour=22, minute=11, tz=None), execute=self.shop, args=(['1'],)),
+            Task(next_run_at=Task.at(hour=22, minute=40, tz=None), execute=self.shop, args=(['1'],)),
             # Task(next_run_at=Task.at(hour=22, minute=14, tz=None), execute=self.attack_grand_arena),
         ]
         for mission_id, number in self.raids:
@@ -432,13 +432,25 @@ class Bot(contextlib.AbstractContextManager):
         logger.info('👊 Raid mission #%s…', mission_id)
         log_rewards(self.api.raid_mission(mission_id))
 
-    def shop(self, shop_ids):
+    def shop(self, shop_ids: List[ShopID]):
         """
         Покупает в магазине вещи.
         """
+        logger.info('🛒 Refreshing shops %s…', shop_ids)
+        available_slots: Set[Tuple[ShopID, SlotID]] = {
+            (shop_id, slot.id)
+            for shop_id in shop_ids
+            for slot in self.api.get_shop(shop_id)
+            if not slot.is_bought
+        }
+
+        logger.info('🛒 Buying stuff…')
         for shop_id, slot_id in self.shops:
             if shop_id not in shop_ids:
                 logger.debug('🛒 Ignoring shop #%s.', shop_id)
+                continue
+            if (shop_id, slot_id) not in available_slots:
+                logger.warning('🛒 Slot #%s is not available in shop #%s.', slot_id, shop_id)
                 continue
             logger.info('🛒 Buy slot #%s in shop #%s…', slot_id, shop_id)
             try:
