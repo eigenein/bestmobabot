@@ -14,6 +14,7 @@ from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 
 import requests
 from requests.adapters import HTTPAdapter
+from tinydb import TinyDB, where
 
 from bestmobabot.logger import logger
 from bestmobabot.responses import *
@@ -68,8 +69,10 @@ class API(contextlib.AbstractContextManager):
     IFRAME_URL = 'https://i-heroes-vk.nextersglobal.com/iframe/vkontakte/iframe.new.php'
     API_URL = 'https://heroes-vk.nextersglobal.com/api/'
     USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Safari/537.36'
+    STATE_QUERY = (where('key') == 'api')
 
-    def __init__(self, remixsid: str):
+    def __init__(self, db: TinyDB, remixsid: str):
+        self.db = db
         self.remixsid = remixsid
         self.auth_token: str = None
         self.user_id: str = None
@@ -84,18 +87,9 @@ class API(contextlib.AbstractContextManager):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.session.__exit__(exc_type, exc_val, exc_tb)
 
-    @property
-    def state(self) -> Dict[str, Any]:
-        return {
-            'user_id': self.user_id,
-            'auth_token': self.auth_token,
-            'request_id': self.request_id,
-            'session_id': self.session_id,
-            'remixsid': self.remixsid,
-        }
-
-    def start(self, state: Optional[Dict[str, Any]]):
-        if state:
+    def start(self, invalidate_session: bool = False):
+        state: Dict[str, Any] = self.db.get(self.STATE_QUERY)
+        if not invalidate_session and state:
             logger.info('🔑 Using saved credentials.')
             self.user_id = state['user_id']
             self.auth_token = state['auth_token']
@@ -129,21 +123,30 @@ class API(contextlib.AbstractContextManager):
         self.request_id = 0
         self.session_id = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(14))
 
+        self.db.upsert({
+            'key': 'api',
+            'user_id': self.user_id,
+            'auth_token': self.auth_token,
+            'request_id': self.request_id,
+            'session_id': self.session_id,
+        }, self.STATE_QUERY)
+
     def call(self, name: str, arguments: Optional[Dict[str, Any]] = None, random_sleep=True) -> Result:
         try:
             return self._call(name, arguments=arguments, random_sleep=random_sleep)
         except (InvalidSessionError, InvalidSignatureError) as e:
             logger.warning('😱 Invalid session: %s.', e)
-            self.start(state=None)
+            self.start(invalidate_session=True)
             logger.info('🔔 Retrying the call…')
             return self._call(name, arguments=arguments, random_sleep=random_sleep)
 
     def _call(self, name: str, *, arguments: Optional[Dict[str, Any]] = None, random_sleep=True) -> Result:
         # Emulate human behavior a little bit.
-        if random_sleep and self.request_id != 1:
+        if random_sleep and self.request_id != 0:
             self.sleep(random.uniform(5.0, 15.0))
 
         self.request_id += 1
+        self.db.upsert({'request_id': self.request_id}, self.STATE_QUERY)
         logger.info('🔔 #%s %s(%r)', self.request_id, name, arguments or {})
 
         calls = [{'ident': name, 'name': name, 'args': arguments or {}}]

@@ -7,7 +7,9 @@ import json
 from datetime import datetime, timedelta, timezone, tzinfo
 from operator import attrgetter, itemgetter
 from time import sleep
-from typing import Any, Dict, Callable, Iterable, List, NamedTuple, Optional, Set, TextIO, Tuple
+from typing import Callable, Iterable, List, NamedTuple, Optional, Set, TextIO, Tuple
+
+from tinydb import TinyDB, where
 
 from bestmobabot import arena
 from bestmobabot.api import AlreadyError, API, InvalidResponseError, NotEnoughError
@@ -57,12 +59,14 @@ class Bot(contextlib.AbstractContextManager):
 
     def __init__(
         self,
+        db: TinyDB,
         api: API,
         no_experience: bool,
         raids: List[Tuple[str, int]],
         shops: List[Tuple[str, str]],
         battle_log: Optional[TextIO],
     ):
+        self.db = db
         self.api = api
         self.no_experience = no_experience
         self.raids = raids
@@ -71,32 +75,19 @@ class Bot(contextlib.AbstractContextManager):
 
         self.vk = VK()
         self.user: User = None
-        self.collected_gift_ids: Set[str] = set()
-        self.logged_replay_ids: Set[str] = set()
         self.tasks: List[Task] = []
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.api.__exit__(exc_type, exc_val, exc_tb)
         self.vk.__exit__(exc_type, exc_val, exc_tb)
 
-    @property
-    def state(self) -> Dict[str, Any]:
-        return {
-            'user': json.dumps(self.user.item),
-            'collected_gift_ids': list(self.collected_gift_ids),
-            'logged_replay_ids': list(self.logged_replay_ids),
-            'description': {
-                'name': self.user.name,
-            },
-        }
-
-    def start(self, state: Optional[Dict[str, Any]]):
-        if state:
-            self.user = User(json.loads(state['user']))
-            self.collected_gift_ids = set(state['collected_gift_ids'])
-            self.logged_replay_ids = set(state.get('logged_replay_ids', []))
+    def start(self):
+        user_item = self.db.get(where('key') == 'user')
+        if user_item:
+            self.user = User(user_item)
         else:
             self.user = self.api.get_user_info()
+            self.db.insert({'key': 'user', **self.user.item})
 
         self.tasks = [
             # Re-registration task.
@@ -197,7 +188,7 @@ class Bot(contextlib.AbstractContextManager):
         """
         Заново заходит в игру, это нужно для появления ежедневных задач в событиях.
         """
-        self.api.start(state=None)
+        self.api.start(invalidate_session=True)
         self.api.register()
 
     def farm_daily_bonus(self):
@@ -380,16 +371,15 @@ class Bot(contextlib.AbstractContextManager):
             *self.api.get_battle_by_type(BattleType.GRAND),
         ]
         for replay in replays:
-            if replay.id in self.logged_replay_ids:
+            if self.db.table('replays').get(where('id') == replay.id):
                 continue
             print(json.dumps({
                 'replay_id': replay.id,
                 'win': replay.win,
                 'attackers': [hero.dump() for hero in replay.attackers],
                 'defenders': [hero.dump() for defenders in replay.defenders for hero in defenders],
-            }), file=self.battle_log)
-            self.battle_log.flush()
-            self.logged_replay_ids.add(replay.id)
+            }), file=self.battle_log, flush=True)
+            self.db.table('replays').insert({'id': replay.id})
             logger.info('📒 Saved %s.', replay.id)
 
     def check_freebie(self):
@@ -397,15 +387,16 @@ class Bot(contextlib.AbstractContextManager):
         Собирает подарки на странице игры ВКонтакте.
         """
         logger.info('🎁 Checking freebie…')
-        gift_ids = set(self.vk.find_gifts()) - self.collected_gift_ids
         should_farm_mail = False
 
-        for gift_id in gift_ids:
+        for gift_id in self.vk.find_gifts():
+            if self.db.table('gifts').get(where('id') == gift_id):
+                continue
             logger.info('🎁 Checking %s…', gift_id)
             if self.api.check_freebie(gift_id) is not None:
                 logger.info('🎉 Received %s!', gift_id)
                 should_farm_mail = True
-            self.collected_gift_ids.add(gift_id)
+            self.db.table('gifts').insert({'id': gift_id})
 
         if should_farm_mail:
             self.farm_mail()

@@ -1,6 +1,7 @@
 *.env
 *.log
 remixsid-*.json
+tinydb-*.json
 .idea/bestmobabot.iml
 .idea/codeStyles/codeStyleConfig.xml
 .idea/misc.xml

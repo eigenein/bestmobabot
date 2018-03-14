@@ -4,3 +4,4 @@ coloredlogs
 numpy
 scikit-learn
 scipy
+tinydb
