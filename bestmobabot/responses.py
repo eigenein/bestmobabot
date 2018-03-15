@@ -85,7 +85,7 @@ class Reward(BaseResponse):
         if self.stamina:
             logger.info('📈 Stamina: %s.', self.stamina)
         if self.gold:
-            logger.info('📈 Gold: %s.', self.stamina)
+            logger.info('📈 Gold: %s.', self.gold)
         if self.experience:
             logger.info('📈 Experience: %s.', self.experience)
         if self.consumable:
