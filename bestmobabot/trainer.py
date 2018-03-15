@@ -80,8 +80,7 @@ def train(x, y, n_iter: int):
     classifier = RandomForestClassifier(class_weight='balanced', n_jobs=5, random_state=42)
     param_grid = {
         'n_estimators': list(range(1, 501)),
-        'max_features': ['sqrt', 'log2'],
-        'max_depth': list(range(1, x.shape[1] + 1)),
+        'max_features': list(range(1, x.shape[1] + 1)),
         'criterion': ['entropy', 'gini'],
     }
 
