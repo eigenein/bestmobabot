@@ -296,7 +296,8 @@ class API(contextlib.AbstractContextManager):
     # ------------------------------------------------------------------------------------------------------------------
 
     def find_arena_enemies(self) -> List[ArenaEnemy]:
-        return list(map(ArenaEnemy, self.call('arenaFindEnemies').response))
+        # Random sleep is turned off because model prediction takes some time already.
+        return list(map(ArenaEnemy, self.call('arenaFindEnemies', random_sleep=False).response))
 
     def attack_arena(self, user_id: UserID, hero_ids: Iterable[HeroID]) -> Tuple[ArenaResult, Quests]:
         response = self.call('arenaAttack', {'userId': user_id, 'heroes': list(hero_ids)})
