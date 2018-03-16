@@ -108,8 +108,6 @@ class Bot(contextlib.AbstractContextManager):
             Task(next_run_at=Task.at(hour=8, minute=30), execute=self.buy_chest),
             Task(next_run_at=Task.at(hour=9, minute=0), execute=self.send_daily_gift),
             Task(next_run_at=Task.at(hour=10, minute=0), execute=self.farm_zeppelin_gift),
-            Task(next_run_at=Task.at(hour=11, minute=1), execute=self.shop, args=(['6', '9'],)),
-            Task(next_run_at=Task.every_n_hours(8, offset=timedelta(minutes=1)), execute=self.shop, args=(['1'],)),
 
             # Debug tasks. Uncomment when needed.
             # Task(next_run_at=Task.every_n_minutes(1), execute=self.quack, args=('Quack 1!',)),
@@ -119,8 +117,12 @@ class Bot(contextlib.AbstractContextManager):
             # Task(next_run_at=Task.at(hour=22, minute=14, tz=None), execute=self.attack_grand_arena),
         ]
         for mission_id, number in self.raids:
-            task = Task(next_run_at=Task.every_n_hours(24 / number), execute=self.raid_mission, args=(mission_id,))
-            self.tasks.append(task)
+            self.tasks.append(Task(next_run_at=Task.every_n_hours(24 / number), execute=self.raid_mission, args=(mission_id,)))
+        if self.shops:
+            self.tasks.extend([
+                Task(next_run_at=Task.at(hour=11, minute=1), execute=self.shop, args=(['6', '9'],)),
+                Task(next_run_at=Task.every_n_hours(8, offset=timedelta(minutes=1)), execute=self.shop, args=(['1'],)),
+            ])
         if self.battle_log:
             self.tasks.append(Task(next_run_at=Task.every_n_hours(8), execute=self.get_arena_replays))
 
