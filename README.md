@@ -38,3 +38,11 @@ services:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
 ```
+
+### Trainer
+
+Fow now predictive model should be regularly updated with the trainer:
+
+```bash
+$ python3 -m bestmobabot.trainer bestmobabot-battle-log-1.jsonl -n 100
+```

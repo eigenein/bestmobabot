@@ -18,7 +18,6 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import cross_val_score, RandomizedSearchCV, StratifiedKFold
 
 
-DROPNA_THRESHOLD = 5
 CV = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 SCORING = 'accuracy'
 CHUNK_LENGTH = 94
@@ -35,7 +34,7 @@ def main(log_files: Iterable[TextIO], n_iter: int):
     coloredlogs.install(fmt='%(asctime)s %(levelname)s %(message)s', level=logging.DEBUG, stream=sys.stderr)
 
     # Read battles.
-    battles = DataFrame(read_battles(log_files)).dropna(axis=1, thresh=DROPNA_THRESHOLD).fillna(value=0.0)
+    battles = DataFrame(read_battles(log_files)).fillna(value=0.0)
     logging.info('Battles shape: %s.', battles.shape)
 
     # Split into X and y.
