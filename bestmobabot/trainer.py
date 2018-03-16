@@ -13,9 +13,10 @@ from typing import Any, DefaultDict, Dict, Iterable, List, Set, TextIO, Tuple
 import click
 import coloredlogs
 import numpy
-from pandas import DataFrame
+from pandas import DataFrame, Series
+from scipy import stats
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import cross_val_score, RandomizedSearchCV, StratifiedKFold
+from sklearn.model_selection import RandomizedSearchCV, StratifiedKFold, cross_val_score
 
 
 CV = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
@@ -38,8 +39,10 @@ def main(log_files: Iterable[TextIO], n_iter: int):
     logging.info('Battles shape: %s.', battles.shape)
 
     # Split into X and y.
-    x = battles.drop(['win'], axis=1)
-    y = battles['win']
+    x: DataFrame = battles.drop(['win'], axis=1)
+    y: Series = battles['win']
+    value_counts: DataFrame = y.value_counts()
+    logging.info('Wins: %s. Losses: %s.', value_counts[False], value_counts[True])
 
     # Train, adjust hyper-parameters and evaluate.
     logging.info('Adjusting hyper-parameters…')
@@ -58,7 +61,8 @@ def read_battles(log_files: Iterable[TextIO]) -> List[Dict[str, Any]]:
     return [dict(battle) for battle in battle_set]
 
 
-def parse_heroes(heroes: Iterable[Dict[str, int]], multiplier: int, result: DefaultDict[str, int]):
+def parse_heroes(heroes: Iterable[Dict[str, int]], is_attackers: bool, result: DefaultDict[str, int]):
+    multiplier = +1 if is_attackers else -1
     for hero in heroes:
         result[f'level_{hero["id"]}'] += multiplier * int(hero['level'])
         result[f'color_{hero["id"]}'] += multiplier * int(hero['color'])
@@ -69,30 +73,31 @@ def parse_battle(line: str) -> Dict[str, Any]:
     battle = json.loads(line)
     result = defaultdict(int)
 
-    parse_heroes(battle.get('attackers') or battle['player'], +1, result)
-    parse_heroes(battle.get('defenders') or battle['enemies'], -1, result)
+    parse_heroes(battle.get('attackers') or battle['player'], True, result)
+    parse_heroes(battle.get('defenders') or battle['enemies'], False, result)
 
     return {'win': battle['win'], **result}
 
 
-def train(x, y, n_iter: int):
+def train(x: DataFrame, y: Series, n_iter: int) -> Tuple[Any, numpy.ndarray]:
     classifier = RandomForestClassifier(class_weight='balanced', n_jobs=5, random_state=42)
     param_grid = {
-        'n_estimators': list(range(1, 501)),
+        'n_estimators': list(range(1, 101)),
         'max_features': list(range(1, x.shape[1] + 1)),
         'criterion': ['entropy', 'gini'],
     }
 
     numpy.random.seed(42)
-    grid_search = RandomizedSearchCV(classifier, param_grid, cv=CV, scoring=SCORING, n_iter=n_iter, random_state=42).fit(x, y)
-    estimator = grid_search.best_estimator_
+    search_cv = RandomizedSearchCV(classifier, param_grid, cv=CV, scoring=SCORING, n_iter=n_iter, random_state=42).fit(x, y)
+    estimator = search_cv.best_estimator_
 
     numpy.random.seed(42)
-    scores = cross_val_score(estimator, x, y, scoring=SCORING, cv=CV)
-    logging.info('Best score: %s', grid_search.best_score_)
-    logging.info('Best params: %s', grid_search.best_params_)
+    scores: numpy.ndarray = cross_val_score(estimator, x, y, scoring=SCORING, cv=CV)
+    score_interval = stats.t.interval(0.95, len(scores) - 1, loc=numpy.mean(scores), scale=stats.sem(scores))
+    logging.info('Best score: %s', search_cv.best_score_)
+    logging.info('Best params: %s', search_cv.best_params_)
     logging.info('Classes: %s', estimator.classes_)
-    logging.info('CV score: %s (std: %s)', scores.mean(), scores.std())
+    logging.info('CV score: %.4f (%.4f … %.4f).', scores.mean(), *score_interval)
 
     # Re-train the best model on the entire dataset.
     logging.info('Training…')
@@ -101,7 +106,7 @@ def train(x, y, n_iter: int):
     return estimator, scores
 
 
-def dump_model(estimator, x, scores):
+def dump_model(estimator: Any, x: DataFrame, scores: numpy.ndarray):
     path = Path(__file__).parent / 'model.py'
     with path.open('wt') as fp:
         # Print out docstring.
