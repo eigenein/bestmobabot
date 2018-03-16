@@ -10,7 +10,7 @@ import re
 import string
 from datetime import datetime
 from time import sleep
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, TypeVar
 
 import requests
 from requests.adapters import HTTPAdapter
@@ -19,6 +19,8 @@ from tinydb import TinyDB, where
 from bestmobabot.logger import logger
 from bestmobabot.responses import *
 from bestmobabot.types import *
+
+T = TypeVar('T')
 
 
 class ApiError(Exception):
@@ -239,7 +241,7 @@ class API(contextlib.AbstractContextManager):
         return User(self.call('userGetInfo').response)
 
     def get_all_heroes(self) -> List[Hero]:
-        return list(map(Hero, self.call('heroGetAll').response.values()))
+        return list_of(Hero, self.call('heroGetAll').response)
 
     # Daily bonus.
     # ------------------------------------------------------------------------------------------------------------------
@@ -251,7 +253,7 @@ class API(contextlib.AbstractContextManager):
     # ------------------------------------------------------------------------------------------------------------------
 
     def list_expeditions(self) -> List[Expedition]:
-        return list(map(Expedition, self.call('expeditionGet').response.values()))
+        return list_of(Expedition, self.call('expeditionGet').response)
 
     def farm_expedition(self, expedition_id: ExpeditionID) -> Reward:
         return Reward(self.call('expeditionFarm', {'expeditionId': expedition_id}).response)
@@ -264,7 +266,7 @@ class API(contextlib.AbstractContextManager):
     # ------------------------------------------------------------------------------------------------------------------
 
     def get_all_quests(self) -> Quests:
-        return list(map(Quest, self.call('questGetAll').response))
+        return list_of(Quest, self.call('questGetAll').response)
 
     def farm_quest(self, quest_id: QuestID) -> Reward:
         return Reward(self.call('questFarm', {'questId': quest_id}).response)
@@ -273,7 +275,7 @@ class API(contextlib.AbstractContextManager):
     # ------------------------------------------------------------------------------------------------------------------
 
     def get_all_mail(self) -> List[Letter]:
-        return list(map(Letter, self.call('mailGetAll').response['letters']))
+        return list_of(Letter, self.call('mailGetAll').response['letters'])
 
     def farm_mail(self, letter_ids: Iterable[LetterID]) -> Dict[str, Reward]:
         response = self.call('mailFarm', {'letterIds': list(letter_ids)})
@@ -284,7 +286,7 @@ class API(contextlib.AbstractContextManager):
 
     def buy_chest(self, is_free=True, chest='town', is_pack=False) -> List[Reward]:
         response = self.call('chestBuy', {'free': is_free, 'chest': chest, 'pack': is_pack})
-        return list(map(Reward, response.response['rewards']))
+        return list_of(Reward, response.response['rewards'])
 
     # Daily gift.
     # ------------------------------------------------------------------------------------------------------------------
@@ -297,7 +299,7 @@ class API(contextlib.AbstractContextManager):
 
     def find_arena_enemies(self) -> List[ArenaEnemy]:
         # Random sleep is turned off because model prediction takes some time already.
-        return list(map(ArenaEnemy, self.call('arenaFindEnemies', random_sleep=False).response))
+        return list_of(ArenaEnemy, self.call('arenaFindEnemies', random_sleep=False).response)
 
     def attack_arena(self, user_id: UserID, hero_ids: Iterable[HeroID]) -> Tuple[ArenaResult, Quests]:
         response = self.call('arenaAttack', {'userId': user_id, 'heroes': list(hero_ids)})
@@ -305,7 +307,7 @@ class API(contextlib.AbstractContextManager):
 
     def find_grand_enemies(self) -> List[GrandArenaEnemy]:
         # Random sleep is turned off because model prediction takes some time already.
-        return list(map(GrandArenaEnemy, self.call('grandFindEnemies', random_sleep=False).response))
+        return list_of(GrandArenaEnemy, self.call('grandFindEnemies', random_sleep=False).response)
 
     def attack_grand(self, user_id: UserID, hero_ids: List[List[HeroID]]) -> Tuple[ArenaResult, Quests]:
         response = self.call('grandAttack', {'userId': user_id, 'heroes': hero_ids})
@@ -329,14 +331,14 @@ class API(contextlib.AbstractContextManager):
 
     def open_artifact_chest(self, amount=1, is_free=True) -> List[Reward]:
         payload = self.call('artifactChestOpen', {'amount': amount, 'free': is_free}).response
-        return list(map(Reward, payload['chestReward']))
+        return list_of(Reward, payload['chestReward'])
 
     # Battles.
     # ------------------------------------------------------------------------------------------------------------------
 
     def get_battle_by_type(self, battle_type: BattleType, offset=0, limit=20) -> List[Replay]:
         payload = self.call('battleGetByType', {'type': battle_type.value, 'offset': offset, 'limit': limit}).response
-        return list(map(Replay, payload['replays']))
+        return list_of(Replay, payload['replays'])
 
     # Raids.
     # https://github.com/eigenein/bestmobabot/wiki/Raids
@@ -344,7 +346,7 @@ class API(contextlib.AbstractContextManager):
 
     def raid_mission(self, mission_id: MissionID, times=1) -> List[Reward]:
         payload = self.call('missionRaid', {'times': times, 'id': mission_id}).response
-        return list(map(Reward, payload.values()))
+        return list_of(Reward, payload)
 
     # Boss.
     # https://github.com/eigenein/bestmobabot/wiki/Boss
@@ -364,7 +366,7 @@ class API(contextlib.AbstractContextManager):
     }
 
     def get_current_boss(self) -> List[Boss]:
-        return list(map(Boss, self.call('bossGetCurrent').response))
+        return list_of(Boss, self.call('bossGetCurrent').response)
 
     def attack_boss(self, boss_id: BossID, hero_ids: Iterable[HeroID]) -> Battle:
         return Battle(self.call('bossAttack', {'bossId': boss_id, 'heroes': list(hero_ids)}).response)
@@ -378,7 +380,17 @@ class API(contextlib.AbstractContextManager):
 
     def get_shop(self, shop_id: ShopID) -> List[ShopSlot]:
         response = self.call('shopGet', {'shopId': shop_id}).response
-        return list(map(ShopSlot, response['slots'].values()))
+        return list_of(ShopSlot, response['slots'])
 
     def shop(self, *, slot_id: SlotID, shop_id: ShopID) -> Reward:
         return Reward(self.call('shopBuy', {'slot': slot_id, 'shopId': shop_id}).response)
+
+
+def list_of(constructor: Callable[[Any], T], items: Iterable) -> List[T]:
+    """
+    Used to protect from changing a response from list to dictionary and vice versa.
+    This often happens with the game updates.
+    """
+    if isinstance(items, dict):
+        items = items.values()
+    return [constructor(item) for item in items]

@@ -40,7 +40,7 @@ class User(BaseResponse):
         self.id: UserID = UserID(item['id'])
         self.name: str = item['name']
         self.tz: tzinfo = timezone(timedelta(hours=item.get('timeZone', 0)))
-        self.clan_id: ClanID = item.get('clanId')
+        self.clan_id: ClanID = str(item.get('clanId'))
         self.next_day: datetime = datetime.fromtimestamp(item.get('nextDayTs', 0), self.tz)
 
     def is_from_clan(self, clan_id: Optional[str]) -> bool:
@@ -51,9 +51,9 @@ class Expedition(BaseResponse):
     def __init__(self, item: Dict):
         super().__init__(item)
         self.id: ExpeditionID = str(item['id'])
-        self.status: int = item['status']
+        self.status: int = int(item['status'])
         self.end_time: Optional[datetime] = datetime.fromtimestamp(item['endTime']).astimezone() if item.get('endTime') else None
-        self.power: int = item['power']
+        self.power: int = int(item['power'])
         self.duration: timedelta = timedelta(seconds=item['duration'])
         self.hero_ids: List[HeroID] = [str(hero_id) for hero_id in item.get('heroes', [])]
 
@@ -71,9 +71,9 @@ class Reward(BaseResponse):
         super().__init__(item)
         self.stamina: Stamina = item.get('stamina', 0)
         self.gold: Gold = item.get('gold', 0)
-        self.experience: Experience = item.get('experience', 0)
+        self.experience: Experience = int(item.get('experience', 0))
         self.consumable: Dict[str, int] = item.get('consumable', {})
-        self.star_money: StarMoney = item.get('starmoney', 0)
+        self.star_money: StarMoney = int(item.get('starmoney', 0))
         self.coin: Dict[str, str] = item.get('coin', {})
         self.hero_fragment: Dict[HeroID, int] = item.get('fragmentHero', {})
         self.artifact_fragment: Dict[str, int] = item.get('fragmentArtifact', {})
@@ -108,8 +108,8 @@ class Quest(BaseResponse):
     def __init__(self, item: Dict):
         super().__init__(item)
         self.id: QuestID = str(item['id'])
-        self.state: QuestState = item['state']
-        self.progress: int = item['progress']
+        self.state: QuestState = int(item['state'])
+        self.progress: int = int(item['progress'])
         self.reward: Reward = Reward(item['reward'])
 
     @property
@@ -163,7 +163,7 @@ class BaseArenaEnemy(BaseResponse, metaclass=ABCMeta):
     def __init__(self, item: Dict):
         super().__init__(item)
         self.user_id: UserID = str(item['userId'])
-        self.place: str = item['place']
+        self.place: str = str(item['place'])
         self.power: int = int(item['power'])
         self.user: Optional[User] = User(item['user']) if item.get('user') else None
 
@@ -198,7 +198,7 @@ class BattleResult(BaseResponse):
     def __init__(self, item: Dict):
         super().__init__(item)
         self.win: bool = item['result']['win']
-        self.stars: int = item['result'].get('stars', 0)
+        self.stars: int = int(item['result'].get('stars', 0))
 
 
 class Boss(BaseResponse):
@@ -218,7 +218,7 @@ class Replay(BaseResponse):
         super().__init__(item)
         self.id: ReplayID = item['id']
         self.win: bool = item['result']['win']
-        self.stars: int = item['result']['stars']
+        self.stars: int = int(item['result']['stars'])
         self.attackers: List[Hero] = [Hero(hero) for hero in item['attackers'].values()]
         self.defenders: List[List[Hero]] = [[Hero(hero) for hero in defenders.values()] for defenders in item['defenders']]
 
