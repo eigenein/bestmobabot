@@ -61,9 +61,9 @@ def read_battles(log_files: Iterable[TextIO]) -> List[Dict[str, Any]]:
 
 def parse_heroes(heroes: Iterable[Dict[str, int]], multiplier: int, result: DefaultDict[str, int]):
     for hero in heroes:
-        result[f'level_{hero["id"]}'] += multiplier * hero['level']
-        result[f'color_{hero["id"]}'] += multiplier * hero['color']
-        result[f'star_{hero["id"]}'] += multiplier * hero['star']
+        result[f'level_{hero["id"]}'] += multiplier * int(hero['level'])
+        result[f'color_{hero["id"]}'] += multiplier * int(hero['color'])
+        result[f'star_{hero["id"]}'] += multiplier * int(hero['star'])
 
 
 def parse_battle(line: str) -> Dict[str, Any]:

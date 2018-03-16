@@ -129,9 +129,9 @@ class Hero(BaseResponse):
     def __init__(self, item: Dict):
         super().__init__(item)
         self.id: HeroID = str(item['id'])
-        self.level: int = item['level']
-        self.color: int = item['color']
-        self.star: int = item['star']
+        self.level: int = int(item['level'])
+        self.color: int = int(item['color'])
+        self.star: int = int(item['star'])
         self.power: Optional[int] = item.get('power')
         # Prediction model features.
         features = {
