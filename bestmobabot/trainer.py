@@ -22,15 +22,15 @@ from sklearn.model_selection import StratifiedKFold, cross_val_score
 from skopt import BayesSearchCV
 
 
-CV = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 SCORING = 'accuracy'
 CHUNK_LENGTH = 94
 
 
 @click.command()
 @click.argument('log_files', type=click.File('rt'), nargs=-1, required=True)
-@click.option('-n', '--n-iter', type=int, default=20)
-def main(log_files: Iterable[TextIO], n_iter: int):
+@click.option('-n', '--n-iterations', type=int, default=20, help='Hyper-parameters search iterations.')
+@click.option('--n-splits', type=int, default=5, help='K-fold splits.')
+def main(log_files: Iterable[TextIO], n_iterations: int, n_splits: int):
     """
     Train and generate arena prediction model.
     https://github.com/eigenein/bestmobabot/blob/master/research/bestmoba.ipynb
@@ -51,7 +51,7 @@ def main(log_files: Iterable[TextIO], n_iter: int):
 
     # Train, adjust hyper-parameters and evaluate.
     logging.info('Adjusting hyper-parameters…')
-    estimator, scores = train(x, y, n_iter)
+    estimator, scores = train(x, y, n_iterations, n_splits)
 
     # Dump model.
     logging.info('Dumping model…')
@@ -84,23 +84,24 @@ def parse_battle(line: str) -> Dict[str, Any]:
     return {'win': battle['win'], **result}
 
 
-def train(x: DataFrame, y: Series, n_iter: int) -> Tuple[Any, numpy.ndarray]:
+def train(x: DataFrame, y: Series, n_iterations: int, n_splits: int) -> Tuple[Any, numpy.ndarray]:
     estimator = RandomForestClassifier(class_weight='balanced', n_jobs=5, random_state=42)
     param_grid = {
         'n_estimators': (1, 200),
         'max_features': (1, x.shape[1]),
         'criterion': ['entropy', 'gini'],
     }
+    cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42)
 
     numpy.random.seed(42)
-    search_cv = BayesSearchCV(estimator, param_grid, cv=CV, scoring=SCORING, n_iter=n_iter, random_state=42, refit=False)
+    search_cv = BayesSearchCV(estimator, param_grid, cv=cv, scoring=SCORING, n_iter=n_iterations, random_state=42, refit=False)
     search_cv.fit(x, y, callback=lambda result: logging.info('#%s: %.4f…', len(result.x_iters), search_cv.best_score_))
     estimator.set_params(**search_cv.best_params_)
 
     # Perform cross-validation.
     logging.info('Cross validation…')
     numpy.random.seed(42)
-    scores: numpy.ndarray = cross_val_score(estimator, x, y, scoring=SCORING, cv=CV)
+    scores: numpy.ndarray = cross_val_score(estimator, x, y, scoring=SCORING, cv=cv)
     score_interval = stats.t.interval(0.95, len(scores) - 1, loc=numpy.mean(scores), scale=stats.sem(scores))
     logging.info('Best score: %.4f', search_cv.best_score_)
     logging.info('Best params: %s', search_cv.best_params_)
