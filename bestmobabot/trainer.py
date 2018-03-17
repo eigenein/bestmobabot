@@ -4,6 +4,7 @@ import json
 import logging
 import pickle
 import sys
+import warnings
 from collections import defaultdict
 from datetime import datetime
 from itertools import chain
@@ -16,7 +17,9 @@ import numpy
 from pandas import DataFrame, Series
 from scipy import stats
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import RandomizedSearchCV, StratifiedKFold, cross_val_score
+from sklearn.model_selection import StratifiedKFold, cross_val_score
+# noinspection PyPackageRequirements
+from skopt import BayesSearchCV
 
 
 CV = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
@@ -33,6 +36,8 @@ def main(log_files: Iterable[TextIO], n_iter: int):
     https://github.com/eigenein/bestmobabot/blob/master/research/bestmoba.ipynb
     """
     coloredlogs.install(fmt='%(asctime)s %(levelname)s %(message)s', level=logging.DEBUG, stream=sys.stderr)
+    if not sys.warnoptions:
+        warnings.simplefilter('ignore')
 
     # Read battles.
     battles = DataFrame(read_battles(log_files)).fillna(value=0.0)
@@ -80,28 +85,31 @@ def parse_battle(line: str) -> Dict[str, Any]:
 
 
 def train(x: DataFrame, y: Series, n_iter: int) -> Tuple[Any, numpy.ndarray]:
-    classifier = RandomForestClassifier(class_weight='balanced', n_jobs=5, random_state=42)
+    estimator = RandomForestClassifier(class_weight='balanced', n_jobs=5, random_state=42)
     param_grid = {
-        'n_estimators': list(range(1, 101)),
-        'max_features': list(range(1, x.shape[1] + 1)),
+        'n_estimators': (1, 200),
+        'max_features': (1, x.shape[1]),
         'criterion': ['entropy', 'gini'],
     }
 
     numpy.random.seed(42)
-    search_cv = RandomizedSearchCV(classifier, param_grid, cv=CV, scoring=SCORING, n_iter=n_iter, random_state=42).fit(x, y)
-    estimator = search_cv.best_estimator_
+    search_cv = BayesSearchCV(estimator, param_grid, cv=CV, scoring=SCORING, n_iter=n_iter, random_state=42, refit=False)
+    search_cv.fit(x, y, callback=lambda result: logging.info('#%s: %.4f…', len(result.x_iters), search_cv.best_score_))
+    estimator.set_params(**search_cv.best_params_)
 
+    # Perform cross-validation.
+    logging.info('Cross validation…')
     numpy.random.seed(42)
     scores: numpy.ndarray = cross_val_score(estimator, x, y, scoring=SCORING, cv=CV)
     score_interval = stats.t.interval(0.95, len(scores) - 1, loc=numpy.mean(scores), scale=stats.sem(scores))
-    logging.info('Best score: %s', search_cv.best_score_)
+    logging.info('Best score: %.4f', search_cv.best_score_)
     logging.info('Best params: %s', search_cv.best_params_)
-    logging.info('Classes: %s', estimator.classes_)
     logging.info('CV score: %.4f (%.4f … %.4f).', scores.mean(), *score_interval)
 
-    # Re-train the best model on the entire dataset.
-    logging.info('Training…')
+    # Re-train the best model on the entire data.
+    logging.info('Refitting…')
     estimator.fit(x, y)
+    logging.info('Classes: %s', estimator.classes_)
 
     return estimator, scores
 
