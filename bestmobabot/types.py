@@ -6,6 +6,7 @@ from enum import Enum
 from typing import NewType
 
 BossID = NewType('BossID', str)
+BuffID = NewType('BuffID', int)
 ClanID = NewType('ClanID', str)
 ConsumableID = NewType('ConsumableID', str)
 ExpeditionID = NewType('ExpeditionID', str)
@@ -50,4 +51,5 @@ __all__ = [
     'StarMoney',
     'UserID',
     'BattleType',
+    'BuffID',
 ]

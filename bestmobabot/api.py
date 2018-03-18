@@ -145,7 +145,7 @@ class API(contextlib.AbstractContextManager):
     def _call(self, name: str, *, arguments: Optional[Dict[str, Any]] = None, random_sleep=True) -> Result:
         # Emulate human behavior a little bit.
         if random_sleep and self.request_id != 0:
-            self.sleep(random.uniform(5.0, 15.0))
+            self.sleep(random.uniform(5.0, 10.0))
 
         self.request_id += 1
         self.db.upsert({'request_id': self.request_id}, self.STATE_QUERY)
@@ -384,6 +384,27 @@ class API(contextlib.AbstractContextManager):
 
     def shop(self, *, slot_id: SlotID, shop_id: ShopID) -> Reward:
         return Reward(self.call('shopBuy', {'slot': slot_id, 'shopId': shop_id}).response)
+
+    # Tower.
+    # ------------------------------------------------------------------------------------------------------------------
+
+    def get_tower_info(self) -> Tower:
+        return Tower(self.call('towerGetInfo').response)
+
+    def skip_tower_floor(self) -> Tuple[Tower, Reward]:
+        response = self.call('towerSkipFloor').response
+        return Tower(response['tower']), Reward(response['reward'])
+
+    def buy_tower_buff(self, buff_id: BuffID) -> Tower:
+        return Tower(self.call('towerBuyBuff', {'buffId': buff_id}).response)
+
+    def open_tower_chest(self, number: int) -> Tuple[Reward, Quests]:
+        assert number in (0, 1, 2)
+        result = self.call('towerOpenChest', {'num': number})
+        return Reward(result.response['reward']), result.quests
+
+    def next_tower_floor(self) -> Tower:
+        return Tower(self.call('towerNextFloor').response)
 
 
 def list_of(constructor: Callable[[Any], T], items: Iterable) -> List[T]:

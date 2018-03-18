@@ -6,13 +6,14 @@ import contextlib
 import json
 from datetime import datetime, timedelta, timezone, tzinfo
 from operator import attrgetter, itemgetter
+from random import choice
 from time import sleep
 from typing import Callable, Iterable, List, NamedTuple, Optional, Set, TextIO, Tuple
 
 from tinydb import TinyDB, where
 
 from bestmobabot import arena
-from bestmobabot.api import AlreadyError, API, InvalidResponseError, NotEnoughError
+from bestmobabot.api import AlreadyError, API, InvalidResponseError, NotEnoughError, NotFoundError
 from bestmobabot.logger import log_arena_result, log_heroes, log_reward, log_rewards, logger
 from bestmobabot.responses import *
 from bestmobabot.types import *
@@ -108,6 +109,7 @@ class Bot(contextlib.AbstractContextManager):
             Task(next_run_at=Task.at(hour=8, minute=30), execute=self.buy_chest),
             Task(next_run_at=Task.at(hour=9, minute=0), execute=self.send_daily_gift),
             Task(next_run_at=Task.at(hour=10, minute=0), execute=self.farm_zeppelin_gift),
+            Task(next_run_at=Task.at(hour=6, minute=0), execute=self.skip_tower),
 
             # Debug tasks. Uncomment when needed.
             # Task(next_run_at=Task.every_n_minutes(1), execute=self.quack, args=('Quack 1!',)),
@@ -450,6 +452,42 @@ class Bot(contextlib.AbstractContextManager):
                 log_reward(self.api.shop(shop_id=shop_id, slot_id=slot_id))
             except (NotEnoughError, AlreadyError) as e:
                 logger.warning('🛒 %s', e.description)
+
+    def skip_tower(self):
+        """
+        Зачистка башни.
+        """
+        logger.info('🗼 Skipping the tower…')
+        tower = self.api.get_tower_info()
+
+        while tower.floor_number <= tower.may_skip_floor:
+            logger.info('🗼 Floor #%s: %s.', tower.floor_number, tower.floor_type)
+            if tower.is_battle:
+                tower, reward = self.api.skip_tower_floor()
+                log_reward(reward)
+            elif tower.is_chest:
+                reward, _ = self.api.open_tower_chest(choice([0, 1, 2]))
+                log_reward(reward)
+                tower = self.api.next_tower_floor()
+            elif tower.is_buff:
+                # Buffs go from the cheapest to the most expensive.
+                for buff_id in reversed(tower.buff_ids):
+                    if buff_id not in (14, 17, 18, 19):
+                        try:
+                            self.api.buy_tower_buff(buff_id)
+                        except NotEnoughError:
+                            logger.info('🗼 Not enough resources for buff #%s.', buff_id)
+                        except AlreadyError:
+                            logger.info('🗼 Already bought buff #%s.', buff_id)
+                        except NotFoundError as e:
+                            logger.warning('🗼 Not found for buff #%s: %s.', buff_id, e.description)
+                    else:
+                        # This buff requires a hero ID.
+                        logger.debug('🗼 Skip buff #%s.', buff_id)
+                tower = self.api.next_tower_floor()
+            else:
+                logger.error('🗼 Unknown floor type.')
+
 
     '''
     def attack_boss(self):

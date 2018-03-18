@@ -80,12 +80,13 @@ class Reward(BaseResponse):
         self.gear_fragment: Dict[str, int] = item.get('fragmentGear', {})
         self.gear: Dict[str, str] = item.get('gear', {})
         self.scroll_fragment: Dict[str, str] = item.get('fragmentScroll', {})
+        self.tower_point = int(item.get('towerPoint', 0))
 
     def log(self, logger: logging.Logger):
         if self.stamina:
-            logger.info('📈 Stamina: %s.', self.stamina)
+            logger.info('🔋 Stamina: %s.', self.stamina)
         if self.gold:
-            logger.info('📈 Gold: %s.', self.gold)
+            logger.info('💰 Gold: %s.', self.gold)
         if self.experience:
             logger.info('📈 Experience: %s.', self.experience)
         if self.consumable:
@@ -99,9 +100,9 @@ class Reward(BaseResponse):
         if self.artifact_fragment:
             logger.info('📈 Artifact fragment: %s.', self.artifact_fragment)
         if self.gear_fragment:
-            logger.info('📈 Gear fragment: %s.', self.gear_fragment)
+            logger.info('👕 Gear fragment: %s.', self.gear_fragment)
         if self.gear:
-            logger.info('📈 Gear: %s.', self.gear)
+            logger.info('👕 Gear: %s.', self.gear)
 
 
 class Quest(BaseResponse):
@@ -235,6 +236,28 @@ class ShopSlot(BaseResponse):
         self.reward: Reward = Reward(item['reward'])
 
 
+class Tower(BaseResponse):
+    def __init__(self, item: Dict):
+        super().__init__(item)
+        self.floor_number = int(item['floorNumber'])
+        self.may_skip_floor = int(item['maySkipFloor'])
+        self.floor_type = item['floorType'].lower()
+        # This is only available on a buff floor.
+        self.buff_ids: List[int] = [int(buff['id']) for buff in item['floor']] if self.is_buff else []
+
+    @property
+    def is_battle(self) -> bool:
+        return self.floor_type == 'battle'
+
+    @property
+    def is_buff(self) -> bool:
+        return self.floor_type == 'buff'
+
+    @property
+    def is_chest(self):
+        return self.floor_type == 'chest'
+
+
 __all__ = [
     'BaseResponse',
     'Result',
@@ -254,4 +277,5 @@ __all__ = [
     'Battle',
     'Replay',
     'ShopSlot',
+    'Tower',
 ]
