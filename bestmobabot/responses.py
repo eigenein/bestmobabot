@@ -133,11 +133,15 @@ class Hero(BaseResponse):
         self.color: int = int(item['color'])
         self.star: int = int(item['star'])
         self.power: Optional[int] = item.get('power')
+
         # Prediction model features.
         features = {
             f'color_{self.id}': float(self.color),
             f'level_{self.id}': float(self.level),
             f'star_{self.id}': float(self.star),
+            'total_colors': float(self.color),
+            'total_levels': float(self.level),
+            'total_stars': float(self.star),
         }
         self.features = numpy.fromiter((features.get(key, 0.0) for key in feature_names), numpy.float)
 
