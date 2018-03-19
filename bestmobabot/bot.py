@@ -460,7 +460,7 @@ class Bot(contextlib.AbstractContextManager):
         logger.info('🗼 Skipping the tower…')
         tower = self.api.get_tower_info()
 
-        while tower.floor_number <= tower.may_skip_floor:
+        while tower.floor_number <= tower.may_skip_floor or not tower.is_battle:
             logger.info('🗼 Floor #%s: %s.', tower.floor_number, tower.floor_type)
             if tower.is_battle:
                 tower, reward = self.api.skip_tower_floor()
@@ -487,7 +487,6 @@ class Bot(contextlib.AbstractContextManager):
                 tower = self.api.next_tower_floor()
             else:
                 logger.error('🗼 Unknown floor type.')
-
 
     '''
     def attack_boss(self):
