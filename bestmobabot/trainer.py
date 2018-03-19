@@ -98,7 +98,7 @@ def train(x: DataFrame, y: Series, n_iterations: int, n_splits: int) -> Tuple[An
 
     numpy.random.seed(42)
     search_cv = BayesSearchCV(estimator, param_grid, cv=cv, scoring=SCORING, n_iter=n_iterations, random_state=42, refit=False)
-    search_cv.fit(x, y, callback=lambda result: logging.info('#%s: %.4f…', len(result.x_iters), search_cv.best_score_))
+    search_cv.fit(x, y, callback=lambda result: logging.info('#%s %s: %.6f', len(result.x_iters), SCORING, search_cv.best_score_))
     estimator.set_params(**search_cv.best_params_)
 
     # Perform cross-validation.
