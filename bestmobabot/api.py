@@ -285,8 +285,8 @@ class API(contextlib.AbstractContextManager):
     # ------------------------------------------------------------------------------------------------------------------
 
     def buy_chest(self, is_free=True, chest='town', is_pack=False) -> List[Reward]:
-        response = self.call('chestBuy', {'free': is_free, 'chest': chest, 'pack': is_pack})
-        return list_of(Reward, response.response['rewards'])
+        result = self.call('chestBuy', {'free': is_free, 'chest': chest, 'pack': is_pack})
+        return list_of(Reward, result.response['rewards'])
 
     # Daily gift.
     # ------------------------------------------------------------------------------------------------------------------
@@ -333,23 +333,23 @@ class API(contextlib.AbstractContextManager):
     # ------------------------------------------------------------------------------------------------------------------
 
     def open_artifact_chest(self, amount=1, is_free=True) -> List[Reward]:
-        payload = self.call('artifactChestOpen', {'amount': amount, 'free': is_free}).response
-        return list_of(Reward, payload['chestReward'])
+        response = self.call('artifactChestOpen', {'amount': amount, 'free': is_free}).response
+        return list_of(Reward, response['chestReward'])
 
     # Battles.
     # ------------------------------------------------------------------------------------------------------------------
 
     def get_battle_by_type(self, battle_type: BattleType, offset=0, limit=20) -> List[Replay]:
-        payload = self.call('battleGetByType', {'type': battle_type.value, 'offset': offset, 'limit': limit}).response
-        return list_of(Replay, payload['replays'])
+        response = self.call('battleGetByType', {'type': battle_type.value, 'offset': offset, 'limit': limit}).response
+        return list_of(Replay, response['replays'])
 
     # Raids.
     # https://github.com/eigenein/bestmobabot/wiki/Raids
     # ------------------------------------------------------------------------------------------------------------------
 
     def raid_mission(self, mission_id: MissionID, times=1) -> List[Reward]:
-        payload = self.call('missionRaid', {'times': times, 'id': mission_id}).response
-        return list_of(Reward, payload)
+        response = self.call('missionRaid', {'times': times, 'id': mission_id}).response
+        return list_of(Reward, response)
 
     # Boss.
     # https://github.com/eigenein/bestmobabot/wiki/Boss
@@ -375,8 +375,8 @@ class API(contextlib.AbstractContextManager):
         return Battle(self.call('bossAttack', {'bossId': boss_id, 'heroes': list(hero_ids)}).response)
 
     def open_boss_chest(self, boss_id: BossID) -> Tuple[Reward, Quests]:
-        response = self.call('bossOpenChest', {'bossId': boss_id})
-        return Reward(response.response['reward']), response.quests
+        result = self.call('bossOpenChest', {'bossId': boss_id})
+        return Reward(result.response['reward']), result.quests
 
     # Shop.
     # ------------------------------------------------------------------------------------------------------------------
