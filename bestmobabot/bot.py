@@ -123,7 +123,7 @@ class Bot(contextlib.AbstractContextManager):
             self.tasks.append(Task(next_run_at=Task.every_n_hours(24 / number), execute=self.raid_mission, args=(mission_id,)))
         if self.shops:
             self.tasks.extend([
-                Task(next_run_at=Task.at(hour=11, minute=1), execute=self.shop, args=(['4', '6', '9'],)),
+                Task(next_run_at=Task.at(hour=11, minute=1), execute=self.shop, args=(['4', '5', '6', '9'],)),
                 Task(next_run_at=Task.every_n_hours(8, offset=timedelta(minutes=1)), execute=self.shop, args=(['1'],)),
             ])
         if self.battle_log:
