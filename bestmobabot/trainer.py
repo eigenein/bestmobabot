@@ -8,6 +8,7 @@ import warnings
 from collections import defaultdict
 from datetime import datetime
 from itertools import chain
+from operator import itemgetter
 from pathlib import Path
 from typing import Any, DefaultDict, Dict, Iterable, List, Set, TextIO, Tuple
 
@@ -113,7 +114,11 @@ def train(x: DataFrame, y: Series, n_iterations: int, n_splits: int) -> Tuple[An
     # Re-train the best model on the entire data.
     logging.info('Refitting…')
     estimator.fit(x, y)
+
+    # Print debugging info.
     logging.info('Classes: %s', estimator.classes_)
+    for column, importance in sorted(zip(x.columns, estimator.feature_importances_), key=itemgetter(1), reverse=True)[:10]:
+        logging.info('Feature %s: %.4f', column, importance)
 
     return estimator, scores
 
