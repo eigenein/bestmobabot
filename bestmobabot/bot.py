@@ -57,6 +57,7 @@ class Bot(contextlib.AbstractContextManager):
     MAX_OPEN_ARTIFACT_CHESTS = 5
     MAX_ARENA_ENEMIES = 10  # FIXME: make configurable
     MAX_GRAND_ARENA_ENEMIES = 10  # FIXME: make configurable
+    IGNORED_BUFF_IDS = {13, 14, 17, 18, 19}  # These buffs require a hero ID.
 
     def __init__(
         self,
@@ -473,7 +474,7 @@ class Bot(contextlib.AbstractContextManager):
             elif tower.is_buff:
                 # Buffs go from the cheapest to the most expensive.
                 for buff_id in reversed(tower.buff_ids):
-                    if buff_id not in (14, 17, 18, 19):
+                    if buff_id not in self.IGNORED_BUFF_IDS:
                         try:
                             self.api.buy_tower_buff(buff_id)
                         except NotEnoughError:
@@ -483,7 +484,6 @@ class Bot(contextlib.AbstractContextManager):
                         except NotFoundError as e:
                             logger.warning('🗼 Not found for buff #%s: %s.', buff_id, e.description)
                     else:
-                        # This buff requires a hero ID.
                         logger.debug('🗼 Skip buff #%s.', buff_id)
                 tower = self.api.next_tower_floor()
             else:
