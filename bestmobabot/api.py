@@ -278,8 +278,8 @@ class API(contextlib.AbstractContextManager):
         return list_of(Letter, self.call('mailGetAll').response['letters'])
 
     def farm_mail(self, letter_ids: Iterable[LetterID]) -> Dict[str, Reward]:
-        response = self.call('mailFarm', {'letterIds': list(letter_ids)})
-        return {letter_id: Reward(item or {}) for letter_id, item in response.response.items()}
+        result = self.call('mailFarm', {'letterIds': list(letter_ids)})
+        return {letter_id: Reward(item or {}) for letter_id, item in result.response.items()}
 
     # Chests.
     # ------------------------------------------------------------------------------------------------------------------
@@ -302,16 +302,19 @@ class API(contextlib.AbstractContextManager):
         return list_of(ArenaEnemy, self.call('arenaFindEnemies', random_sleep=False).response)
 
     def attack_arena(self, user_id: UserID, hero_ids: Iterable[HeroID]) -> Tuple[ArenaResult, Quests]:
-        response = self.call('arenaAttack', {'userId': user_id, 'heroes': list(hero_ids)})
-        return ArenaResult(response.response), response.quests
+        result = self.call('arenaAttack', {'userId': user_id, 'heroes': list(hero_ids)})
+        return ArenaResult(result.response), result.quests
 
     def find_grand_enemies(self) -> List[GrandArenaEnemy]:
         # Random sleep is turned off because model prediction takes some time already.
         return list_of(GrandArenaEnemy, self.call('grandFindEnemies', random_sleep=False).response)
 
     def attack_grand(self, user_id: UserID, hero_ids: List[List[HeroID]]) -> Tuple[ArenaResult, Quests]:
-        response = self.call('grandAttack', {'userId': user_id, 'heroes': hero_ids})
-        return ArenaResult(response.response), response.quests
+        result = self.call('grandAttack', {'userId': user_id, 'heroes': hero_ids})
+        return ArenaResult(result.response), result.quests
+
+    def farm_grand_coins(self) -> Reward:
+        return Reward(self.call('grandFarmCoins').response['reward'] or {})
 
     # Freebie.
     # ------------------------------------------------------------------------------------------------------------------

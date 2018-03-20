@@ -364,6 +364,7 @@ class Bot(contextlib.AbstractContextManager):
         log_arena_result(result)
         logger.info('👊 Current place: %s', result.grand_place)
         self.farm_quests(quests)
+        log_reward(self.api.farm_grand_coins())
 
     def get_arena_replays(self):
         """
