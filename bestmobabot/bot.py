@@ -15,6 +15,7 @@ from tinydb import TinyDB, where
 from bestmobabot import arena
 from bestmobabot.api import AlreadyError, API, InvalidResponseError, NotEnoughError, NotFoundError
 from bestmobabot.logger import log_arena_result, log_heroes, log_reward, log_rewards, logger
+from bestmobabot.resources import mission_name, shop_name
 from bestmobabot.responses import *
 from bestmobabot.types import *
 from bestmobabot.vk import VK
@@ -426,7 +427,7 @@ class Bot(contextlib.AbstractContextManager):
         """
         Ходит в рейд в миссию в кампании за предметами.
         """
-        logger.info('👊 Raid mission #%s…', mission_id)
+        logger.info('👊 Raid mission %s…', mission_name(mission_id))
         log_rewards(self.api.raid_mission(mission_id))
 
     def shop(self, shop_ids: List[ShopID]):
@@ -444,12 +445,12 @@ class Bot(contextlib.AbstractContextManager):
         logger.info('🛒 Buying stuff…')
         for shop_id, slot_id in self.shops:
             if shop_id not in shop_ids:
-                logger.debug('🛒 Ignoring shop #%s.', shop_id)
+                logger.debug('🛒 Ignoring shop %s.', shop_name(shop_id))
                 continue
             if (shop_id, slot_id) not in available_slots:
-                logger.warning('🛒 Slot #%s is not available in shop #%s.', slot_id, shop_id)
+                logger.warning('🛒 Slot #%s is not available in shop %s.', slot_id, shop_name(shop_id))
                 continue
-            logger.info('🛒 Buy slot #%s in shop #%s…', slot_id, shop_id)
+            logger.info('🛒 Buying slot #%s in shop %s…', slot_id, shop_name(shop_id))
             try:
                 log_reward(self.api.shop(shop_id=shop_id, slot_id=slot_id))
             except (NotEnoughError, AlreadyError) as e:
