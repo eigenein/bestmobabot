@@ -11,6 +11,7 @@ from tinydb.storages import JSONStorage
 from bestmobabot.api import API
 from bestmobabot.bot import Bot
 from bestmobabot.logger import logger
+from bestmobabot.resources import get_translations
 
 
 @click.command()
@@ -38,6 +39,7 @@ def main(
     coloredlogs.install(fmt='%(asctime)s %(levelname)s %(message)s', level=level, logger=logger, stream=log_file)
     logger.info('🤖 Bot is starting.')
 
+    get_translations()  # prefetch game translations
     db = TinyDB(f'tinydb-{remixsid}.json', sort_keys=True, indent=2, ensure_ascii=False, storage=CachingMiddleware(JSONStorage))
 
     with db, API(db, remixsid) as api, Bot(db, api, no_experience, list(raids), list(shops), battle_log) as bot:

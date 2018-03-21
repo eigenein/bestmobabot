@@ -10,7 +10,7 @@ from typing import Any, Dict, List, Optional
 import numpy
 
 from bestmobabot.model import feature_names
-from bestmobabot.resources import COLORS, NAMES
+from bestmobabot.resources import COLORS, hero_name
 from bestmobabot.types import *
 
 
@@ -161,7 +161,7 @@ class Hero(BaseResponse):
         return self.star, self.color, self.level
 
     def __str__(self):
-        return f'{"⭐" * self.star} {NAMES.get(self.id, self.id)} ({self.level}) {COLORS.get(self.color, self.color)}'
+        return f'{"⭐" * self.star} {hero_name(self.id)} ({self.level}) {COLORS.get(self.color, self.color)}'
 
 
 class BaseArenaEnemy(BaseResponse, metaclass=ABCMeta):
