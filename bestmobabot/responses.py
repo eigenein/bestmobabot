@@ -10,7 +10,7 @@ from typing import Any, Dict, List, Optional
 import numpy
 
 from bestmobabot.model import feature_names
-from bestmobabot.resources import COLORS, coin_name, consumable_name, gear_name, hero_name, scroll_name
+from bestmobabot.resources import COLORS, artifact_name, coin_name, consumable_name, gear_name, hero_name, scroll_name
 from bestmobabot.types import *
 
 
@@ -90,21 +90,21 @@ class Reward(BaseResponse):
         if self.experience:
             logger.info('📈 Experience: %s.', self.experience)
         for consumable_id, value in self.consumable.items():
-            logger.info('🍔 Consumable: %s x%s.', consumable_name(consumable_id), value)
+            logger.info('🍔 Consumable: «%s» x%s.', consumable_name(consumable_id), value)
         if self.star_money:
             logger.info('✨ Star money: %s.', self.star_money)
         for coin_id, value in self.coin.items():
             logger.info('❤️ %s: %s.', coin_name(coin_id), value)
         for hero_id, value in self.hero_fragment.items():
-            logger.info('📈 Hero fragment: %s x%s.', hero_name(hero_id), value)
-        if self.artifact_fragment:
-            logger.info('📈 Artifact fragment: %s.', self.artifact_fragment)
+            logger.info('📈 Hero fragment: «%s» x%s.', hero_name(hero_id), value)
+        for artifact_id, value in self.artifact_fragment:
+            logger.info('👕 Artifact fragment: «%s» x%s.', artifact_name(artifact_id), value)
         for gear_id, value in self.gear_fragment.items():
-            logger.info('👕 Gear fragment: %s x%s.', gear_name(gear_id), value)
+            logger.info('👕 Gear fragment: «%s» x%s.', gear_name(gear_id), value)
         for gear_id, value in self.gear.items():
-            logger.info('👕 Gear: %s x%s.', gear_name(gear_id), value)
+            logger.info('👕 Gear: «%s» x%s.', gear_name(gear_id), value)
         for scroll_id, value in self.scroll_fragment.items():
-            logger.info('👕 Scroll fragment: %s x%s.', scroll_name(scroll_id), value)
+            logger.info('👕 Scroll fragment: «%s» x%s.', scroll_name(scroll_id), value)
 
 
 class Quest(BaseResponse):

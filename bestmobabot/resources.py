@@ -75,3 +75,7 @@ def shop_name(shop_id: ShopID) -> str:
 
 def mission_name(mission_id: MissionID) -> str:
     return get_translations().get(f'LIB_MISSION_NAME_{mission_id}', f'#{mission_id}')
+
+
+def artifact_name(artifact_id: str) -> str:
+    return get_translations().get(f'LIB_ARTIFACT_NAME_{artifact_id}', f'#{artifact_id}')
