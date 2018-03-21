@@ -136,7 +136,7 @@ class Hero(BaseResponse):
         self.power: Optional[int] = item.get('power')
 
         # Prediction model features.
-        features = {
+        self.features_dict ={
             f'color_{self.id}': float(self.color),
             f'level_{self.id}': float(self.level),
             f'star_{self.id}': float(self.star),
@@ -144,15 +144,10 @@ class Hero(BaseResponse):
             'total_levels': float(self.level),
             'total_stars': float(self.star),
         }
-        self.features = numpy.fromiter((features.get(key, 0.0) for key in feature_names), numpy.float)
+        self.features = numpy.fromiter((self.features_dict.get(key, 0.0) for key in feature_names), numpy.float)
 
     def dump(self) -> dict:
-        return {
-            'id': self.id,
-            'level': self.level,
-            'color': self.color,
-            'star': self.star,
-        }
+        return {key: self.item[key] for key in ('id', 'level', 'color', 'star')}
 
     def order(self):
         """

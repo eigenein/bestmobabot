@@ -40,6 +40,7 @@ def main(
     logger.info('🤖 Bot is starting.')
 
     get_translations()  # prefetch game translations
+
     db = TinyDB(f'tinydb-{remixsid}.json', sort_keys=True, indent=2, ensure_ascii=False, storage=CachingMiddleware(JSONStorage))
 
     with db, API(db, remixsid) as api, Bot(db, api, no_experience, list(raids), list(shops), battle_log) as bot:
