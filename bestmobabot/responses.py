@@ -94,7 +94,7 @@ class Reward(BaseResponse):
         if self.star_money:
             logger.info('✨ Star money: %s.', self.star_money)
         for coin_id, value in self.coin.items():
-            logger.info('❤️ %s: %s.', coin_name(coin_id), value)
+            logger.info('💟️ %s: %s.', coin_name(coin_id), value)
         for hero_id, value in self.hero_fragment.items():
             logger.info('📈 Hero fragment: «%s» x%s.', hero_name(hero_id), value)
         for artifact_id, value in self.artifact_fragment:
