@@ -143,13 +143,13 @@ class API(contextlib.AbstractContextManager):
             return self._call(name, arguments=arguments, random_sleep=random_sleep)
 
     def _call(self, name: str, *, arguments: Optional[Dict[str, Any]] = None, random_sleep=True) -> Result:
-        # Emulate human behavior a little bit.
-        if random_sleep and self.request_id != 0:
-            self.sleep(random.uniform(5.0, 10.0))
-
         self.request_id += 1
         self.db.upsert({'request_id': self.request_id}, self.STATE_QUERY)
-        logger.info(f'🔔 #{self.request_id} {name}({arguments or {}})')
+
+        # Emulate human behavior a little bit.
+        sleep_time = random.uniform(5.0, 10.0) if random_sleep and self.request_id != 1 else 0.0
+        logger.info(f'🔔 #{self.request_id} {name}({arguments or {}}) in {sleep_time:.1f} seconds…')
+        sleep(sleep_time)
 
         calls = [{'ident': name, 'name': name, 'args': arguments or {}}]
         data = json.dumps({"session": None, "calls": calls})
@@ -177,12 +177,12 @@ class API(contextlib.AbstractContextManager):
             try:
                 item = response.json()
             except ValueError:
-                item = {}  # just for PyCharm
                 if response.text == 'Invalid signature':
                     raise InvalidSignatureError(response.text)
                 else:
                     raise InvalidResponseError(response.text)
 
+        # noinspection PyUnboundLocalVariable
         if 'results' in item:
             result = Result(item['results'][0]['result'])
             if result.response and 'error' in result.response:
@@ -225,11 +225,6 @@ class API(contextlib.AbstractContextManager):
         name = error.get('name')
         description = error.get('description')
         return cls.exception_classes.get(name, ApiError)(name, description)
-
-    @staticmethod
-    def sleep(seconds: float):
-        logger.debug(f'💤 Sleeping for {seconds:.1f} seconds…')
-        sleep(seconds)
 
     # User.
     # ------------------------------------------------------------------------------------------------------------------

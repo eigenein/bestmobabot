@@ -141,7 +141,7 @@ class Bot(contextlib.AbstractContextManager):
             # Find the earliest task.
             run_at, index = min((run_at, index) for index, run_at in enumerate(schedule))
             task = self.tasks[index]
-            logger.info(f'💤 Next is {task} at {run_at:%H:%M:%S}.{os.linesep}')
+            logger.info(f'💤 Next is {task} at {run_at:%H:%M:%S}.')
             # Sleep until the execution time.
             sleep_time = (run_at - self.now()).total_seconds()
             if sleep_time >= 0.0:
@@ -150,7 +150,7 @@ class Bot(contextlib.AbstractContextManager):
             next_run_at = self.execute(task) or task.next_run_at(max(self.now(), run_at + timedelta(seconds=1)))
             next_run_at = next_run_at.astimezone()  # keeping them in the local time zone
             # Update its execution time.
-            logger.info(f'💤 Next run at {next_run_at:%H:%M:%S}.')
+            logger.info(f'💤 Next run at {next_run_at:%H:%M:%S}.{os.linesep}')
             schedule[index] = next_run_at
 
     @staticmethod
