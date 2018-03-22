@@ -120,7 +120,7 @@ class API(contextlib.AbstractContextManager):
             assert match, f'authentication key is not found: {iframe_new}'
             self.auth_token = match.group(1)
 
-        logger.info('🔑 Authentication token: %s', self.auth_token)
+        logger.info(f'🔑 Authentication token: {self.auth_token}')
         self.user_id = str(params['viewer_id'])
         self.request_id = 0
         self.session_id = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(14))
@@ -149,7 +149,7 @@ class API(contextlib.AbstractContextManager):
 
         self.request_id += 1
         self.db.upsert({'request_id': self.request_id}, self.STATE_QUERY)
-        logger.info('🔔 #%s %s(%r)', self.request_id, name, arguments or {})
+        logger.info(f'🔔 #{self.request_id} {name}({arguments or {}})')
 
         calls = [{'ident': name, 'name': name, 'args': arguments or {}}]
         data = json.dumps({"session": None, "calls": calls})
@@ -228,7 +228,7 @@ class API(contextlib.AbstractContextManager):
 
     @staticmethod
     def sleep(seconds: float):
-        logger.debug('💤 Sleeping for %.1f seconds…', seconds)
+        logger.debug(f'💤 Sleeping for {seconds:.1f} seconds…')
         sleep(seconds)
 
     # User.

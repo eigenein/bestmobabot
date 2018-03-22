@@ -4,6 +4,7 @@ The bot logic.
 
 import contextlib
 import json
+import os
 from datetime import datetime, timedelta, timezone, tzinfo
 from operator import attrgetter, itemgetter
 from random import choice
@@ -140,7 +141,7 @@ class Bot(contextlib.AbstractContextManager):
             # Find the earliest task.
             run_at, index = min((run_at, index) for index, run_at in enumerate(schedule))
             task = self.tasks[index]
-            logger.info('💤 Next is %s at %s.', task, run_at.strftime('%H:%M:%S'))
+            logger.info(f'💤 Next is {task} at {run_at:%H:%M:%S}.')
             # Sleep until the execution time.
             sleep_time = (run_at - self.now()).total_seconds()
             if sleep_time >= 0.0:
@@ -149,7 +150,7 @@ class Bot(contextlib.AbstractContextManager):
             next_run_at = self.execute(task) or task.next_run_at(max(self.now(), run_at + timedelta(seconds=1)))
             next_run_at = next_run_at.astimezone()  # keeping them in the local time zone
             # Update its execution time.
-            logger.info('💤 Next run at %s.', next_run_at.strftime('%H:%M:%S'))
+            logger.info(f'💤 Next run at {next_run_at:%H:%M:%S}.')
             schedule[index] = next_run_at
 
     @staticmethod
@@ -161,18 +162,18 @@ class Bot(contextlib.AbstractContextManager):
         try:
             next_run_at = task.execute(*task.args)
         except AlreadyError as e:
-            logger.error('🤔 Already done: %s.', e.description)
+            logger.error(f'🤔 Already done: {e.description}.')
         except NotEnoughError as e:
-            logger.error('🤔 Not enough: %s.', e.description)
+            logger.error(f'🤔 Not enough: {e.description}.')
         except InvalidResponseError as e:
             logger.error('😱 API returned something bad:')
-            logger.error('😱 %s', e)
+            logger.error(f'😱 {e}')
         except Exception as e:
             logger.critical('😱 Uncaught error.', exc_info=e)
             for result in self.api.last_responses:
-                logger.critical('💬 API result: %s', result)
+                logger.critical(f'💬 API result: {result}')
         else:
-            logger.info('✅ Well done.')
+            logger.info(f'✅ Well done.{os.linesep}')
             return next_run_at
 
     @staticmethod
@@ -187,7 +188,7 @@ class Bot(contextlib.AbstractContextManager):
         """
         Отладочная задача.
         """
-        logger.info('🦆 %s', text)
+        logger.info(f'🦆 {text}')
         sleep(1.0)
 
     def register(self):
@@ -225,12 +226,12 @@ class Bot(contextlib.AbstractContextManager):
         expeditions = self.api.list_expeditions()
         for expedition in expeditions:
             if expedition.is_started:
-                logger.info('✅ Started expedition ends at %s.', expedition.end_time)
+                logger.info(f'✅ Started expedition ends at {expedition.end_time}.')
                 return expedition.end_time
 
         # Get all busy heroes.
         busy_hero_ids = set.union(*(set(expedition.hero_ids) for expedition in expeditions))
-        logger.info('👊 Busy heroes: %s.', busy_hero_ids)
+        logger.info(f'👊 Busy heroes: {busy_hero_ids}.')
 
         # Choose the most powerful available heroes.
         heroes = arena.naive_select_attackers(hero for hero in self.api.get_all_heroes() if hero.id not in busy_hero_ids)
@@ -252,7 +253,7 @@ class Bot(contextlib.AbstractContextManager):
 
         # Send the expedition.
         end_time, quests = self.api.send_expedition_heroes(expedition.id, self.get_hero_ids(heroes))
-        logger.info('⏰ The expedition ends at %s.', end_time)
+        logger.info(f'⏰ The expedition ends at {end_time}.')
         self.farm_quests(quests)
         return end_time
 
@@ -267,7 +268,7 @@ class Bot(contextlib.AbstractContextManager):
             if not quest.is_reward_available:
                 continue
             if self.no_experience and quest.reward.experience:
-                logger.warning('🙈 Ignoring %s experience reward for quest %s.', quest.reward.experience, quest.id)
+                logger.warning(f'🙈 Ignoring {quest.reward.experience} experience reward for quest #{quest.id}.')
                 continue
             log_reward(self.api.farm_quest(quest.id))
 
@@ -279,7 +280,7 @@ class Bot(contextlib.AbstractContextManager):
         letters = self.api.get_all_mail()
         if not letters:
             return
-        logger.info('📩 %s letters.', len(letters))
+        logger.info(f'📩 {len(letters)} letters.')
         log_rewards(self.api.farm_mail(int(letter.id) for letter in letters).values())
 
     def buy_chest(self):
@@ -318,15 +319,15 @@ class Bot(contextlib.AbstractContextManager):
         # Debugging.
         log_heroes('Attackers:', attackers)
         log_heroes('Defenders:', enemy.heroes)
-        logger.info('👊 Enemy place: %s.', enemy.place)
-        logger.info('👊 Probability: %.1f%%.', 100.0 * probability)
+        logger.info(f'👊 Enemy place: {enemy.place}.')
+        logger.info(f'👊 Probability: {100.0 * probability:.1f}%.')
 
         # Attack!
         result, quests = self.api.attack_arena(enemy.user.id, self.get_hero_ids(attackers))
 
         # Collect results.
         log_arena_result(result)
-        logger.info('👊 Current place: %s', result.arena_place)
+        logger.info('👊 Current place: {result.arena_place}.')
         self.farm_quests(quests)
 
     def attack_grand_arena(self):
@@ -350,11 +351,11 @@ class Bot(contextlib.AbstractContextManager):
 
         # Debugging.
         for i, (attackers, defenders) in enumerate(zip(attacker_teams, enemy.heroes), start=1):
-            logger.info('👊 Battle #%s.', i)
+            logger.info(f'👊 Battle #{i}.')
             log_heroes('Attackers:', attackers)
             log_heroes('Defenders:', defenders)
-        logger.info('👊 Enemy place: %s.', enemy.place)
-        logger.info('👊 Probability: %.1f%%.', 100.0 * probability)
+        logger.info(f'👊 Enemy place: {enemy.place}.')
+        logger.info(f'👊 Probability: {100.0 * probability:.1f}%.')
 
         # Attack!
         result, quests = self.api.attack_grand(enemy.user.id, [
@@ -364,7 +365,7 @@ class Bot(contextlib.AbstractContextManager):
 
         # Collect results.
         log_arena_result(result)
-        logger.info('👊 Current place: %s', result.grand_place)
+        logger.info(f'👊 Current place: {result.grand_place}.')
         self.farm_quests(quests)
         log_reward(self.api.farm_grand_coins())
 
@@ -387,7 +388,7 @@ class Bot(contextlib.AbstractContextManager):
                 'defenders': [hero.dump() for defenders in replay.defenders for hero in defenders],
             }), file=self.battle_log, flush=True)
             self.db.table('replays').insert({'id': replay.id})
-            logger.info('📒 Saved %s.', replay.id)
+            logger.info(f'📒 Saved #{replay.id}.')
 
     def check_freebie(self):
         """
@@ -399,9 +400,9 @@ class Bot(contextlib.AbstractContextManager):
         for gift_id in self.vk.find_gifts():
             if self.db.table('gifts').get(where('id') == gift_id):
                 continue
-            logger.info('🎁 Checking %s…', gift_id)
+            logger.info(f'🎁 Checking #{gift_id}…')
             if self.api.check_freebie(gift_id) is not None:
-                logger.info('🎉 Received %s!', gift_id)
+                logger.info(f'🎉 Received #{gift_id}!')
                 should_farm_mail = True
             self.db.table('gifts').insert({'id': gift_id})
 
@@ -427,14 +428,14 @@ class Bot(contextlib.AbstractContextManager):
         """
         Ходит в рейд в миссию в кампании за предметами.
         """
-        logger.info('👊 Raid mission «%s»…', mission_name(mission_id))
+        logger.info(f'👊 Raid mission «{mission_name(mission_id)}»…')
         log_rewards(self.api.raid_mission(mission_id))
 
     def shop(self, shop_ids: List[ShopID]):
         """
         Покупает в магазине вещи.
         """
-        logger.info('🛒 Refreshing shops %s…', shop_ids)
+        logger.info(f'🛒 Refreshing shops {shop_ids}…')
         available_slots: Set[Tuple[ShopID, SlotID]] = {
             (shop_id, slot.id)
             for shop_id in shop_ids
@@ -445,16 +446,16 @@ class Bot(contextlib.AbstractContextManager):
         logger.info('🛒 Buying stuff…')
         for shop_id, slot_id in self.shops:
             if shop_id not in shop_ids:
-                logger.debug('🛒 Ignoring shop «%s».', shop_name(shop_id))
+                logger.debug(f'🛒 Ignoring shop «{shop_name(shop_id)}».')
                 continue
             if (shop_id, slot_id) not in available_slots:
-                logger.warning('🛒 Slot #%s is not available in shop «%s».', slot_id, shop_name(shop_id))
+                logger.warning(f'🛒 Slot #{slot_id} is not available in shop «{shop_name(shop_id)}».')
                 continue
-            logger.info('🛒 Buying slot #%s in shop «%s»…', slot_id, shop_name(shop_id))
+            logger.info(f'🛒 Buying slot #{slot_id} in shop «{shop_name(shop_id)}»…')
             try:
                 log_reward(self.api.shop(shop_id=shop_id, slot_id=slot_id))
             except (NotEnoughError, AlreadyError) as e:
-                logger.warning('🛒 %s', e.description)
+                logger.warning(f'🛒 {e.description}')
 
     def skip_tower(self):
         """
@@ -464,7 +465,7 @@ class Bot(contextlib.AbstractContextManager):
         tower = self.api.get_tower_info()
 
         while tower.floor_number <= tower.may_skip_floor or not tower.is_battle:
-            logger.info('🗼 Floor #%s: %s.', tower.floor_number, tower.floor_type)
+            logger.info(f'🗼 Floor #{tower.floor_number}: {tower.floor_type}.')
             if tower.is_battle:
                 tower, reward = self.api.skip_tower_floor()
                 log_reward(reward)
@@ -479,13 +480,13 @@ class Bot(contextlib.AbstractContextManager):
                         try:
                             self.api.buy_tower_buff(buff_id)
                         except NotEnoughError:
-                            logger.info('🗼 Not enough resources for buff #%s.', buff_id)
+                            logger.info(f'🗼 Not enough resources for buff #{buff_id}.')
                         except AlreadyError:
-                            logger.info('🗼 Already bought buff #%s.', buff_id)
+                            logger.info(f'🗼 Already bought buff #{buff_id}.')
                         except NotFoundError as e:
-                            logger.warning('🗼 Not found for buff #%s: %s.', buff_id, e.description)
+                            logger.warning(f'🗼 Not found for buff #{buff_id}: {e.description}.')
                     else:
-                        logger.debug('🗼 Skip buff #%s.', buff_id)
+                        logger.debug(f'🗼 Skip buff #{buff_id}.')
                 tower = self.api.next_tower_floor()
             else:
                 logger.error('🗼 Unknown floor type.')

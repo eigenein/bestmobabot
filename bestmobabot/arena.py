@@ -70,7 +70,7 @@ def model_select_attackers(heroes: Iterable[Hero], defenders: Iterable[Hero], ve
     y: numpy.ndarray = model.predict_proba(x)[:, 1]
     index: int = y.argmax()
     if verbose:
-        logger.debug('👊 Win probability: %.1f%%.', 100.0 * y[index])
+        logger.debug(f'👊 Win probability: {100.0 * y[index]:.1f}%.')
     return attackers_list[index], y[index]
 
 
@@ -100,7 +100,7 @@ def model_select_grand_attackers(heroes: Iterable[Hero], defenders_teams: Iterab
     # Choose best selection.
     attackers_teams, probability = max(selections, key=itemgetter(1))
 
-    logger.debug('👊 Win probability: %.1f%%.', 100.0 * probability)
+    logger.debug(f'👊 Win probability: {100.0 * probability:.1f}%.')
     return attackers_teams, probability
 
 

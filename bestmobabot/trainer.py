@@ -44,13 +44,13 @@ def main(log_files: Iterable[TextIO], n_iterations: int, n_splits: int):
 
     # Read battles.
     battles = DataFrame(read_battles(log_files)).fillna(value=0.0)
-    logging.info('Battles shape: %s.', battles.shape)
+    logging.info(f'Battles shape: {battles.shape}.')
 
     # Split into X and y.
     x: DataFrame = battles.drop(['win'], axis=1)
     y: Series = battles['win']
     value_counts: DataFrame = y.value_counts()
-    logging.info('Wins: %s. Losses: %s.', value_counts[False], value_counts[True])
+    logging.info(f'Wins: {value_counts[False]}. Losses: {value_counts[True]}.')
 
     # Train, adjust hyper-parameters and evaluate.
     logging.info('Adjusting hyper-parameters…')
@@ -97,7 +97,7 @@ def train(x: DataFrame, y: Series, n_iterations: int, n_splits: int) -> Tuple[An
 
     numpy.random.seed(42)
     search_cv = BayesSearchCV(estimator, param_grid, cv=cv, scoring=SCORING, n_iter=n_iterations, random_state=42, refit=False)
-    search_cv.fit(x, y, callback=lambda result: logging.info('#%s %s: %.6f', len(result.x_iters), SCORING, search_cv.best_score_))
+    search_cv.fit(x, y, callback=lambda result: logging.info(f'#{len(result.x_iters)} {SCORING}: {search_cv.best_score_:.6f}'))
     estimator.set_params(**search_cv.best_params_)
 
     # Perform cross-validation.
@@ -105,18 +105,18 @@ def train(x: DataFrame, y: Series, n_iterations: int, n_splits: int) -> Tuple[An
     numpy.random.seed(42)
     scores: numpy.ndarray = cross_val_score(estimator, x, y, scoring=SCORING, cv=cv)
     score_interval = stats.t.interval(0.95, len(scores) - 1, loc=numpy.mean(scores), scale=stats.sem(scores))
-    logging.info('Best score: %.4f', search_cv.best_score_)
-    logging.info('Best params: %s', search_cv.best_params_)
-    logging.info('CV score: %.4f (%.4f … %.4f).', scores.mean(), *score_interval)
+    logging.info(f'Best score: {search_cv.best_score_:.4f}')
+    logging.info(f'Best params: {search_cv.best_params_}')
+    logging.info(f'CV score: {scores.mean():.4f} ({score_interval[0]:.4f} … {score_interval[1]:.4f}).')
 
     # Re-train the best model on the entire data.
     logging.info('Refitting…')
     estimator.fit(x, y)
 
     # Print debugging info.
-    logging.info('Classes: %s', estimator.classes_)
+    logging.info(f'Classes: {estimator.classes_}')
     for column, importance in sorted(zip(x.columns, estimator.feature_importances_), key=itemgetter(1), reverse=True)[:10]:
-        logging.info('Feature %s: %.4f', column, importance)
+        logging.info(f'Feature {column}: {importance:.4f}')
 
     return estimator, scores
 
