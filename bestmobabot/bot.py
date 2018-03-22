@@ -327,7 +327,7 @@ class Bot(contextlib.AbstractContextManager):
 
         # Collect results.
         log_arena_result(result)
-        logger.info('👊 Current place: {result.arena_place}.')
+        logger.info(f'👊 Current place: {result.arena_place}.')
         self.farm_quests(quests)
 
     def attack_grand_arena(self):
