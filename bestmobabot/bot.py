@@ -141,7 +141,7 @@ class Bot(contextlib.AbstractContextManager):
             # Find the earliest task.
             run_at, index = min((run_at, index) for index, run_at in enumerate(schedule))
             task = self.tasks[index]
-            logger.info(f'💤 Next is {task} at {run_at:%H:%M:%S}.')
+            logger.info(f'💤 Next is {task} at {run_at:%H:%M:%S}.{os.linesep}')
             # Sleep until the execution time.
             sleep_time = (run_at - self.now()).total_seconds()
             if sleep_time >= 0.0:
@@ -173,7 +173,7 @@ class Bot(contextlib.AbstractContextManager):
             for result in self.api.last_responses:
                 logger.critical(f'💬 API result: {result}')
         else:
-            logger.info(f'✅ Well done.{os.linesep}')
+            logger.info(f'✅ Well done.')
             return next_run_at
 
     @staticmethod
