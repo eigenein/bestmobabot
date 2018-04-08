@@ -31,14 +31,19 @@ CHUNK_LENGTH = 94
 
 @click.command()
 @click.argument('log_files', type=click.File('rt'), nargs=-1, required=True)
+@click.option('-v', '--verbose', is_flag=True, default=False, help='Increase verbosity.')
 @click.option('-n', '--n-iterations', type=int, default=20, help='Hyper-parameters search iterations.')
 @click.option('--n-splits', type=int, default=5, help='K-fold splits.')
-def main(log_files: Iterable[TextIO], n_iterations: int, n_splits: int):
+def main(log_files: Iterable[TextIO], verbose: bool, n_iterations: int, n_splits: int):
     """
     Train and generate arena prediction model.
     https://github.com/eigenein/bestmobabot/blob/master/research/bestmoba.ipynb
     """
-    coloredlogs.install(fmt='%(asctime)s %(levelname)s %(message)s', level=logging.DEBUG, stream=sys.stderr)
+    coloredlogs.install(
+        fmt='%(asctime)s %(levelname)s %(message)s',
+        level=(logging.INFO if not verbose else logging.DEBUG),
+        stream=sys.stderr,
+    )
     if not sys.warnoptions:
         warnings.simplefilter('ignore')
 
@@ -89,7 +94,7 @@ def parse_battle(line: str) -> Dict[str, Any]:
 def train(x: DataFrame, y: Series, n_iterations: int, n_splits: int) -> Tuple[Any, numpy.ndarray]:
     estimator = RandomForestClassifier(class_weight='balanced', n_jobs=5, random_state=42)
     param_grid = {
-        'n_estimators': (1, 200),
+        'n_estimators': (1, 250),
         'max_features': (1, x.shape[1]),
         'criterion': ['entropy', 'gini'],
     }
@@ -97,7 +102,7 @@ def train(x: DataFrame, y: Series, n_iterations: int, n_splits: int) -> Tuple[An
 
     numpy.random.seed(42)
     search_cv = BayesSearchCV(estimator, param_grid, cv=cv, scoring=SCORING, n_iter=n_iterations, random_state=42, refit=False)
-    search_cv.fit(x, y, callback=lambda result: logging.info(f'#{len(result.x_iters)} {SCORING}: {search_cv.best_score_:.6f}'))
+    search_cv.fit(x, y, callback=lambda result: logging.info(f'#{len(result.x_iters)} {SCORING}: {search_cv.best_score_:.4f}'))
     estimator.set_params(**search_cv.best_params_)
 
     # Perform cross-validation.
@@ -114,9 +119,9 @@ def train(x: DataFrame, y: Series, n_iterations: int, n_splits: int) -> Tuple[An
     estimator.fit(x, y)
 
     # Print debugging info.
-    logging.info(f'Classes: {estimator.classes_}')
-    for column, importance in sorted(zip(x.columns, estimator.feature_importances_), key=itemgetter(1), reverse=True)[:10]:
-        logging.info(f'Feature {column}: {importance:.4f}')
+    logging.debug(f'Classes: {estimator.classes_}')
+    for column, importance in sorted(zip(x.columns, estimator.feature_importances_), key=itemgetter(1), reverse=True):
+        logging.debug(f'Feature {column}: {importance:.7f}')
 
     return estimator, scores
 
