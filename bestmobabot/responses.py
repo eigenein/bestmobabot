@@ -153,6 +153,7 @@ class Hero(BaseResponse):
             'total_colors': float(self.color),
             'total_levels': float(self.level),
             'total_stars': float(self.star),
+            'total_heroes': 1.0,
         }
         self.features = numpy.fromiter((self.features_dict.get(key, 0.0) for key in feature_names), numpy.float)
 

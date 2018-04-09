@@ -32,8 +32,8 @@ CHUNK_LENGTH = 94
 @click.command()
 @click.argument('log_files', type=click.File('rt'), nargs=-1, required=True)
 @click.option('-v', '--verbose', is_flag=True, default=False, help='Increase verbosity.')
-@click.option('-n', '--n-iterations', type=int, default=20, help='Hyper-parameters search iterations.')
-@click.option('--n-splits', type=int, default=5, help='K-fold splits.')
+@click.option('-n', '--n-iterations', type=int, default=100, help='Hyper-parameters search iterations.')
+@click.option('--n-splits', type=int, default=10, help='K-fold splits.')
 def main(log_files: Iterable[TextIO], verbose: bool, n_iterations: int, n_splits: int):
     """
     Train and generate arena prediction model.
