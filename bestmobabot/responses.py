@@ -205,7 +205,7 @@ class Replay(BaseResponse):
     def __init__(self, item: Dict):
         super().__init__(item)
         self.id: str = str(item['id'])
-        self.start_time: datetime = datetime.fromtimestamp(item['startTime'])
+        self.start_time: datetime = datetime.fromtimestamp(int(item['startTime']))
         self.win: bool = item['result']['win']
         self.stars: int = int(item['result']['stars'])
         self.attackers: List[Hero] = [Hero(hero) for hero in item['attackers'].values()]
