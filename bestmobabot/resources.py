@@ -9,8 +9,6 @@ from typing import Dict
 
 import requests
 
-from bestmobabot.types import *
-
 # FIXME: obtain from the resources.
 COLORS = {
     1: 'Белый',
@@ -49,7 +47,7 @@ def get_library() -> Dict:
     return get_resource('https://heroes.cdnvideo.ru/vk/v0340/lib/lib.json.gz')
 
 
-def hero_name(hero_id: HeroID) -> str:
+def hero_name(hero_id: str) -> str:
     return get_translations().get(f'LIB_HERO_NAME_{hero_id}', f'#{hero_id}')
 
 
@@ -57,7 +55,7 @@ def coin_name(coin_id: str) -> str:
     return get_translations().get(f'LIB_COIN_NAME_{coin_id}', f'#{coin_id}')
 
 
-def consumable_name(consumable_id: ConsumableID) -> str:
+def consumable_name(consumable_id: str) -> str:
     return get_translations().get(f'LIB_CONSUMABLE_NAME_{consumable_id}', f'#{consumable_id}')
 
 
@@ -69,11 +67,11 @@ def scroll_name(scroll_id: str) -> str:
     return get_translations().get(f'LIB_SCROLL_NAME_{scroll_id}', f'#{scroll_id}')
 
 
-def shop_name(shop_id: ShopID) -> str:
+def shop_name(shop_id: str) -> str:
     return get_translations().get(f'LIB_SHOP_NAME_{shop_id}', f'#{shop_id}')
 
 
-def mission_name(mission_id: MissionID) -> str:
+def mission_name(mission_id: str) -> str:
     return get_translations().get(f'LIB_MISSION_NAME_{mission_id}', f'#{mission_id}')
 
 

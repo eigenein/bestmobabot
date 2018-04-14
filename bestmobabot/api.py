@@ -18,7 +18,7 @@ from tinydb import TinyDB, where
 
 from bestmobabot.logger import logger
 from bestmobabot.responses import *
-from bestmobabot.types import *
+from bestmobabot.enums import *
 
 T = TypeVar('T')
 
@@ -250,10 +250,10 @@ class API(contextlib.AbstractContextManager):
     def list_expeditions(self) -> List[Expedition]:
         return list_of(Expedition, self.call('expeditionGet').response)
 
-    def farm_expedition(self, expedition_id: ExpeditionID) -> Reward:
+    def farm_expedition(self, expedition_id: str) -> Reward:
         return Reward(self.call('expeditionFarm', {'expeditionId': expedition_id}).response)
 
-    def send_expedition_heroes(self, expedition_id: ExpeditionID, hero_ids: List[HeroID]) -> Tuple[datetime, Quests]:
+    def send_expedition_heroes(self, expedition_id: str, hero_ids: List[str]) -> Tuple[datetime, Quests]:
         response = self.call('expeditionSendHeroes', {'expeditionId': expedition_id, 'heroes': hero_ids})
         return datetime.fromtimestamp(response.response['endTime']).astimezone(), response.quests
 
@@ -263,7 +263,7 @@ class API(contextlib.AbstractContextManager):
     def get_all_quests(self) -> Quests:
         return list_of(Quest, self.call('questGetAll').response)
 
-    def farm_quest(self, quest_id: QuestID) -> Reward:
+    def farm_quest(self, quest_id: str) -> Reward:
         return Reward(self.call('questFarm', {'questId': quest_id}).response)
 
     # Mail.
@@ -272,7 +272,7 @@ class API(contextlib.AbstractContextManager):
     def get_all_mail(self) -> List[Letter]:
         return list_of(Letter, self.call('mailGetAll').response['letters'])
 
-    def farm_mail(self, letter_ids: Iterable[LetterID]) -> Dict[str, Reward]:
+    def farm_mail(self, letter_ids: Iterable[str]) -> Dict[str, Reward]:
         result = self.call('mailFarm', {'letterIds': list(letter_ids)})
         return {letter_id: Reward(item or {}) for letter_id, item in result.response.items()}
 
@@ -286,8 +286,8 @@ class API(contextlib.AbstractContextManager):
     # Daily gift.
     # ------------------------------------------------------------------------------------------------------------------
 
-    def send_daily_gift(self, ids: Iterable[UserID]) -> Quests:
-        return self.call('friendsSendDailyGift', {'ids': list(ids)}).quests
+    def send_daily_gift(self, user_ids: Iterable[str]) -> Quests:
+        return self.call('friendsSendDailyGift', {'ids': list(user_ids)}).quests
 
     # Arena.
     # ------------------------------------------------------------------------------------------------------------------
@@ -296,7 +296,7 @@ class API(contextlib.AbstractContextManager):
         # Random sleep is turned off because model prediction takes some time already.
         return list_of(ArenaEnemy, self.call('arenaFindEnemies', random_sleep=False).response)
 
-    def attack_arena(self, user_id: UserID, hero_ids: Iterable[HeroID]) -> Tuple[ArenaResult, Quests]:
+    def attack_arena(self, user_id: str, hero_ids: Iterable[str]) -> Tuple[ArenaResult, Quests]:
         result = self.call('arenaAttack', {'userId': user_id, 'heroes': list(hero_ids)})
         return ArenaResult(result.response), result.quests
 
@@ -304,7 +304,7 @@ class API(contextlib.AbstractContextManager):
         # Random sleep is turned off because model prediction takes some time already.
         return list_of(GrandArenaEnemy, self.call('grandFindEnemies', random_sleep=False).response)
 
-    def attack_grand(self, user_id: UserID, hero_ids: List[List[HeroID]]) -> Tuple[ArenaResult, Quests]:
+    def attack_grand(self, user_id: str, hero_ids: List[List[str]]) -> Tuple[ArenaResult, Quests]:
         result = self.call('grandAttack', {'userId': user_id, 'heroes': hero_ids})
         return ArenaResult(result.response), result.quests
 
@@ -342,7 +342,7 @@ class API(contextlib.AbstractContextManager):
     # https://github.com/eigenein/bestmobabot/wiki/Raids
     # ------------------------------------------------------------------------------------------------------------------
 
-    def raid_mission(self, mission_id: MissionID, times=1) -> List[Reward]:
+    def raid_mission(self, mission_id: str, times=1) -> List[Reward]:
         response = self.call('missionRaid', {'times': times, 'id': mission_id}).response
         return list_of(Reward, response)
 
@@ -351,7 +351,7 @@ class API(contextlib.AbstractContextManager):
     # ------------------------------------------------------------------------------------------------------------------
 
     # https://heroes.cdnvideo.ru/vk/v0312/lib/lib.json.gz
-    RECOMMENDED_HEROES: Dict[BossID, Set[HeroID]] = {
+    RECOMMENDED_HEROES: Dict[str, Set[str]] = {
         '1': {'1', '4', '5', '6', '7', '9', '10', '12', '13', '17', '18', '21', '22', '23', '26', '29', '32', '33', '34', '35', '36'},
         '2': {'8', '14', '15', '19', '20', '30', '31'},
         '3': {'2', '3', '11', '16', '25', '24', '27', '28', '37', '38', '39', '40'},
@@ -366,21 +366,21 @@ class API(contextlib.AbstractContextManager):
     def get_current_boss(self) -> List[Boss]:
         return list_of(Boss, self.call('bossGetCurrent').response)
 
-    def attack_boss(self, boss_id: BossID, hero_ids: Iterable[HeroID]) -> Battle:
+    def attack_boss(self, boss_id: str, hero_ids: Iterable[str]) -> Battle:
         return Battle(self.call('bossAttack', {'bossId': boss_id, 'heroes': list(hero_ids)}).response)
 
-    def open_boss_chest(self, boss_id: BossID) -> Tuple[Reward, Quests]:
+    def open_boss_chest(self, boss_id: str) -> Tuple[Reward, Quests]:
         result = self.call('bossOpenChest', {'bossId': boss_id})
         return Reward(result.response['reward']), result.quests
 
     # Shop.
     # ------------------------------------------------------------------------------------------------------------------
 
-    def get_shop(self, shop_id: ShopID) -> List[ShopSlot]:
+    def get_shop(self, shop_id: str) -> List[ShopSlot]:
         response = self.call('shopGet', {'shopId': shop_id}).response
         return list_of(ShopSlot, response['slots'])
 
-    def shop(self, *, slot_id: SlotID, shop_id: ShopID) -> Reward:
+    def shop(self, *, slot_id: str, shop_id: str) -> Reward:
         return Reward(self.call('shopBuy', {'slot': slot_id, 'shopId': shop_id}).response)
 
     # Tower.
@@ -393,7 +393,7 @@ class API(contextlib.AbstractContextManager):
         response = self.call('towerSkipFloor').response
         return Tower(response['tower']), Reward(response['reward'])
 
-    def buy_tower_buff(self, buff_id: BuffID) -> Tower:
+    def buy_tower_buff(self, buff_id: int) -> Tower:
         return Tower(self.call('towerBuyBuff', {'buffId': buff_id}).response)
 
     def open_tower_chest(self, number: int) -> Tuple[Reward, Quests]:

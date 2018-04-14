@@ -10,7 +10,6 @@ from typing import Callable, Iterable, List, Tuple, Optional, TypeVar
 
 import numpy
 
-from bestmobabot import types
 from bestmobabot.logger import logger
 from bestmobabot.model import model
 from bestmobabot.responses import ArenaEnemy, GrandArenaEnemy, Hero
@@ -28,7 +27,7 @@ T2 = TypeVar('T2')
 # Shared for both arenas.
 # ----------------------------------------------------------------------------------------------------------------------
 
-def filter_enemies(enemies: Iterable[TArenaEnemy], clan_id: Optional[types.ClanID]) -> List[TArenaEnemy]:
+def filter_enemies(enemies: Iterable[TArenaEnemy], clan_id: Optional[str]) -> List[TArenaEnemy]:
     return [enemy for enemy in enemies if enemy.user is not None and not enemy.user.is_from_clan(clan_id)]
 
 

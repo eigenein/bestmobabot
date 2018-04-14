@@ -18,7 +18,7 @@ from bestmobabot.api import AlreadyError, API, InvalidResponseError, NotEnoughEr
 from bestmobabot.logger import log_arena_result, log_heroes, log_reward, log_rewards, logger
 from bestmobabot.resources import mission_name, shop_name
 from bestmobabot.responses import *
-from bestmobabot.types import *
+from bestmobabot.enums import *
 from bestmobabot.vk import VK
 
 NextRunAtCallable = Callable[[datetime], datetime]
@@ -177,7 +177,7 @@ class Bot(contextlib.AbstractContextManager):
             return next_run_at
 
     @staticmethod
-    def get_hero_ids(heroes: Iterable[Hero]) -> List[HeroID]:
+    def get_hero_ids(heroes: Iterable[Hero]) -> List[str]:
         return [hero.id for hero in heroes]
 
     # Actual tasks.
@@ -432,12 +432,12 @@ class Bot(contextlib.AbstractContextManager):
         logger.info(f'👊 Raid mission «{mission_name(mission_id)}»…')
         log_rewards(self.api.raid_mission(mission_id))
 
-    def shop(self, shop_ids: List[ShopID]):
+    def shop(self, shop_ids: List[str]):
         """
         Покупает в магазине вещи.
         """
         logger.info(f'🛒 Refreshing shops {shop_ids}…')
-        available_slots: Set[Tuple[ShopID, SlotID]] = {
+        available_slots: Set[Tuple[str, str]] = {
             (shop_id, slot.id)
             for shop_id in shop_ids
             for slot in self.api.get_shop(shop_id)
