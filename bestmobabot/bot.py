@@ -281,7 +281,7 @@ class Bot(contextlib.AbstractContextManager):
         if not letters:
             return
         logger.info(f'📩 {len(letters)} letters.')
-        log_rewards(self.api.farm_mail(int(letter.id) for letter in letters).values())
+        log_rewards(self.api.farm_mail(letter.id for letter in letters).values())
 
     def buy_chest(self):
         """
@@ -383,6 +383,7 @@ class Bot(contextlib.AbstractContextManager):
                 continue
             print(json.dumps({
                 'replay_id': replay.id,
+                'start_time': replay.start_time.timestamp(),
                 'win': replay.win,
                 'attackers': [hero.dump() for hero in replay.attackers],
                 'defenders': [hero.dump() for defenders in replay.defenders for hero in defenders],
