@@ -6,13 +6,13 @@ import math
 from functools import reduce
 from itertools import combinations, permutations
 from operator import attrgetter, itemgetter
-from typing import Callable, Iterable, List, Tuple, Optional, TypeVar
+from typing import Callable, Dict, Iterable, List, Tuple, Optional, TypeVar
 
 import numpy
 
 from bestmobabot import constants
 from bestmobabot.logger import logger
-from bestmobabot.model import model
+from bestmobabot.model import feature_names, model
 from bestmobabot.responses import ArenaEnemy, GrandArenaEnemy, Hero
 
 TArenaEnemy = TypeVar('TArenaEnemy', ArenaEnemy, GrandArenaEnemy)
@@ -62,7 +62,7 @@ def model_select_attackers(heroes: Iterable[Hero], defenders: Iterable[Hero], ve
     Select attackers for the given enemy to maximise win probability.
     """
     attackers_list = [list(attackers) for attackers in combinations(heroes, constants.TEAM_SIZE)]
-    x = numpy.array([get_model_features(attackers) for attackers in attackers_list]) - get_model_features(defenders)
+    x = numpy.array([make_team_features(attackers) for attackers in attackers_list]) - make_team_features(defenders)
     y: numpy.ndarray = model.predict_proba(x)[:, 1]
     index: int = y.argmax()
     if verbose:
@@ -103,11 +103,37 @@ def model_select_grand_attackers(heroes: Iterable[Hero], defenders_teams: Iterab
 # Features construction.
 # ----------------------------------------------------------------------------------------------------------------------
 
-def get_model_features(heroes: Iterable[Hero]) -> numpy.ndarray:
+def make_feature_dict(hero: Hero) -> Dict[str, float]:
+    return {
+        f'color_{hero.id}': float(hero.color),
+        f'level_{hero.id}': float(hero.level),
+        f'star_{hero.id}': float(hero.star),
+        f'color_level_star_{hero.id}': float(hero.color) * float(hero.level) * float(hero.star),
+        f'color_level_{hero.id}': float(hero.color) * float(hero.level),
+        f'color_star_{hero.id}': float(hero.color) * float(hero.star),
+        f'level_star_{hero.id}': float(hero.level) * float(hero.star),
+        'total_color_level_star': float(hero.color) * float(hero.level) * float(hero.star),
+        'total_color_level': float(hero.color) * float(hero.level),
+        'total_color_star': float(hero.color) * float(hero.star),
+        'total_level_star': float(hero.level) * float(hero.star),
+        'total_colors': float(hero.color),
+        'total_levels': float(hero.level),
+        'total_stars': float(hero.star),
+        'total_heroes': 1.0,
+    }
+
+
+def make_hero_features(hero: Hero) -> numpy.ndarray:
+    feature_dict = make_feature_dict(hero)
+    return numpy.fromiter((feature_dict.get(key, 0.0) for key in feature_names), numpy.float)
+
+
+def make_team_features(heroes: Iterable[Hero]) -> numpy.ndarray:
     """
     Build model features for the specified heroes.
     """
-    return reduce(numpy.add, (hero.features for hero in heroes))
+    # noinspection PyTypeChecker
+    return reduce(numpy.add, (make_hero_features(hero) for hero in heroes))
 
 
 # Utilities.
