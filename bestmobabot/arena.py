@@ -10,13 +10,10 @@ from typing import Callable, Iterable, List, Tuple, Optional, TypeVar
 
 import numpy
 
+from bestmobabot import constants
 from bestmobabot.logger import logger
 from bestmobabot.model import model
 from bestmobabot.responses import ArenaEnemy, GrandArenaEnemy, Hero
-
-TEAM_SIZE = 5  # heroes
-GRAND_TEAMS = 3
-GRAND_SIZE = GRAND_TEAMS * TEAM_SIZE  # heroes
 
 TArenaEnemy = TypeVar('TArenaEnemy', ArenaEnemy, GrandArenaEnemy)
 T = TypeVar('T')
@@ -35,7 +32,7 @@ def naive_select_attackers(heroes: Iterable[Hero]) -> List[Hero]:
     """
     Selects the most powerful heroes.
     """
-    return sorted(heroes, key=attrgetter('power'), reverse=True)[:TEAM_SIZE]
+    return sorted(heroes, key=attrgetter('power'), reverse=True)[:constants.TEAM_SIZE]
 
 
 # Enemy selection.
@@ -64,7 +61,7 @@ def model_select_attackers(heroes: Iterable[Hero], defenders: Iterable[Hero], ve
     """
     Select attackers for the given enemy to maximise win probability.
     """
-    attackers_list = [list(attackers) for attackers in combinations(heroes, TEAM_SIZE)]
+    attackers_list = [list(attackers) for attackers in combinations(heroes, constants.TEAM_SIZE)]
     x = numpy.array([get_model_features(attackers) for attackers in attackers_list]) - get_model_features(defenders)
     y: numpy.ndarray = model.predict_proba(x)[:, 1]
     index: int = y.argmax()

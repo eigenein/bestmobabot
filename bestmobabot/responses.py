@@ -9,8 +9,9 @@ from typing import Any, Dict, List, Optional
 
 import numpy
 
+from bestmobabot import constants
 from bestmobabot.model import feature_names
-from bestmobabot.resources import COLORS, artifact_name, coin_name, consumable_name, gear_name, hero_name, scroll_name
+from bestmobabot.resources import artifact_name, coin_name, consumable_name, gear_name, hero_name, scroll_name
 
 
 class BaseResponse(ABC):
@@ -166,7 +167,7 @@ class Hero(BaseResponse):
         return self.star, self.color, self.level
 
     def __str__(self):
-        return f'{"⭐" * self.star} {hero_name(self.id)} ({self.level}) {COLORS.get(self.color, self.color)}'
+        return f'{"⭐" * self.star} {hero_name(self.id)} ({self.level}) {constants.COLORS.get(self.color, self.color)}'
 
 
 class BaseArenaEnemy(BaseResponse, metaclass=ABCMeta):

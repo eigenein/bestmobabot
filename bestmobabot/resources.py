@@ -9,25 +9,6 @@ from typing import Dict
 
 import requests
 
-# FIXME: obtain from the resources.
-COLORS = {
-    1: 'Белый',
-    2: 'Зеленый',
-    3: 'Зеленый+1',
-    4: 'Синий',
-    5: 'Синий+1',
-    6: 'Синий+2',
-    7: 'Фиолетовый',
-    8: 'Фиолетовый+1',
-    9: 'Фиолетовый+2',
-    10: 'Фиолетовый+3',
-    11: 'Оранжевый',
-    12: 'Оранжевый+1',
-    13: 'Оранжевый+2',
-    14: 'Оранжевый+3',
-    15: 'Оранжевый+4',
-}
-
 
 @lru_cache(maxsize=None)
 def get_resource(url: str) -> Dict:
@@ -39,12 +20,6 @@ def get_resource(url: str) -> Dict:
 def get_translations() -> Dict[str, str]:
     # FIXME: dynamically find out the latest server version.
     return get_resource('https://heroes.cdnvideo.ru/vk/v0341/locale/ru.json.gz')
-
-
-def get_library() -> Dict:
-    # FIXME: dynamically find out the latest server version.
-    # FIXME: unused at the moment (unsure if it gives any benefit).
-    return get_resource('https://heroes.cdnvideo.ru/vk/v0340/lib/lib.json.gz')
 
 
 def hero_name(hero_id: str) -> str:

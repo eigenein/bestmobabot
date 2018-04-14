@@ -10,15 +10,15 @@ import re
 import string
 from datetime import datetime
 from time import sleep
-from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, TypeVar
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, TypeVar
 
 import requests
 from requests.adapters import HTTPAdapter
 from tinydb import TinyDB, where
 
+from bestmobabot.enums import *
 from bestmobabot.logger import logger
 from bestmobabot.responses import *
-from bestmobabot.enums import *
 
 T = TypeVar('T')
 
@@ -349,19 +349,6 @@ class API(contextlib.AbstractContextManager):
     # Boss.
     # https://github.com/eigenein/bestmobabot/wiki/Boss
     # ------------------------------------------------------------------------------------------------------------------
-
-    # https://heroes.cdnvideo.ru/vk/v0312/lib/lib.json.gz
-    RECOMMENDED_HEROES: Dict[str, Set[str]] = {
-        '1': {'1', '4', '5', '6', '7', '9', '10', '12', '13', '17', '18', '21', '22', '23', '26', '29', '32', '33', '34', '35', '36'},
-        '2': {'8', '14', '15', '19', '20', '30', '31'},
-        '3': {'2', '3', '11', '16', '25', '24', '27', '28', '37', '38', '39', '40'},
-        '4': {'1'},
-        '5': {'1'},
-        '6': {'1'},
-        '7': {'1'},
-        '8': {'1'},
-        '9': {'1'},
-    }
 
     def get_current_boss(self) -> List[Boss]:
         return list_of(Boss, self.call('bossGetCurrent').response)

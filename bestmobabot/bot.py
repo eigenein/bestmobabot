@@ -13,7 +13,7 @@ from typing import Callable, Iterable, List, NamedTuple, Optional, Set, TextIO, 
 
 from tinydb import TinyDB, where
 
-from bestmobabot import arena
+from bestmobabot import arena, constants
 from bestmobabot.api import AlreadyError, API, InvalidResponseError, NotEnoughError, NotFoundError
 from bestmobabot.logger import log_arena_result, log_heroes, log_reward, log_rewards, logger
 from bestmobabot.resources import mission_name, shop_name
@@ -305,7 +305,7 @@ class Bot(contextlib.AbstractContextManager):
 
         # Obtain our heroes.
         heroes = self.api.get_all_heroes()
-        if len(heroes) < arena.TEAM_SIZE:
+        if len(heroes) < constants.TEAM_SIZE:
             logger.warning('😐 Not enough heroes.')
             return
 
@@ -338,7 +338,7 @@ class Bot(contextlib.AbstractContextManager):
 
         # Obtain our heroes.
         heroes = self.api.get_all_heroes()
-        if len(heroes) < arena.GRAND_SIZE:
+        if len(heroes) < constants.GRAND_SIZE:
             logger.warning('😐 Not enough heroes.')
             return
 
