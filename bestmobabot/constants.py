@@ -1,5 +1,6 @@
 from typing import Dict, Set
 
+DATABASE_NAME = 'db.sqlite3'
 TEAM_SIZE = 5  # heroes
 GRAND_TEAMS = 3
 GRAND_SIZE = GRAND_TEAMS * TEAM_SIZE  # heroes
@@ -18,7 +19,7 @@ RECOMMENDED_HEROES: Dict[str, Set[str]] = {
 }
 
 # FIXME: obtain from the resources.
-COLORS = {
+COLORS: Dict[int, str] = {
     1: 'Белый',
     2: 'Зеленый',
     3: 'Зеленый+1',
