@@ -7,7 +7,9 @@ from abc import ABC, ABCMeta
 from datetime import datetime, timedelta, timezone, tzinfo
 from typing import Any, Dict, List, Optional
 
-from bestmobabot import constants
+import numpy
+
+from bestmobabot import constants, model
 from bestmobabot.resources import artifact_name, coin_name, consumable_name, gear_name, hero_name, scroll_name
 
 
@@ -133,6 +135,26 @@ class Hero(BaseResponse):
         self.color: int = int(item['color'])
         self.star: int = int(item['star'])
         self.power: Optional[int] = item.get('power')
+
+        # Should be here to optimise CPU usage.
+        self.feature_dict = {
+            f'color_{self.id}': float(self.color),
+            f'level_{self.id}': float(self.level),
+            f'star_{self.id}': float(self.star),
+            f'color_level_star_{self.id}': float(self.color) * float(self.level) * float(self.star),
+            f'color_level_{self.id}': float(self.color) * float(self.level),
+            f'color_star_{self.id}': float(self.color) * float(self.star),
+            f'level_star_{self.id}': float(self.level) * float(self.star),
+            'total_color_level_star': float(self.color) * float(self.level) * float(self.star),
+            'total_color_level': float(self.color) * float(self.level),
+            'total_color_star': float(self.color) * float(self.star),
+            'total_level_star': float(self.level) * float(self.star),
+            'total_colors': float(self.color),
+            'total_levels': float(self.level),
+            'total_stars': float(self.star),
+            'total_heroes': 1.0,
+        }
+        self.features = numpy.fromiter((self.feature_dict.get(key, 0.0) for key in model.feature_names), numpy.float)
 
     def dump(self) -> dict:
         return {key: self.item[key] for key in ('id', 'level', 'color', 'star')}

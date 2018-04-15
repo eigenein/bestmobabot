@@ -22,9 +22,7 @@ from sklearn.model_selection import StratifiedKFold, cross_val_score
 # noinspection PyPackageRequirements
 from skopt import BayesSearchCV
 
-from bestmobabot import arena
 from bestmobabot.responses import Hero
-
 
 SCORING = 'accuracy'
 CHUNK_LENGTH = 94
@@ -78,7 +76,7 @@ def read_battles(log_files: Iterable[TextIO]) -> List[Dict[str, Any]]:
 def parse_heroes(heroes: Iterable[Dict[str, int]], is_attackers: bool, result: DefaultDict[str, int]):
     multiplier = +1 if is_attackers else -1
     for hero in heroes:
-        for key, value in arena.make_feature_dict(Hero(hero)).items():
+        for key, value in Hero(hero).feature_dict.items():
             result[key] += multiplier * value
 
 
