@@ -89,13 +89,13 @@ class API(contextlib.AbstractContextManager):
         self.session.__exit__(exc_type, exc_val, exc_tb)
 
     def start(self, invalidate_session: bool = False):
-        state: Dict[str, Any] = self.db.get_by_key('api', f'state:{self.remixsid}')
+        state: Dict[str, Any] = self.db.get_by_key(f'api:{self.remixsid}', 'state')
         if not invalidate_session and state:
             logger.info('🔑 Using saved credentials.')
             self.user_id = state['user_id']
             self.auth_token = state['auth_token']
             self.session_id = state['session_id']
-            self.request_id = self.db.get_by_key('api', f'request_id:{self.remixsid}', default=0)
+            self.request_id = self.db.get_by_key(f'api:{self.remixsid}', 'request_id', default=0)
             return
 
         logger.info('🔑 Authenticating…')
@@ -124,7 +124,7 @@ class API(contextlib.AbstractContextManager):
         self.session_id = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(14))
         self.request_id = 0
 
-        self.db.set('api', f'state:{self.remixsid}', {
+        self.db.set(f'api:{self.remixsid}', 'state', {
             'user_id': self.user_id,
             'auth_token': self.auth_token,
             'session_id': self.session_id,
@@ -141,7 +141,7 @@ class API(contextlib.AbstractContextManager):
 
     def _call(self, name: str, *, arguments: Optional[Dict[str, Any]] = None, random_sleep=True) -> Result:
         self.request_id += 1
-        self.db.set('api', f'request_id:{self.remixsid}', self.request_id)
+        self.db.set(f'api:{self.remixsid}', 'request_id', self.request_id)
 
         # Emulate human behavior a little bit.
         sleep_time = random.uniform(5.0, 10.0) if random_sleep and self.request_id != 1 else 0.0

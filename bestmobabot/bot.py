@@ -82,12 +82,12 @@ class Bot(contextlib.AbstractContextManager):
         self.vk.__exit__(exc_type, exc_val, exc_tb)
 
     def start(self):
-        user_raw = self.db.get_by_key('bot', f'user.raw:{self.api.user_id}')
+        user_raw = self.db.get_by_key(f'bot:{self.api.user_id}', 'user.raw')
         if user_raw:
             self.user = User(user_raw)
         else:
             self.user = self.api.get_user_info()
-            self.db.set('bot', f'user.raw:{self.api.user_id}', self.user.raw)
+            self.db.set(f'bot:{self.api.user_id}', 'user.raw', self.user.raw)
 
         self.tasks = [
             # Re-registration task.
@@ -392,14 +392,14 @@ class Bot(contextlib.AbstractContextManager):
         should_farm_mail = False
 
         for gift_id in self.vk.find_gifts():
-            if self.db.exists('gifts', gift_id):
+            if self.db.exists(f'gifts:{self.api.user_id}', gift_id):
                 continue
             logger.info(f'🎁 Checking #{gift_id}…')
             reward = self.api.check_freebie(gift_id)
             if reward is not None:
                 log_reward(reward)
                 should_farm_mail = True
-            self.db.set('gifts', gift_id, reward.raw)
+            self.db.set(f'gifts:{self.api.user_id}', gift_id, reward.raw)
 
         if should_farm_mail:
             self.farm_mail()
