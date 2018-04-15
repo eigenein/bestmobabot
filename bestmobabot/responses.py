@@ -94,7 +94,7 @@ class Reward(BaseResponse):
             logger.info(f'💟️ {value} × «{coin_name(coin_id)}» coin.')
         for hero_id, value in self.hero_fragment.items():
             logger.info(f'🔮 {value} × «{hero_name(hero_id)}» hero fragment.')
-        for artifact_id, value in self.artifact_fragment:
+        for artifact_id, value in self.artifact_fragment.items():
             logger.info(f'👕 {value} × «{artifact_name(artifact_id)}» artifact fragment.')
         for gear_id, value in self.gear_fragment.items():
             logger.info(f'👕 {value} × «{gear_name(gear_id)}» gear fragment.')
