@@ -16,8 +16,13 @@ class Database(AbstractContextManager):
         self.connection = sqlite3.connect(path, isolation_level=None)
         with closing(self.connection.cursor()) as cursor:  # type: sqlite3.Cursor
             cursor.execute('''
-                CREATE TABLE IF NOT EXISTS "default"
-                ("index" TEXT, "key" TEXT, value TEXT, PRIMARY KEY ("index", "key"))
+                CREATE TABLE IF NOT EXISTS "default" (
+                    "index" TEXT,
+                    "key" TEXT,
+                    value TEXT,
+                    modified_on DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY ("index", "key")
+                )
             ''')
 
     def exists(self, index: str, key: str) -> bool:
