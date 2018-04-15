@@ -1,5 +1,7 @@
 *.env
 *.log
+*.sqlite3
+*.sqlite3-journal
 .idea/bestmobabot.iml
 .idea/codeStyles/codeStyleConfig.xml
 .idea/misc.xml

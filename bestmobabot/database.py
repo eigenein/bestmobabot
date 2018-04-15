@@ -13,7 +13,7 @@ T = TypeVar('T')
 # noinspection SqlResolve
 class Database(AbstractContextManager):
     def __init__(self, path: str):
-        self.connection = sqlite3.connect(path)
+        self.connection = sqlite3.connect(path, isolation_level=None)
         with closing(self.connection.cursor()) as cursor:  # type: sqlite3.Cursor
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS "default"
