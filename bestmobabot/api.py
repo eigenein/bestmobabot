@@ -14,8 +14,8 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, TypeVar
 
 import requests
 from requests.adapters import HTTPAdapter
-from tinydb import TinyDB, where
 
+from bestmobabot.database import Database
 from bestmobabot.enums import *
 from bestmobabot.logger import logger
 from bestmobabot.responses import *
@@ -71,9 +71,8 @@ class API(contextlib.AbstractContextManager):
     IFRAME_URL = 'https://i-heroes-vk.nextersglobal.com/iframe/vkontakte/iframe.new.php'
     API_URL = 'https://heroes-vk.nextersglobal.com/api/'
     USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Safari/537.36'
-    STATE_QUERY = (where('key') == 'api')
 
-    def __init__(self, db: TinyDB, remixsid: str):
+    def __init__(self, db: Database, remixsid: str):
         self.db = db
         self.remixsid = remixsid
         self.auth_token: str = None
@@ -90,13 +89,13 @@ class API(contextlib.AbstractContextManager):
         self.session.__exit__(exc_type, exc_val, exc_tb)
 
     def start(self, invalidate_session: bool = False):
-        state: Dict[str, Any] = self.db.get(self.STATE_QUERY)
+        state: Dict[str, Any] = self.db.get_by_key('api', f'state:{self.remixsid}')
         if not invalidate_session and state:
             logger.info('🔑 Using saved credentials.')
             self.user_id = state['user_id']
             self.auth_token = state['auth_token']
-            self.request_id = state['request_id']
             self.session_id = state['session_id']
+            self.request_id = self.db.get_by_key('api', f'request_id:{self.remixsid}', default=0)
             return
 
         logger.info('🔑 Authenticating…')
@@ -122,16 +121,14 @@ class API(contextlib.AbstractContextManager):
 
         logger.info(f'🔑 Authentication token: {self.auth_token}')
         self.user_id = str(params['viewer_id'])
-        self.request_id = 0
         self.session_id = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(14))
+        self.request_id = 0
 
-        self.db.upsert({
-            'key': 'api',
+        self.db.set('api', f'state:{self.remixsid}', {
             'user_id': self.user_id,
             'auth_token': self.auth_token,
-            'request_id': self.request_id,
             'session_id': self.session_id,
-        }, self.STATE_QUERY)
+        })
 
     def call(self, name: str, arguments: Optional[Dict[str, Any]] = None, random_sleep=True) -> Result:
         try:
@@ -144,7 +141,7 @@ class API(contextlib.AbstractContextManager):
 
     def _call(self, name: str, *, arguments: Optional[Dict[str, Any]] = None, random_sleep=True) -> Result:
         self.request_id += 1
-        self.db.upsert({'request_id': self.request_id}, self.STATE_QUERY)
+        self.db.set('api', f'request_id:{self.remixsid}', self.request_id)
 
         # Emulate human behavior a little bit.
         sleep_time = random.uniform(5.0, 10.0) if random_sleep and self.request_id != 1 else 0.0

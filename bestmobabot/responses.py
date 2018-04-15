@@ -18,8 +18,8 @@ class BaseResponse(ABC):
     Base for all response classes.
     """
 
-    def __init__(self, item: Dict):
-        self.item = item
+    def __init__(self, raw: Dict):
+        self.raw = raw
 
 
 class Result(BaseResponse):
@@ -27,34 +27,34 @@ class Result(BaseResponse):
     Top-most result class.
     """
 
-    def __init__(self, item: Dict):
-        super().__init__(item)
-        self.response: Any = item['response']
-        self.quests: 'Quests' = [Quest(quest) for quest in item.get('quests', [])]
+    def __init__(self, raw: Dict):
+        super().__init__(raw)
+        self.response: Any = raw['response']
+        self.quests: 'Quests' = [Quest(quest) for quest in raw.get('quests', [])]
 
 
 class User(BaseResponse):
-    def __init__(self, item: Dict):
-        super().__init__(item)
-        self.id: str = str(item['id'])
-        self.name: str = item['name']
-        self.tz: tzinfo = timezone(timedelta(hours=item.get('timeZone', 0)))
-        self.clan_id: str = str(item.get('clanId'))
-        self.next_day: datetime = datetime.fromtimestamp(item.get('nextDayTs', 0), self.tz)
+    def __init__(self, raw: Dict):
+        super().__init__(raw)
+        self.id: str = str(raw['id'])
+        self.name: str = raw['name']
+        self.tz: tzinfo = timezone(timedelta(hours=raw.get('timeZone', 0)))
+        self.clan_id: str = str(raw.get('clanId'))
+        self.next_day: datetime = datetime.fromtimestamp(raw.get('nextDayTs', 0), self.tz)
 
     def is_from_clan(self, clan_id: Optional[str]) -> bool:
         return clan_id and self.clan_id and self.clan_id == clan_id
 
 
 class Expedition(BaseResponse):
-    def __init__(self, item: Dict):
-        super().__init__(item)
-        self.id: str = str(item['id'])
-        self.status: int = int(item['status'])
-        self.end_time: Optional[datetime] = datetime.fromtimestamp(item['endTime']).astimezone() if item.get('endTime') else None
-        self.power: int = int(item['power'])
-        self.duration: timedelta = timedelta(seconds=item['duration'])
-        self.hero_ids: List[str] = [str(hero_id) for hero_id in item.get('heroes', [])]
+    def __init__(self, raw: Dict):
+        super().__init__(raw)
+        self.id: str = str(raw['id'])
+        self.status: int = int(raw['status'])
+        self.end_time: Optional[datetime] = datetime.fromtimestamp(raw['endTime']).astimezone() if raw.get('endTime') else None
+        self.power: int = int(raw['power'])
+        self.duration: timedelta = timedelta(seconds=raw['duration'])
+        self.hero_ids: List[str] = [str(hero_id) for hero_id in raw.get('heroes', [])]
 
     @property
     def is_available(self) -> bool:
@@ -66,20 +66,20 @@ class Expedition(BaseResponse):
 
 
 class Reward(BaseResponse):
-    def __init__(self, item: Dict):
-        super().__init__(item)
-        self.stamina: int = int(item.get('stamina', 0))
-        self.gold: int = int(item.get('gold', 0))
-        self.experience: int = int(item.get('experience', 0))
-        self.consumable: Dict[str, int] = item.get('consumable', {})
-        self.star_money: int = int(item.get('starmoney', 0))
-        self.coin: Dict[str, str] = item.get('coin', {})
-        self.hero_fragment: Dict[str, int] = item.get('fragmentHero', {})
-        self.artifact_fragment: Dict[str, int] = item.get('fragmentArtifact', {})
-        self.gear_fragment: Dict[str, int] = item.get('fragmentGear', {})
-        self.gear: Dict[str, str] = item.get('gear', {})
-        self.scroll_fragment: Dict[str, str] = item.get('fragmentScroll', {})
-        self.tower_point = int(item.get('towerPoint', 0))
+    def __init__(self, raw: Dict):
+        super().__init__(raw)
+        self.stamina: int = int(raw.get('stamina', 0))
+        self.gold: int = int(raw.get('gold', 0))
+        self.experience: int = int(raw.get('experience', 0))
+        self.consumable: Dict[str, int] = raw.get('consumable', {})
+        self.star_money: int = int(raw.get('starmoney', 0))
+        self.coin: Dict[str, str] = raw.get('coin', {})
+        self.hero_fragment: Dict[str, int] = raw.get('fragmentHero', {})
+        self.artifact_fragment: Dict[str, int] = raw.get('fragmentArtifact', {})
+        self.gear_fragment: Dict[str, int] = raw.get('fragmentGear', {})
+        self.gear: Dict[str, str] = raw.get('gear', {})
+        self.scroll_fragment: Dict[str, str] = raw.get('fragmentScroll', {})
+        self.tower_point = int(raw.get('towerPoint', 0))
 
     def log(self, logger: logging.Logger):
         if self.stamina:
@@ -107,12 +107,12 @@ class Reward(BaseResponse):
 
 
 class Quest(BaseResponse):
-    def __init__(self, item: Dict):
-        super().__init__(item)
-        self.id: str = str(item['id'])
-        self.state: int = int(item['state'])
-        self.progress: int = int(item['progress'])
-        self.reward: Reward = Reward(item['reward'])
+    def __init__(self, raw: Dict):
+        super().__init__(raw)
+        self.id: str = str(raw['id'])
+        self.state: int = int(raw['state'])
+        self.progress: int = int(raw['progress'])
+        self.reward: Reward = Reward(raw['reward'])
 
     @property
     def is_reward_available(self) -> bool:
@@ -128,13 +128,13 @@ class Letter:
 
 
 class Hero(BaseResponse):
-    def __init__(self, item: Dict):
-        super().__init__(item)
-        self.id: str = str(item['id'])
-        self.level: int = int(item['level'])
-        self.color: int = int(item['color'])
-        self.star: int = int(item['star'])
-        self.power: Optional[int] = item.get('power')
+    def __init__(self, raw: Dict):
+        super().__init__(raw)
+        self.id: str = str(raw['id'])
+        self.level: int = int(raw['level'])
+        self.color: int = int(raw['color'])
+        self.star: int = int(raw['star'])
+        self.power: Optional[int] = raw.get('power')
 
         # Should be here to optimise CPU usage.
         self.feature_dict = {
@@ -157,7 +157,7 @@ class Hero(BaseResponse):
         self.features = numpy.fromiter((self.feature_dict.get(key, 0.0) for key in model.feature_names), numpy.float)
 
     def dump(self) -> dict:
-        return {key: self.item[key] for key in ('id', 'level', 'color', 'star')}
+        return {key: self.raw[key] for key in ('id', 'level', 'color', 'star')}
 
     def order(self):
         """
@@ -170,24 +170,24 @@ class Hero(BaseResponse):
 
 
 class BaseArenaEnemy(BaseResponse, metaclass=ABCMeta):
-    def __init__(self, item: Dict):
-        super().__init__(item)
-        self.user_id: str = str(item['userId'])
-        self.place: str = str(item['place'])
-        self.power: int = int(item['power'])
-        self.user: Optional[User] = User(item['user']) if item.get('user') else None
+    def __init__(self, raw: Dict):
+        super().__init__(raw)
+        self.user_id: str = str(raw['userId'])
+        self.place: str = str(raw['place'])
+        self.power: int = int(raw['power'])
+        self.user: Optional[User] = User(raw['user']) if raw.get('user') else None
 
 
 class ArenaEnemy(BaseArenaEnemy):
-    def __init__(self, item: Dict):
-        super().__init__(item)
-        self.heroes: List[Hero] = [Hero(hero) for hero in item['heroes']]
+    def __init__(self, raw: Dict):
+        super().__init__(raw)
+        self.heroes: List[Hero] = [Hero(hero) for hero in raw['heroes']]
 
 
 class GrandArenaEnemy(BaseArenaEnemy):
-    def __init__(self, item: Dict):
-        super().__init__(item)
-        self.heroes: List[List[Hero]] = [[Hero(hero) for hero in heroes] for heroes in item['heroes']]
+    def __init__(self, raw: Dict):
+        super().__init__(raw)
+        self.heroes: List[List[Hero]] = [[Hero(hero) for hero in heroes] for heroes in raw['heroes']]
 
 
 class ArenaResult(BaseResponse):
@@ -195,61 +195,61 @@ class ArenaResult(BaseResponse):
     Unified arena result for normal arena and grand arena.
     """
 
-    def __init__(self, item: Dict):
-        super().__init__(item)
-        self.win: bool = item['win']
-        self.arena_place: Optional[str] = item['state'].get('arenaPlace')
-        self.grand_place: Optional[str] = item['state'].get('grandPlace')
-        self.battles: List['BattleResult'] = [BattleResult(result) for result in item['battles']]
-        self.reward: Reward = Reward(item['reward'] or {})
+    def __init__(self, raw: Dict):
+        super().__init__(raw)
+        self.win: bool = raw['win']
+        self.arena_place: Optional[str] = raw['state'].get('arenaPlace')
+        self.grand_place: Optional[str] = raw['state'].get('grandPlace')
+        self.battles: List['BattleResult'] = [BattleResult(result) for result in raw['battles']]
+        self.reward: Reward = Reward(raw['reward'] or {})
 
 
 class BattleResult(BaseResponse):
-    def __init__(self, item: Dict):
-        super().__init__(item)
-        self.win: bool = item['result']['win']
-        self.stars: int = int(item['result'].get('stars', 0))
+    def __init__(self, raw: Dict):
+        super().__init__(raw)
+        self.win: bool = raw['result']['win']
+        self.stars: int = int(raw['result'].get('stars', 0))
 
 
 class Boss(BaseResponse):
-    def __init__(self, item: Dict):
-        super().__init__(item)
-        self.id: str = str(item['id'])
+    def __init__(self, raw: Dict):
+        super().__init__(raw)
+        self.id: str = str(raw['id'])
 
 
 class Battle(BaseResponse):
-    def __init__(self, item: Dict):
-        super().__init__(item)
-        self.seed: int = item['seed']
+    def __init__(self, raw: Dict):
+        super().__init__(raw)
+        self.seed: int = raw['seed']
 
 
 class Replay(BaseResponse):
-    def __init__(self, item: Dict):
-        super().__init__(item)
-        self.id: str = str(item['id'])
-        self.start_time: datetime = datetime.fromtimestamp(int(item['startTime']))
-        self.win: bool = item['result']['win']
-        self.stars: int = int(item['result']['stars'])
-        self.attackers: List[Hero] = [Hero(hero) for hero in item['attackers'].values()]
-        self.defenders: List[List[Hero]] = [[Hero(hero) for hero in defenders.values()] for defenders in item['defenders']]
+    def __init__(self, raw: Dict):
+        super().__init__(raw)
+        self.id: str = str(raw['id'])
+        self.start_time: datetime = datetime.fromtimestamp(int(raw['startTime']))
+        self.win: bool = raw['result']['win']
+        self.stars: int = int(raw['result']['stars'])
+        self.attackers: List[Hero] = [Hero(hero) for hero in raw['attackers'].values()]
+        self.defenders: List[List[Hero]] = [[Hero(hero) for hero in defenders.values()] for defenders in raw['defenders']]
 
 
 class ShopSlot(BaseResponse):
-    def __init__(self, item: Dict):
-        super().__init__(item)
-        self.id: str = str(item['id'])
-        self.is_bought: bool = bool(item['bought'])
-        self.reward: Reward = Reward(item['reward'])
+    def __init__(self, raw: Dict):
+        super().__init__(raw)
+        self.id: str = str(raw['id'])
+        self.is_bought: bool = bool(raw['bought'])
+        self.reward: Reward = Reward(raw['reward'])
 
 
 class Tower(BaseResponse):
-    def __init__(self, item: Dict):
-        super().__init__(item)
-        self.floor_number = int(item['floorNumber'])
-        self.may_skip_floor = int(item['maySkipFloor'])
-        self.floor_type = item['floorType'].lower()
+    def __init__(self, raw: Dict):
+        super().__init__(raw)
+        self.floor_number = int(raw['floorNumber'])
+        self.may_skip_floor = int(raw['maySkipFloor'])
+        self.floor_type = raw['floorType'].lower()
         # This is only available on a buff floor.
-        self.buff_ids: List[int] = [int(buff['id']) for buff in item['floor']] if self.is_buff else []
+        self.buff_ids: List[int] = [int(buff['id']) for buff in raw['floor']] if self.is_buff else []
 
     @property
     def is_battle(self) -> bool:

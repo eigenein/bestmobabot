@@ -3,22 +3,20 @@ The bot logic.
 """
 
 import contextlib
-import json
 import os
 from datetime import datetime, timedelta, timezone, tzinfo
 from operator import attrgetter, itemgetter
 from random import choice
 from time import sleep
-from typing import Callable, Iterable, List, NamedTuple, Optional, Set, TextIO, Tuple
-
-from tinydb import TinyDB, where
+from typing import Callable, Iterable, List, NamedTuple, Optional, Set, Tuple
 
 from bestmobabot import arena, constants
 from bestmobabot.api import AlreadyError, API, InvalidResponseError, NotEnoughError, NotFoundError
+from bestmobabot.database import Database
+from bestmobabot.enums import *
 from bestmobabot.logger import log_arena_result, log_heroes, log_reward, log_rewards, logger
 from bestmobabot.resources import mission_name, shop_name
 from bestmobabot.responses import *
-from bestmobabot.enums import *
 from bestmobabot.vk import VK
 
 NextRunAtCallable = Callable[[datetime], datetime]
@@ -63,18 +61,16 @@ class Bot(contextlib.AbstractContextManager):
 
     def __init__(
         self,
-        db: TinyDB,
+        db: Database,
         api: API,
         no_experience: bool,
         raids: List[Tuple[str, int]],
         shops: List[Tuple[str, str]],
-        battle_log: Optional[TextIO],
     ):
         self.db = db
         self.api = api
         self.no_experience = no_experience
         self.raids = raids
-        self.battle_log = battle_log
         self.shops = shops
 
         self.vk = VK()
@@ -86,12 +82,12 @@ class Bot(contextlib.AbstractContextManager):
         self.vk.__exit__(exc_type, exc_val, exc_tb)
 
     def start(self):
-        user_item = self.db.get(where('key') == 'user')
-        if user_item:
-            self.user = User(user_item)
+        user_raw = self.db.get_by_key('bot', f'user.raw:{self.api.user_id}')
+        if user_raw:
+            self.user = User(user_raw)
         else:
             self.user = self.api.get_user_info()
-            self.db.insert({'key': 'user', **self.user.item})
+            self.db.set('bot', f'user.raw:{self.api.user_id}', self.user.raw)
 
         self.tasks = [
             # Re-registration task.
@@ -113,6 +109,7 @@ class Bot(contextlib.AbstractContextManager):
             Task(next_run_at=Task.at(hour=9, minute=0), execute=self.send_daily_gift),
             Task(next_run_at=Task.at(hour=10, minute=0), execute=self.farm_zeppelin_gift),
             Task(next_run_at=Task.at(hour=6, minute=0), execute=self.skip_tower),
+            Task(next_run_at=Task.every_n_hours(8), execute=self.get_arena_replays),
 
             # Debug tasks. Uncomment when needed.
             # Task(next_run_at=Task.every_n_minutes(1), execute=self.quack, args=('Quack 1!',)),
@@ -128,8 +125,6 @@ class Bot(contextlib.AbstractContextManager):
                 Task(next_run_at=Task.at(hour=11, minute=1), execute=self.shop, args=(['4', '5', '6', '9'],)),
                 Task(next_run_at=Task.every_n_hours(8, offset=timedelta(minutes=1)), execute=self.shop, args=(['1'],)),
             ])
-        if self.battle_log:
-            self.tasks.append(Task(next_run_at=Task.every_n_hours(8), execute=self.get_arena_replays))
 
     def run(self):
         logger.info('🤖 Initialising task queue.')
@@ -379,16 +374,14 @@ class Bot(contextlib.AbstractContextManager):
             *self.api.get_battle_by_type(BattleType.GRAND),
         ]
         for replay in replays:
-            if self.db.table('replays').get(where('id') == replay.id):
+            if self.db.exists('replays', replay.id):
                 continue
-            print(json.dumps({
-                'replay_id': replay.id,
+            self.db.set('replays', replay.id, {
                 'start_time': replay.start_time.timestamp(),
                 'win': replay.win,
                 'attackers': [hero.dump() for hero in replay.attackers],
                 'defenders': [hero.dump() for defenders in replay.defenders for hero in defenders],
-            }), file=self.battle_log, flush=True)
-            self.db.table('replays').insert({'id': replay.id})
+            })
             logger.info(f'📒 Saved #{replay.id}.')
 
     def check_freebie(self):
@@ -399,13 +392,14 @@ class Bot(contextlib.AbstractContextManager):
         should_farm_mail = False
 
         for gift_id in self.vk.find_gifts():
-            if self.db.table('gifts').get(where('id') == gift_id):
+            if self.db.exists('gifts', gift_id):
                 continue
             logger.info(f'🎁 Checking #{gift_id}…')
-            if self.api.check_freebie(gift_id) is not None:
-                logger.info(f'🎉 Received #{gift_id}!')
+            reward = self.api.check_freebie(gift_id)
+            if reward is not None:
+                log_reward(reward)
                 should_farm_mail = True
-            self.db.table('gifts').insert({'id': gift_id})
+            self.db.set('gifts', gift_id, reward.raw)
 
         if should_farm_mail:
             self.farm_mail()

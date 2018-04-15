@@ -4,6 +4,5 @@ coloredlogs
 numpy
 scikit-learn
 scipy
-tinydb
 pandas
 scikit-optimize
