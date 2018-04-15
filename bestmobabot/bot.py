@@ -54,11 +54,6 @@ class Task(NamedTuple):
 
 
 class Bot(contextlib.AbstractContextManager):
-    MAX_OPEN_ARTIFACT_CHESTS = 5
-    MAX_ARENA_ENEMIES = 10  # FIXME: make configurable
-    MAX_GRAND_ARENA_ENEMIES = 10  # FIXME: make configurable
-    IGNORED_BUFF_IDS = {13, 14, 17, 18, 19}  # These buffs require a hero ID.
-
     def __init__(
         self,
         db: Database,
@@ -307,9 +302,9 @@ class Bot(contextlib.AbstractContextManager):
         # Pick an enemy and select attackers.
         results = (
             arena.select_enemy(arena.filter_enemies(self.api.find_arena_enemies(), self.user.clan_id), heroes)
-            for _ in range(self.MAX_ARENA_ENEMIES)
+            for _ in range(constants.MAX_ARENA_ENEMIES)
         )  # type: Iterable[Tuple[ArenaEnemy, List[Hero], float]]
-        (enemy, attackers, probability), _ = arena.secretary_max(results, self.MAX_ARENA_ENEMIES, key=itemgetter(2))
+        (enemy, attackers, probability), _ = arena.secretary_max(results, constants.MAX_ARENA_ENEMIES, key=itemgetter(2))
 
         # Debugging.
         log_heroes('Attackers:', attackers)
@@ -340,9 +335,9 @@ class Bot(contextlib.AbstractContextManager):
         # Pick an enemy and select attackers.
         results = (
             arena.select_grand_enemy(arena.filter_enemies(self.api.find_grand_enemies(), self.user.clan_id), heroes)
-            for _ in range(self.MAX_GRAND_ARENA_ENEMIES)
+            for _ in range(constants.MAX_GRAND_ARENA_ENEMIES)
         )  # type: Iterable[Tuple[GrandArenaEnemy, List[List[Hero]], float]]
-        (enemy, attacker_teams, probability), _ = arena.secretary_max(results, self.MAX_GRAND_ARENA_ENEMIES, key=itemgetter(2))
+        (enemy, attacker_teams, probability), _ = arena.secretary_max(results, constants.MAX_GRAND_ARENA_ENEMIES, key=itemgetter(2))
 
         # Debugging.
         for i, (attackers, defenders) in enumerate(zip(attacker_teams, enemy.heroes), start=1):
@@ -410,7 +405,7 @@ class Bot(contextlib.AbstractContextManager):
         """
         logger.info('🎁 Farming zeppelin gift…')
         log_reward(self.api.farm_zeppelin_gift())
-        for _ in range(self.MAX_OPEN_ARTIFACT_CHESTS):
+        for _ in range(constants.MAX_OPEN_ARTIFACT_CHESTS):
             try:
                 log_rewards(self.api.open_artifact_chest())
             except NotEnoughError:
@@ -471,7 +466,7 @@ class Bot(contextlib.AbstractContextManager):
             elif tower.is_buff:
                 # Buffs go from the cheapest to the most expensive.
                 for buff_id in reversed(tower.buff_ids):
-                    if buff_id not in self.IGNORED_BUFF_IDS:
+                    if buff_id not in constants.IGNORED_BUFF_IDS:
                         try:
                             self.api.buy_tower_buff(buff_id)
                         except NotEnoughError:

@@ -4,6 +4,10 @@ DATABASE_NAME = 'db.sqlite3'
 TEAM_SIZE = 5  # heroes
 GRAND_TEAMS = 3
 GRAND_SIZE = GRAND_TEAMS * TEAM_SIZE  # heroes
+MAX_OPEN_ARTIFACT_CHESTS = 5
+MAX_ARENA_ENEMIES = 10  # FIXME: make configurable
+MAX_GRAND_ARENA_ENEMIES = 10  # FIXME: make configurable
+IGNORED_BUFF_IDS = {13, 14, 17, 18, 19}  # These buffs require a hero ID.
 
 # https://heroes.cdnvideo.ru/vk/v0312/lib/lib.json.gz
 RECOMMENDED_HEROES: Dict[str, Set[str]] = {
