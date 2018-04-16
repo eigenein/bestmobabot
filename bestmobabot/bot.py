@@ -394,7 +394,7 @@ class Bot(contextlib.AbstractContextManager):
             if reward is not None:
                 log_reward(reward)
                 should_farm_mail = True
-            self.db.set(f'gifts:{self.api.user_id}', gift_id, reward.raw)
+            self.db.set(f'gifts:{self.api.user_id}', gift_id, True)
 
         if should_farm_mail:
             self.farm_mail()
