@@ -9,7 +9,8 @@ from typing import Any, Dict, List, Optional
 
 import numpy
 
-from bestmobabot import constants, model
+import bestmobabot.model
+from bestmobabot import constants
 from bestmobabot.resources import artifact_name, coin_name, consumable_name, gear_name, hero_name, scroll_name
 
 
@@ -154,7 +155,13 @@ class Hero(BaseResponse):
             'total_stars': float(self.star),
             'total_heroes': 1.0,
         }
-        self.features = numpy.fromiter((self.feature_dict.get(key, 0.0) for key in model.feature_names), numpy.float)
+        self.features: Optional[numpy.ndarray] = None
+
+    def set_model(self, model: 'bestmobabot.model.Model'):
+        """
+        Initialize hero features.
+        """
+        self.features = numpy.fromiter((self.feature_dict.get(name, 0.0) for name in model.feature_names), numpy.float)
 
     def dump(self) -> dict:
         return {key: self.raw[key] for key in ('id', 'level', 'color', 'star')}

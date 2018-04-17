@@ -4,6 +4,7 @@ The bot logic.
 
 import contextlib
 import os
+import pickle
 from datetime import datetime, timedelta, timezone, tzinfo
 from operator import attrgetter, itemgetter
 from random import choice
@@ -15,6 +16,7 @@ from bestmobabot.api import AlreadyError, API, InvalidResponseError, NotEnoughEr
 from bestmobabot.database import Database
 from bestmobabot.enums import *
 from bestmobabot.logger import log_arena_result, log_heroes, log_reward, log_rewards, logger
+from bestmobabot.model import Model
 from bestmobabot.resources import mission_name, shop_name
 from bestmobabot.responses import *
 from bestmobabot.vk import VK
@@ -111,7 +113,7 @@ class Bot(contextlib.AbstractContextManager):
             # Task(next_run_at=Task.every_n_minutes(1), execute=self.quack, args=('Quack 2!',)),
             # Task(next_run_at=Task.at(hour=22, minute=14, tz=None), execute=self.quack, args=('Fixed time!',)),
             # Task(next_run_at=Task.at(hour=22, minute=40, tz=None), execute=self.shop, args=(['1'],)),
-            # Task(next_run_at=Task.at(hour=22, minute=14, tz=None), execute=self.attack_grand_arena),
+            # Task(next_run_at=Task.at(hour=23, minute=47, tz=None), execute=self.attack_arena),
         ]
         for mission_id, number in self.raids:
             self.tasks.append(Task(next_run_at=Task.every_n_hours(24 / number), execute=self.raid_mission, args=(mission_id,)))
@@ -169,6 +171,10 @@ class Bot(contextlib.AbstractContextManager):
     @staticmethod
     def get_hero_ids(heroes: Iterable[Hero]) -> List[str]:
         return [hero.id for hero in heroes]
+
+    def get_model(self) -> Optional[Model]:
+        logger.info('🤖 Loading model…')
+        return pickle.loads(self.db.get_by_key('bot', 'model', loads=bytes.fromhex))
 
     # Actual tasks.
     # ------------------------------------------------------------------------------------------------------------------
@@ -293,6 +299,12 @@ class Bot(contextlib.AbstractContextManager):
         """
         logger.info('👊 Attacking arena…')
 
+        # Load the model.
+        model = self.get_model()
+        if not model:
+            logger.warning('😐 Model is not ready yet.')
+            return
+
         # Obtain our heroes.
         heroes = self.api.get_all_heroes()
         if len(heroes) < constants.TEAM_SIZE:
@@ -300,8 +312,9 @@ class Bot(contextlib.AbstractContextManager):
             return
 
         # Pick an enemy and select attackers.
+        arena.set_heroes_model(model, heroes)
         results = (
-            arena.select_enemy(arena.filter_enemies(self.api.find_arena_enemies(), self.user.clan_id), heroes)
+            arena.select_enemy(model, arena.filter_enemies(self.api.find_arena_enemies(), self.user.clan_id), heroes)
             for _ in range(constants.MAX_ARENA_ENEMIES)
         )  # type: Iterable[Tuple[ArenaEnemy, List[Hero], float]]
         (enemy, attackers, probability), _ = arena.secretary_max(results, constants.MAX_ARENA_ENEMIES, key=itemgetter(2))
@@ -326,6 +339,12 @@ class Bot(contextlib.AbstractContextManager):
         """
         logger.info('👊 Attacking grand arena…')
 
+        # Load the model.
+        model = self.get_model()
+        if not model:
+            logger.warning('😐 Model is not ready yet.')
+            return
+
         # Obtain our heroes.
         heroes = self.api.get_all_heroes()
         if len(heroes) < constants.GRAND_SIZE:
@@ -333,8 +352,9 @@ class Bot(contextlib.AbstractContextManager):
             return
 
         # Pick an enemy and select attackers.
+        arena.set_heroes_model(model, heroes)
         results = (
-            arena.select_grand_enemy(arena.filter_enemies(self.api.find_grand_enemies(), self.user.clan_id), heroes)
+            arena.select_grand_enemy(model, arena.filter_enemies(self.api.find_grand_enemies(), self.user.clan_id), heroes)
             for _ in range(constants.MAX_GRAND_ARENA_ENEMIES)
         )  # type: Iterable[Tuple[GrandArenaEnemy, List[List[Hero]], float]]
         (enemy, attacker_teams, probability), _ = arena.secretary_max(results, constants.MAX_GRAND_ARENA_ENEMIES, key=itemgetter(2))

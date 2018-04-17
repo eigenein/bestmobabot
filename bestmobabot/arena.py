@@ -12,7 +12,7 @@ import numpy
 
 from bestmobabot import constants
 from bestmobabot.logger import logger
-from bestmobabot.model import model
+from bestmobabot.model import Model
 from bestmobabot.responses import ArenaEnemy, GrandArenaEnemy, Hero
 
 TArenaEnemy = TypeVar('TArenaEnemy', ArenaEnemy, GrandArenaEnemy)
@@ -38,39 +38,52 @@ def naive_select_attackers(heroes: Iterable[Hero]) -> List[Hero]:
 # Enemy selection.
 # ----------------------------------------------------------------------------------------------------------------------
 
-def select_enemy(enemies: Iterable[ArenaEnemy], heroes: Iterable[Hero]) -> Tuple[TArenaEnemy, List[Hero], float]:
+def select_enemy(model: Model, enemies: Iterable[ArenaEnemy], heroes: Iterable[Hero]) -> Tuple[TArenaEnemy, List[Hero], float]:
     """
     Select enemy and attackers to maximise win probability.
     """
     # noinspection PyTypeChecker
-    return max([(enemy, *model_select_attackers(heroes, enemy.heroes)) for enemy in enemies], key=itemgetter(2))
+    return max([(enemy, *model_select_attackers(model, heroes, enemy.heroes)) for enemy in enemies], key=itemgetter(2))
 
 
-def select_grand_enemy(enemies: Iterable[GrandArenaEnemy], heroes: Iterable[Hero]) -> Tuple[GrandArenaEnemy, List[List[Hero]], float]:
+def select_grand_enemy(
+    model: Model,
+    enemies: Iterable[GrandArenaEnemy],
+    heroes: Iterable[Hero],
+) -> Tuple[GrandArenaEnemy, List[List[Hero]], float]:
     """
     Select enemy and attackers to maximise win probability.
     """
     # noinspection PyTypeChecker
-    return max([(enemy, *model_select_grand_attackers(heroes, enemy.heroes)) for enemy in enemies], key=itemgetter(2))
+    return max([(enemy, *model_select_grand_attackers(model, heroes, enemy.heroes)) for enemy in enemies], key=itemgetter(2))
 
 
 # Attackers selection.
 # ----------------------------------------------------------------------------------------------------------------------
 
-def model_select_attackers(heroes: Iterable[Hero], defenders: Iterable[Hero], verbose: bool = True) -> Tuple[List[Hero], float]:
+def model_select_attackers(
+    model: Model,
+    heroes: Iterable[Hero],
+    defenders: Iterable[Hero],
+    verbose: bool = True,
+) -> Tuple[List[Hero], float]:
     """
     Select attackers for the given enemy to maximise win probability.
     """
     attackers_list = [list(attackers) for attackers in combinations(heroes, constants.TEAM_SIZE)]
     x = numpy.array([make_team_features(attackers) for attackers in attackers_list]) - make_team_features(defenders)
-    y: numpy.ndarray = model.predict_proba(x)[:, 1]
+    y: numpy.ndarray = model.estimator.predict_proba(x)[:, 1]
     index: int = y.argmax()
     if verbose:
         logger.debug(f'👊 Win probability: {100.0 * y[index]:.1f}%.')
     return attackers_list[index], y[index]
 
 
-def model_select_grand_attackers(heroes: Iterable[Hero], defenders_teams: Iterable[Iterable[Hero]]) -> Tuple[List[List[Hero]], float]:
+def model_select_grand_attackers(
+    model: Model,
+    heroes: Iterable[Hero],
+    defenders_teams: Iterable[Iterable[Hero]],
+) -> Tuple[List[List[Hero]], float]:
     """
     Select 3 teams of attackers for the given enemy to maximise win probability.
     It's not giving the best solution but it's fast enough.
@@ -86,7 +99,7 @@ def model_select_grand_attackers(heroes: Iterable[Hero], defenders_teams: Iterab
         probabilities: List[float] = [0.0, 0.0, 0.0]
         for i in order:
             heroes_left = [hero for hero in heroes if hero.id not in used_heroes]
-            attackers, probabilities[i] = model_select_attackers(heroes_left, defenders_teams[i], verbose=False)
+            attackers, probabilities[i] = model_select_attackers(model, heroes_left, defenders_teams[i], verbose=False)
             attackers_teams[i] = attackers
             used_heroes.update(attacker.id for attacker in attackers)
         p1, p2, p3 = probabilities
@@ -102,6 +115,14 @@ def model_select_grand_attackers(heroes: Iterable[Hero], defenders_teams: Iterab
 
 # Features construction.
 # ----------------------------------------------------------------------------------------------------------------------
+
+def set_heroes_model(model: Model, heroes: Iterable[Hero]):
+    """
+    Initialize heroes features.
+    """
+    for hero in heroes:
+        hero.set_model(model)
+
 
 def make_team_features(heroes: Iterable[Hero]) -> numpy.ndarray:
     """

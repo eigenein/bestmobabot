@@ -1,6 +1,6 @@
 import signal
 from datetime import datetime
-from typing import Optional, TextIO, Tuple
+from typing import TextIO, Tuple
 
 import click
 import coloredlogs
