@@ -1,9 +1,7 @@
-from typing import NamedTuple
-
 # noinspection PyPackageRequirements
 import pytest
 
-from bestmobabot.arena import choose_multiple, secretary_max
+from bestmobabot.arena import secretary_max
 
 
 @pytest.mark.parametrize('items, expected, next_', [
@@ -27,17 +25,3 @@ def test_secretary_max(items, expected, next_):
     iterator = iter(items)
     assert secretary_max(iterator, len(items)) == (expected, expected)
     assert next(iterator, None) == next_  # test the iterator position
-
-
-@pytest.mark.parametrize('items, n, k, expected', [
-    (range(2), 2, 1, [([0], [1]), ([1], [0])]),
-    (range(3), 2, 1, [([0], [1]), ([1], [0]), ([0], [2]), ([2], [0]), ([1], [2]), ([2], [1])]),
-    (range(1), 1, 1, [([0],)]),
-])
-def test_choose_multiple(items, n, k, expected):
-    class Item(NamedTuple):
-        id: int
-    assert sorted(choose_multiple([Item(item) for item in items], n, k)) == sorted(
-        tuple([Item(item) for item in items] for items in choice)
-        for choice in expected
-    )

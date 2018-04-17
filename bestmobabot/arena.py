@@ -152,16 +152,3 @@ def secretary_max(items: Iterable[T1], n: int, key: Optional[Callable[[T1], T2]]
             break
     # noinspection PyUnboundLocalVariable
     return item, item_key
-
-
-def choose_multiple(items: Iterable[T], n: int, k: int) -> Iterable[Tuple[List[T], ...]]:
-    """
-    Choose n groups of size k.
-    """
-    if n == 0:
-        yield ()
-        return
-    for head in choose_multiple(items, n - 1, k):
-        used_keys = {item.id for sub_items in head for item in sub_items}
-        for tail in combinations((item for item in items if item.id not in used_keys), k):
-            yield (*head, [*tail])
