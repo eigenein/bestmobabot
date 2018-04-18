@@ -94,7 +94,7 @@ class BotHelper:
         Loads a predictive model from the database.
         """
         logger.info('🤖 Loading model…')
-        return pickle.loads(self.db.get_by_key('bot', 'model', loads=bytes.fromhex))
+        return self.db.get_by_key('bot', 'model', loads=lambda value: pickle.loads(bytes.fromhex(value)))
 
     def check_arena(self, min_hero_count: int) -> Tuple[Model, List[Hero]]:
         """
@@ -184,7 +184,7 @@ class Bot(contextlib.AbstractContextManager, BotHelper):
                 Task(next_run_at=Task.every_n_hours(8, offset=timedelta(minutes=1)), execute=self.shop, args=(['1'],)),
             ])
         if self.trainer:
-            self.tasks.append(Task(next_run_at=Task.at(hour=21, minute=0, tz=self.user.tz), execute=self.train_arena_model))
+            self.tasks.append(Task(next_run_at=Task.at(hour=1, minute=10), execute=self.train_arena_model))
 
     def run(self):
         logger.info('🤖 Initialising task queue.')
