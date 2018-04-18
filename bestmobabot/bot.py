@@ -6,7 +6,7 @@ import contextlib
 import os
 import pickle
 from datetime import datetime, timedelta, timezone, tzinfo
-from operator import attrgetter, itemgetter
+from operator import attrgetter
 from random import choice
 from time import sleep
 from typing import Callable, Iterable, List, NamedTuple, Optional, Set, Tuple
@@ -19,6 +19,7 @@ from bestmobabot.logger import log_arena_result, log_heroes, log_reward, log_rew
 from bestmobabot.model import Model
 from bestmobabot.resources import mission_name, shop_name
 from bestmobabot.responses import *
+from bestmobabot.trainer import Trainer
 from bestmobabot.vk import VK
 
 NextRunAtCallable = Callable[[datetime], datetime]
@@ -54,19 +55,76 @@ class Task(NamedTuple):
     def every_n_hours(hours: float, *, offset: timedelta = timedelta()) -> NextRunAtCallable:
         return Task.every_n_minutes(hours * 60.0, offset=offset)
 
+    @staticmethod
+    def asap() -> NextRunAtCallable:
+        """
+        Executes task as soon as possible. Only used for development.
+        """
+        def next_run_at(since: datetime) -> datetime:
+            return since
+        return next_run_at
 
-class Bot(contextlib.AbstractContextManager):
+
+class TaskNotAvailable(Exception):
+    """
+    Raised when task pre-conditions are not met.
+    """
+
+
+class BotHelper:
+    """
+    Helper methods.
+    """
+    db: Database
+    api: API
+
+    @staticmethod
+    def get_hero_ids(heroes: Iterable[Hero]) -> List[str]:
+        return [hero.id for hero in heroes]
+
+    @staticmethod
+    def naive_select_attackers(heroes: Iterable[Hero]) -> List[Hero]:
+        """
+        Selects the most powerful heroes.
+        """
+        return sorted(heroes, key=attrgetter('power'), reverse=True)[:constants.TEAM_SIZE]
+
+    def get_model(self) -> Optional[Model]:
+        """
+        Loads a predictive model from the database.
+        """
+        logger.info('🤖 Loading model…')
+        return pickle.loads(self.db.get_by_key('bot', 'model', loads=bytes.fromhex))
+
+    def check_arena(self, min_hero_count: int) -> Tuple[Model, List[Hero]]:
+        """
+        Checks pre-conditions for arena.
+        """
+        model = self.get_model()
+        if not model:
+            raise TaskNotAvailable('model is not ready yet')
+
+        heroes = self.api.get_all_heroes()
+        if len(heroes) < min_hero_count:
+            raise TaskNotAvailable('not enough heroes')
+
+        return model, heroes
+
+
+class Bot(contextlib.AbstractContextManager, BotHelper):
     def __init__(
         self,
         db: Database,
         api: API,
         no_experience: bool,
+        trainer: bool,
         raids: List[Tuple[str, int]],
         shops: List[Tuple[str, str]],
     ):
         self.db = db
         self.api = api
         self.no_experience = no_experience
+        self.trainer = trainer
         self.raids = raids
         self.shops = shops
 
@@ -77,6 +135,9 @@ class Bot(contextlib.AbstractContextManager):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.api.__exit__(exc_type, exc_val, exc_tb)
         self.vk.__exit__(exc_type, exc_val, exc_tb)
+
+    # Task engine.
+    # ------------------------------------------------------------------------------------------------------------------
 
     def start(self):
         user_raw = self.db.get_by_key(f'bot:{self.api.user_id}', 'user.raw')
@@ -113,7 +174,7 @@ class Bot(contextlib.AbstractContextManager):
             # Task(next_run_at=Task.every_n_minutes(1), execute=self.quack, args=('Quack 2!',)),
             # Task(next_run_at=Task.at(hour=22, minute=14, tz=None), execute=self.quack, args=('Fixed time!',)),
             # Task(next_run_at=Task.at(hour=22, minute=40, tz=None), execute=self.shop, args=(['1'],)),
-            # Task(next_run_at=Task.at(hour=23, minute=47, tz=None), execute=self.attack_arena),
+            # Task(next_run_at=Task.asap(), execute=self.train_arena_model),
         ]
         for mission_id, number in self.raids:
             self.tasks.append(Task(next_run_at=Task.every_n_hours(24 / number), execute=self.raid_mission, args=(mission_id,)))
@@ -122,6 +183,8 @@ class Bot(contextlib.AbstractContextManager):
                 Task(next_run_at=Task.at(hour=11, minute=1), execute=self.shop, args=(['4', '5', '6', '9'],)),
                 Task(next_run_at=Task.every_n_hours(8, offset=timedelta(minutes=1)), execute=self.shop, args=(['1'],)),
             ])
+        if self.trainer:
+            self.tasks.append(Task(next_run_at=Task.every_n_hours(24), execute=self.train_arena_model))
 
     def run(self):
         logger.info('🤖 Initialising task queue.')
@@ -153,6 +216,8 @@ class Bot(contextlib.AbstractContextManager):
         self.api.last_responses.clear()
         try:
             next_run_at = task.execute(*task.args)
+        except TaskNotAvailable as e:
+            logger.warning(f'😐 Task unavailable: {e}.')
         except AlreadyError as e:
             logger.error(f'🤔 Already done: {e.description}.')
         except NotEnoughError as e:
@@ -168,15 +233,7 @@ class Bot(contextlib.AbstractContextManager):
             logger.info(f'✅ Well done.')
             return next_run_at
 
-    @staticmethod
-    def get_hero_ids(heroes: Iterable[Hero]) -> List[str]:
-        return [hero.id for hero in heroes]
-
-    def get_model(self) -> Optional[Model]:
-        logger.info('🤖 Loading model…')
-        return pickle.loads(self.db.get_by_key('bot', 'model', loads=bytes.fromhex))
-
-    # Actual tasks.
+    # Tasks.
     # ------------------------------------------------------------------------------------------------------------------
 
     @staticmethod
@@ -230,7 +287,7 @@ class Bot(contextlib.AbstractContextManager):
         logger.info(f'👊 Busy heroes: {busy_hero_ids}.')
 
         # Choose the most powerful available heroes.
-        heroes = arena.naive_select_attackers(hero for hero in self.api.get_all_heroes() if hero.id not in busy_hero_ids)
+        heroes = self.naive_select_attackers(hero for hero in self.api.get_all_heroes() if hero.id not in busy_hero_ids)
         if not heroes:
             logger.info('✅ No heroes available.')
             return None
@@ -293,31 +350,23 @@ class Bot(contextlib.AbstractContextManager):
         logger.info('🎁 Sending daily gift…')
         self.farm_quests(self.api.send_daily_gift(['15664420', '209336881', '386801200', '386796029']))  # FIXME
 
+    def train_arena_model(self):
+        """
+        Тренирует предсказательную модель для арены.
+        """
+        logger.info('🤖 Running trainer…')
+        Trainer(self.db, n_iterations=constants.N_ITERATIONS, n_splits=constants.N_SPLITS, logger=logger).train()
+
     def attack_arena(self):
         """
         Совершает бой на арене.
         """
         logger.info('👊 Attacking arena…')
-
-        # Load the model.
-        model = self.get_model()
-        if not model:
-            logger.warning('😐 Model is not ready yet.')
-            return
-
-        # Obtain our heroes.
-        heroes = self.api.get_all_heroes()
-        if len(heroes) < constants.TEAM_SIZE:
-            logger.warning('😐 Not enough heroes.')
-            return
+        model, heroes = self.check_arena(constants.TEAM_SIZE)
 
         # Pick an enemy and select attackers.
-        arena.set_heroes_model(model, heroes)
-        results = (
-            arena.select_enemy(model, arena.filter_enemies(self.api.find_arena_enemies(), self.user.clan_id), heroes)
-            for _ in range(constants.MAX_ARENA_ENEMIES)
-        )  # type: Iterable[Tuple[ArenaEnemy, List[Hero], float]]
-        (enemy, attackers, probability), _ = arena.secretary_max(results, constants.MAX_ARENA_ENEMIES, key=itemgetter(2))
+        enemy, attackers, probability = \
+            arena.Arena(model, self.user.clan_id, heroes, self.api.find_arena_enemies).select_enemy()
 
         # Debugging.
         log_heroes('Attackers:', attackers)
@@ -338,26 +387,11 @@ class Bot(contextlib.AbstractContextManager):
         Совершает бой на гранд арене.
         """
         logger.info('👊 Attacking grand arena…')
-
-        # Load the model.
-        model = self.get_model()
-        if not model:
-            logger.warning('😐 Model is not ready yet.')
-            return
-
-        # Obtain our heroes.
-        heroes = self.api.get_all_heroes()
-        if len(heroes) < constants.GRAND_SIZE:
-            logger.warning('😐 Not enough heroes.')
-            return
+        model, heroes = self.check_arena(constants.GRAND_SIZE)
 
         # Pick an enemy and select attackers.
-        arena.set_heroes_model(model, heroes)
-        results = (
-            arena.select_grand_enemy(model, arena.filter_enemies(self.api.find_grand_enemies(), self.user.clan_id), heroes)
-            for _ in range(constants.MAX_GRAND_ARENA_ENEMIES)
-        )  # type: Iterable[Tuple[GrandArenaEnemy, List[List[Hero]], float]]
-        (enemy, attacker_teams, probability), _ = arena.secretary_max(results, constants.MAX_GRAND_ARENA_ENEMIES, key=itemgetter(2))
+        enemy, attacker_teams, probability = \
+            arena.GrandArena(model, self.user.clan_id, heroes, self.api.find_grand_enemies).select_enemy()
 
         # Debugging.
         for i, (attackers, defenders) in enumerate(zip(attacker_teams, enemy.heroes), start=1):

@@ -40,7 +40,7 @@ class User(BaseResponse):
         self.id: str = str(raw['id'])
         self.name: str = raw['name']
         self.tz: tzinfo = timezone(timedelta(hours=raw.get('timeZone', 0)))
-        self.clan_id: str = str(raw.get('clanId'))
+        self.clan_id: Optional[str] = raw.get('clanId')
         self.next_day: datetime = datetime.fromtimestamp(raw.get('nextDayTs', 0), self.tz)
 
     def is_from_clan(self, clan_id: Optional[str]) -> bool:
@@ -135,7 +135,7 @@ class Hero(BaseResponse):
         self.level: int = int(raw['level'])
         self.color: int = int(raw['color'])
         self.star: int = int(raw['star'])
-        self.power: Optional[int] = raw.get('power')
+        self.power: Optional[int] = int(raw.get('power', 0))
 
         # Should be here to optimise CPU usage.
         self.feature_dict = {

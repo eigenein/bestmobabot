@@ -1,4 +1,5 @@
 import logging
+import pickle
 from collections import defaultdict
 from operator import itemgetter
 from typing import Any, DefaultDict, Dict, Iterable, List, NamedTuple, Set, Tuple
@@ -20,24 +21,29 @@ class Model(NamedTuple):
 
 
 class Trainer:
-    def __init__(self, db: Database, *, n_iterations: int, n_splits: int):
+    def __init__(self, db: Database, *, n_iterations: int, n_splits: int, logger: logging.Logger):
         self.db = db
         self.n_iterations = n_iterations
         self.n_splits = n_splits
+        self.logger = logger
 
-    def train(self) -> Model:
+    def train(self):
         def fit_callback(result):
-            logging.info(f'🤖 #{len(result.x_iters)} {constants.SCORING}: {search_cv.best_score_:.4f}')
+            self.logger.info(f'🤖 #{len(result.x_iters)} {constants.SCORING}: {search_cv.best_score_:.4f}')
 
         # Read battles.
-        battles = DataFrame(self.read_battles()).fillna(value=0.0)
-        logging.info(f'🤖 Battles shape: {battles.shape}.')
+        battle_list = self.read_battles()
+        if not battle_list:
+            self.logger.info('🤖 There are no battles. Wait until someone attacks you.')
+            return
+        battles = DataFrame(battle_list).fillna(value=0.0)
+        self.logger.info(f'🤖 Battles shape: {battles.shape}.')
 
         # Split into X and y.
         x: DataFrame = battles.drop(['win'], axis=1)
         y: Series = battles['win']
         value_counts: DataFrame = y.value_counts()
-        logging.info(f'🤖 Wins: {value_counts[False]}. Losses: {value_counts[True]}.')
+        self.logger.info(f'🤖 Wins: {value_counts[False]}. Losses: {value_counts[True]}.')
 
         estimator = RandomForestClassifier(class_weight='balanced', n_jobs=5, random_state=42)
         param_grid = {
@@ -47,7 +53,7 @@ class Trainer:
         }
         cv = StratifiedKFold(n_splits=self.n_splits, shuffle=True, random_state=42)
 
-        logging.info('🤖 Adjusting hyper-parameters…')
+        self.logger.info('🤖 Adjusting hyper-parameters…')
         numpy.random.seed(42)
         search_cv = BayesSearchCV(
             estimator,
@@ -62,28 +68,30 @@ class Trainer:
         estimator.set_params(**search_cv.best_params_)
 
         # Perform cross-validation.
-        logging.info('🤖 Cross validation…')
+        self.logger.info('🤖 Cross validation…')
         numpy.random.seed(42)
         scores: numpy.ndarray = cross_val_score(estimator, x, y, scoring=constants.SCORING, cv=cv)
         score_interval = stats.t.interval(0.95, len(scores) - 1, loc=numpy.mean(scores), scale=stats.sem(scores))
-        logging.info(f'🤖 Best score: {search_cv.best_score_:.4f}')
-        logging.info(f'🤖 Best params: {search_cv.best_params_}')
-        logging.info(f'🤖 CV score: {scores.mean():.4f} ({score_interval[0]:.4f} … {score_interval[1]:.4f}).')
+        self.logger.info(f'🤖 Best score: {search_cv.best_score_:.4f}')
+        self.logger.info(f'🤖 Best params: {search_cv.best_params_}')
+        self.logger.info(f'🤖 CV score: {scores.mean():.4f} ({score_interval[0]:.4f} … {score_interval[1]:.4f}).')
 
         # Re-train the best model on the entire data.
-        logging.info('🤖 Refitting…')
+        self.logger.info('🤖 Refitting…')
         estimator.fit(x, y)
 
         # Print debugging info.
-        logging.debug(f'🤖 Classes: {estimator.classes_}')
+        self.logger.debug(f'🤖 Classes: {estimator.classes_}')
         for column, importance in sorted(zip(x.columns, estimator.feature_importances_), key=itemgetter(1), reverse=True):
-            logging.debug(f'🤖 Feature {column}: {importance:.7f}')
+            self.logger.debug(f'🤖 Feature {column}: {importance:.7f}')
 
-        logging.info('🤖 Finished.')
-        return Model(estimator, list(x.columns))
+        logging.info('🤖 Saving model…')
+        self.db.set('bot', 'model', pickle.dumps(Model(estimator, list(x.columns))), dumps=bytes.hex)
+
+        self.logger.info('🤖 Finished.')
 
     def read_battles(self) -> List[Dict[str, Any]]:
-        logging.info('🤖 Reading battles…')
+        self.logger.info('🤖 Reading battles…')
         battle_set: Set[Tuple[Tuple[str, Any]]] = {
             tuple(sorted(self.parse_battle(value).items()))
             for _, value in self.db.get_by_index('replays')

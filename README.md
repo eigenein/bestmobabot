@@ -21,6 +21,7 @@ services:
       - BESTMOBABOT_NO_EXPERIENCE=true
       - BESTMOBABOT_RAID=16 3 57 3
       - BESTMOBABOT_SHOP=1 4 1 5
+      - BESTMOBABOT_TRAINER=true
     volumes:
       - /srv/bestmobabot:/srv/bestmobabot
       - /etc/timezone:/etc/timezone:ro

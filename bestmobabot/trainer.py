@@ -1,5 +1,4 @@
 import logging
-import pickle
 import sys
 import warnings
 
@@ -13,8 +12,8 @@ from bestmobabot.model import Trainer
 
 @click.command()
 @click.option('-v', '--verbose', is_flag=True, default=False, help='Increase verbosity.')
-@click.option('-n', '--n-iterations', type=int, default=100, help='Hyper-parameters search iterations.')
-@click.option('--n-splits', type=int, default=10, help='K-fold splits.')
+@click.option('-n', '--n-iterations', type=int, default=constants.N_ITERATIONS, help='Hyper-parameters search iterations.')
+@click.option('--n-splits', type=int, default=constants.N_SPLITS, help='K-fold splits.')
 def main(verbose: bool, n_iterations: int, n_splits: int):
     """
     Train and generate arena prediction model.
@@ -29,9 +28,7 @@ def main(verbose: bool, n_iterations: int, n_splits: int):
         warnings.simplefilter('ignore')
 
     with Database(constants.DATABASE_NAME) as db:
-        model = Trainer(db, n_iterations=n_iterations, n_splits=n_splits).train()
-        logging.info('🤖 Saving model…')
-        db.set('bot', 'model', pickle.dumps(model), dumps=bytes.hex)
+        Trainer(db, n_iterations=n_iterations, n_splits=n_splits, logger=logging.getLogger()).train()
 
 
 if __name__ == '__main__':

@@ -16,17 +16,19 @@ from bestmobabot.resources import get_translations
 @click.command()
 @click.option('-s', '--remixsid', help='VK.com remixsid cookie.', envvar='BESTMOBABOT_REMIXSID', required=True)
 @click.option('--no-experience', help='Do not farm experience.', envvar='BESTMOBABOT_NO_EXPERIENCE', is_flag=True)
+@click.option('--trainer', help='Automatically train arena model.', envvar='BESTMOBABOT_TRAINER', is_flag=True)
 @click.option('raids', '--raid', help='Raid the mission specified by its ID and number of raids per day.', envvar='BESTMOBABOT_RAID', type=(str, int), multiple=True)
+@click.option('shops', '--shop', help='Buy goods specified by shop_id and slot_id every day', envvar='BESTMOBABOT_SHOP', type=(str, str), multiple=True)
 @click.option('-v', '--verbose', help='Increase verbosity.', is_flag=True)
 @click.option('-l', '--log-file', help='Log file.', envvar='BESTMOBABOT_LOGFILE', type=click.File('at'), default=click.get_text_stream('stderr'))
-@click.option('shops', '--shop', help='Buy goods specified by shop_id and slot_id every day', envvar='BESTMOBABOT_SHOP', type=(str, str), multiple=True)
 def main(
     remixsid: str,
     no_experience: bool,
+    trainer: bool,
     raids: Tuple[Tuple[str, int], ...],
+    shops: Tuple[Tuple[str, str], ...],
     verbose: bool,
     log_file: TextIO,
-    shops: Tuple[Tuple[str, str], ...],
 ):
     """
     Hero Wars bot.
@@ -38,7 +40,7 @@ def main(
 
     get_translations()  # prefetch game translations
 
-    with Database(constants.DATABASE_NAME) as db, API(db, remixsid) as api, Bot(db, api, no_experience, list(raids), list(shops)) as bot:
+    with Database(constants.DATABASE_NAME) as db, API(db, remixsid) as api, Bot(db, api, no_experience, trainer, list(raids), list(shops)) as bot:
         api.start()
         bot.start()
         logger.info(f'👋 Welcome {bot.user.name}! Your game time is {datetime.now(bot.user.tz):%H:%M:%S}.')
