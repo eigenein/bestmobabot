@@ -46,7 +46,11 @@ class AbstractArena(ABC, Generic[TEnemy, TAttackers]):
     def select_enemy(self) -> Tuple[TEnemy, TAttackers, float]:
         self.set_heroes_model(self.heroes)
         (enemy, attackers, probability), _ = secretary_max(
-            self.iterate_enemies_pages(), self.max_iterations, key=self.probability_getter, early_stop=0.99)
+            self.iterate_enemies_pages(),
+            self.max_iterations,
+            key=self.probability_getter,
+            early_stop=constants.ARENA_EARLY_STOP,
+        )
         return enemy, attackers, probability
 
     def iterate_enemies_pages(self) -> Iterable[Tuple[TEnemy, TAttackers, float]]:

@@ -1,29 +1,27 @@
-from typing import Dict, Set
+from typing import Dict
 
 DATABASE_NAME = 'db.sqlite3'
+
+# Fundamental constants.
 TEAM_SIZE = 5  # heroes
 GRAND_TEAMS = 3
 GRAND_SIZE = GRAND_TEAMS * TEAM_SIZE  # heroes
+
+# Chests control.
 MAX_OPEN_ARTIFACT_CHESTS = 5
-MAX_ARENA_ITERATIONS = 10  # FIXME: make configurable
-MAX_GRAND_ARENA_ITERATIONS = 10  # FIXME: make configurable
+
+# Tower control.
 IGNORED_BUFF_IDS = {13, 14, 17, 18, 19}  # These buffs require a hero ID.
+
+# Arena model training control.
 SCORING = 'accuracy'
 N_ITERATIONS = 25
 N_SPLITS = 5
 
-# https://heroes.cdnvideo.ru/vk/v0312/lib/lib.json.gz
-RECOMMENDED_HEROES: Dict[str, Set[str]] = {
-    '1': {'1', '4', '5', '6', '7', '9', '10', '12', '13', '17', '18', '21', '22', '23', '26', '29', '32', '33', '34', '35', '36'},
-    '2': {'8', '14', '15', '19', '20', '30', '31'},
-    '3': {'2', '3', '11', '16', '25', '24', '27', '28', '37', '38', '39', '40'},
-    '4': {'1'},
-    '5': {'1'},
-    '6': {'1'},
-    '7': {'1'},
-    '8': {'1'},
-    '9': {'1'},
-}
+# Arena iterations control.
+ARENA_EARLY_STOP = 0.99
+MAX_ARENA_ITERATIONS = 10  # FIXME: make configurable
+MAX_GRAND_ARENA_ITERATIONS = 10  # FIXME: make configurable
 
 # FIXME: obtain from the resources.
 COLORS: Dict[int, str] = {
