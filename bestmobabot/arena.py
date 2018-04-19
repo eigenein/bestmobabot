@@ -158,6 +158,7 @@ def secretary_max(items: Iterable[T1], n: int, key: Optional[Callable[[T1], T2]]
     iterator = iter((item, key(item)) for item in items)
     r = int(n / math.e) + 1
     # Skip first (r - 1) items and remember the maximum.
+    # FIXME: early stop should also work here.
     _, max_key = max((next(iterator) for _ in range(r - 1)), key=itemgetter(1), default=(None, None))
     # Find the first one that is better or the last one.
     for item, item_key in iterator:  # type: T1, T2
