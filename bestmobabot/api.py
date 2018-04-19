@@ -62,6 +62,10 @@ class InvalidSignatureError(ValueError):
     pass
 
 
+class OutOfRetargetDelta(ValueError):
+    pass
+
+
 class ResponseError(ValueError):
     pass
 
@@ -215,6 +219,7 @@ class API(contextlib.AbstractContextManager):
         'NotAvailable': NotAvailableError,
         'NotFound': NotFoundError,
         'ArgumentError': ArgumentError,
+        'outOfRetargetDelta': OutOfRetargetDelta,
     }
 
     @classmethod

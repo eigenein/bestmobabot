@@ -12,7 +12,7 @@ from time import sleep
 from typing import Callable, Iterable, List, NamedTuple, Optional, Set, Tuple
 
 from bestmobabot import arena, constants
-from bestmobabot.api import AlreadyError, API, InvalidResponseError, NotEnoughError, NotFoundError
+from bestmobabot.api import AlreadyError, API, InvalidResponseError, NotEnoughError, NotFoundError, OutOfRetargetDelta
 from bestmobabot.database import Database
 from bestmobabot.enums import *
 from bestmobabot.logger import log_arena_result, log_heroes, log_reward, log_rewards, logger
@@ -184,7 +184,7 @@ class Bot(contextlib.AbstractContextManager, BotHelper):
                 Task(next_run_at=Task.every_n_hours(8, offset=timedelta(minutes=1)), execute=self.shop, args=(['1'],)),
             ])
         if self.trainer:
-            self.tasks.append(Task(next_run_at=Task.at(hour=8, minute=0), execute=self.train_arena_model))
+            self.tasks.append(Task(next_run_at=Task.at(hour=14, minute=0, tz=self.user.tz), execute=self.train_arena_model))
 
     def run(self):
         logger.info('🤖 Initialising task queue.')
@@ -222,6 +222,8 @@ class Bot(contextlib.AbstractContextManager, BotHelper):
             logger.error(f'🤔 Already done: {e.description}.')
         except NotEnoughError as e:
             logger.error(f'🤔 Not enough: {e.description}.')
+        except OutOfRetargetDelta:
+            logger.error(f'🤔 Out of retarget delta.')
         except InvalidResponseError as e:
             logger.error('😱 API returned something bad:')
             logger.error(f'😱 {e}')
