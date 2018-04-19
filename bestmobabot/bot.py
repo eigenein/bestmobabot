@@ -5,7 +5,7 @@ The bot logic.
 import contextlib
 import os
 import pickle
-from datetime import datetime, timedelta, timezone, tzinfo
+from datetime import datetime, timedelta, tzinfo
 from operator import attrgetter
 from random import choice
 from time import sleep
@@ -34,7 +34,7 @@ class Task(NamedTuple):
         return f'{self.execute.__name__}{self.args}'
 
     @staticmethod
-    def at(*, hour: int, minute: int, tz: Optional[tzinfo] = timezone.utc) -> NextRunAtCallable:
+    def at(*, hour: int, minute: int, tz: Optional[tzinfo] = None) -> NextRunAtCallable:
         def next_run_at(since: datetime) -> datetime:
             since = since.astimezone(tz)
             upcoming = since.replace(hour=hour, minute=minute, second=0, microsecond=0)
@@ -148,26 +148,26 @@ class Bot(contextlib.AbstractContextManager, BotHelper):
             self.db.set(f'bot:{self.api.user_id}', 'user.raw', self.user.raw)
 
         self.tasks = [
-            # Re-registration task.
+            # These tasks depend on player's time zone.
             Task(next_run_at=Task.at(hour=8, minute=0, tz=self.user.tz), execute=self.register),
-
-            # Stamina quests depend on player's time zone.
             Task(next_run_at=Task.at(hour=9, minute=30, tz=self.user.tz), execute=self.farm_quests),
             Task(next_run_at=Task.at(hour=14, minute=30, tz=self.user.tz), execute=self.farm_quests),
             Task(next_run_at=Task.at(hour=21, minute=30, tz=self.user.tz), execute=self.farm_quests),
 
-            # Other quests are simultaneous for everyone. Day starts at 3:00 UTC.
+            # Other quests are simultaneous for everyone.
             Task(next_run_at=Task.every_n_minutes(24 * 60 // 5, offset=timedelta(hours=-1)), execute=self.attack_arena),
             Task(next_run_at=Task.every_n_minutes(24 * 60 // 5, offset=timedelta(minutes=-30)), execute=self.attack_grand_arena),
             Task(next_run_at=Task.every_n_hours(6, offset=timedelta(minutes=15)), execute=self.farm_mail),
             Task(next_run_at=Task.every_n_hours(6, offset=timedelta(minutes=30)), execute=self.check_freebie),
             Task(next_run_at=Task.every_n_hours(8), execute=self.farm_expeditions),
+            Task(next_run_at=Task.every_n_hours(8), execute=self.get_arena_replays),
+
+            # One time a day.
+            Task(next_run_at=Task.at(hour=6, minute=0), execute=self.skip_tower),
             Task(next_run_at=Task.at(hour=8, minute=0), execute=self.farm_daily_bonus),
             Task(next_run_at=Task.at(hour=8, minute=30), execute=self.buy_chest),
             Task(next_run_at=Task.at(hour=9, minute=0), execute=self.send_daily_gift),
             Task(next_run_at=Task.at(hour=10, minute=0), execute=self.farm_zeppelin_gift),
-            Task(next_run_at=Task.at(hour=6, minute=0), execute=self.skip_tower),
-            Task(next_run_at=Task.every_n_hours(8), execute=self.get_arena_replays),
 
             # Debug tasks. Uncomment when needed.
             # Task(next_run_at=Task.every_n_minutes(1), execute=self.quack, args=('Quack 1!',)),
