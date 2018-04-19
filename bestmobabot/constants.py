@@ -17,6 +17,7 @@ IGNORED_BUFF_IDS = {13, 14, 17, 18, 19}  # These buffs require a hero ID.
 SCORING = 'accuracy'
 N_ITERATIONS = 25
 N_SPLITS = 5
+MAX_N_ESTIMATORS = 250
 
 # Arena iterations control.
 ARENA_EARLY_STOP = 0.99

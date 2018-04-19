@@ -47,7 +47,7 @@ class Trainer:
 
         estimator = RandomForestClassifier(class_weight='balanced', n_jobs=5, random_state=42)
         param_grid = {
-            'n_estimators': (1, 250),
+            'n_estimators': (1, constants.MAX_N_ESTIMATORS),
             'max_features': (1, x.shape[1]),
             'criterion': ['entropy', 'gini'],
         }
