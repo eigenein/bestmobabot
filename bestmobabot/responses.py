@@ -161,6 +161,7 @@ class Hero(BaseResponse):
         """
         Initialize hero features.
         """
+        assert self.features is None, 'model should be set only once for each hero'
         self.features = numpy.fromiter((self.feature_dict.get(name, 0.0) for name in model.feature_names), numpy.float)
 
     def dump(self) -> dict:
