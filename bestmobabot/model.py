@@ -8,8 +8,7 @@ import numpy
 from pandas import DataFrame, Series
 from scipy import stats
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import StratifiedKFold, cross_val_score
-from skopt import BayesSearchCV
+from sklearn.model_selection import GridSearchCV, StratifiedKFold, cross_val_score
 
 from bestmobabot import constants, responses
 from bestmobabot.database import Database
@@ -21,15 +20,13 @@ class Model(NamedTuple):
 
 
 class Trainer:
-    def __init__(self, db: Database, *, n_iterations: int, n_splits: int, logger: logging.Logger):
+    def __init__(self, db: Database, *, n_splits: int, logger: logging.Logger):
         self.db = db
-        self.n_iterations = n_iterations
         self.n_splits = n_splits
         self.logger = logger
 
     def train(self):
-        def fit_callback(result):
-            self.logger.info(f'🤖 #{len(result.x_iters)} {constants.SCORING}: {search_cv.best_score_:.4f}')
+        numpy.random.seed(42)
 
         # Read battles.
         battle_list = self.read_battles()
@@ -45,31 +42,27 @@ class Trainer:
         value_counts: DataFrame = y.value_counts()
         self.logger.info(f'🤖 Wins: {value_counts[False]}. Losses: {value_counts[True]}.')
 
-        estimator = RandomForestClassifier(class_weight='balanced', n_jobs=5, random_state=42)
+        estimator = RandomForestClassifier(class_weight='balanced', n_jobs=-1)
         param_grid = {
-            'n_estimators': (1, constants.MAX_N_ESTIMATORS),
-            'max_features': (1, x.shape[1]),
+            'n_estimators': constants.N_ESTIMATORS_CHOICES,
             'criterion': ['entropy', 'gini'],
         }
-        cv = StratifiedKFold(n_splits=self.n_splits, shuffle=True, random_state=42)
+        cv = StratifiedKFold(n_splits=self.n_splits, shuffle=True)
 
         self.logger.info('🤖 Adjusting hyper-parameters…')
-        numpy.random.seed(42)
-        search_cv = BayesSearchCV(
+        search_cv = GridSearchCV(
             estimator,
             param_grid,
             cv=cv,
             scoring=constants.SCORING,
-            n_iter=self.n_iterations,
-            random_state=42,
             refit=False,
         )
-        search_cv.fit(x, y, callback=fit_callback)
+
+        search_cv.fit(x, y)
         estimator.set_params(**search_cv.best_params_)
 
         # Perform cross-validation.
         self.logger.info('🤖 Cross validation…')
-        numpy.random.seed(42)
         scores: numpy.ndarray = cross_val_score(estimator, x, y, scoring=constants.SCORING, cv=cv)
         score_interval = stats.t.interval(0.95, len(scores) - 1, loc=numpy.mean(scores), scale=stats.sem(scores))
         self.logger.info(f'🤖 Best score: {search_cv.best_score_:.4f}')
