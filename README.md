@@ -22,6 +22,7 @@ services:
       - BESTMOBABOT_RAID=16 3 57 3
       - BESTMOBABOT_SHOP=1 4 1 5
       - BESTMOBABOT_TRAINER=true
+      - BESTMOBABOT_VK_TOKEN=VK.com-API-token
     volumes:
       - /srv/bestmobabot:/srv/bestmobabot
       - /etc/timezone:/etc/timezone:ro
@@ -33,6 +34,7 @@ services:
       - BESTMOBABOT_REMIXSID=VK.com-remixsid-cookie-2
       - BESTMOBABOT_LOGFILE=/srv/bestmobabot/bestmobabot-user-2.log
       - BESTMOBABOT_NO_EXPERIENCE=false
+      - BESTMOBABOT_VK_TOKEN=VK.com-API-token
     volumes:
       - /srv/bestmobabot:/srv/bestmobabot
       - /etc/timezone:/etc/timezone:ro

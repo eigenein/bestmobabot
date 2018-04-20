@@ -116,19 +116,20 @@ class Bot(contextlib.AbstractContextManager, BotHelper):
         self,
         db: Database,
         api: API,
+        vk: VK,
         no_experience: bool,
-        trainer: bool,
+        is_trainer: bool,
         raids: List[Tuple[str, int]],
         shops: List[Tuple[str, str]],
     ):
         self.db = db
         self.api = api
+        self.vk = vk
         self.no_experience = no_experience
-        self.trainer = trainer
+        self.is_trainer = is_trainer
         self.raids = raids
         self.shops = shops
 
-        self.vk = VK()
         self.user: User = None
         self.tasks: List[Task] = []
 
@@ -174,7 +175,7 @@ class Bot(contextlib.AbstractContextManager, BotHelper):
             # Task(next_run_at=Task.every_n_minutes(1), execute=self.quack, args=('Quack 2!',)),
             # Task(next_run_at=Task.at(hour=22, minute=14, tz=None), execute=self.quack, args=('Fixed time!',)),
             # Task(next_run_at=Task.at(hour=22, minute=40, tz=None), execute=self.shop, args=(['1'],)),
-            # Task(next_run_at=Task.asap(), execute=self.train_arena_model),
+            # Task(next_run_at=Task.asap(), execute=self.check_freebie),
         ]
         for mission_id, number in self.raids:
             self.tasks.append(Task(next_run_at=Task.every_n_hours(24 / number), execute=self.raid_mission, args=(mission_id,)))
@@ -183,7 +184,7 @@ class Bot(contextlib.AbstractContextManager, BotHelper):
                 Task(next_run_at=Task.at(hour=11, minute=1), execute=self.shop, args=(['4', '5', '6', '9'],)),
                 Task(next_run_at=Task.every_n_hours(8, offset=timedelta(minutes=1)), execute=self.shop, args=(['1'],)),
             ])
-        if self.trainer:
+        if self.is_trainer:
             self.tasks.append(Task(next_run_at=Task.at(hour=14, minute=0, tz=self.user.tz), execute=self.train_arena_model))
 
     def run(self):
@@ -445,7 +446,7 @@ class Bot(contextlib.AbstractContextManager, BotHelper):
         for gift_id in self.vk.find_gifts():
             if self.db.exists(f'gifts:{self.api.user_id}', gift_id):
                 continue
-            logger.info(f'🎁 Checking #{gift_id}…')
+            logger.info(f'🎁 Checking {gift_id}…')
             reward = self.api.check_freebie(gift_id)
             if reward is not None:
                 log_reward(reward)
