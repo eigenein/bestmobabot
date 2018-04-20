@@ -185,7 +185,7 @@ class Bot(contextlib.AbstractContextManager, BotHelper):
                 Task(next_run_at=Task.every_n_hours(8, offset=timedelta(minutes=1)), execute=self.shop, args=(['1'],)),
             ])
         if self.is_trainer:
-            self.tasks.append(Task(next_run_at=Task.at(hour=21, minute=0, tz=self.user.tz), execute=self.train_arena_model))
+            self.tasks.append(Task(next_run_at=Task.at(hour=22, minute=0, tz=self.user.tz), execute=self.train_arena_model))
 
     def run(self):
         logger.info('🤖 Initialising task queue.')
