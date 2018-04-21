@@ -122,7 +122,7 @@ class GrandArena(AbstractArena[GrandArenaEnemy, List[List[Hero]]]):
         for heroes in enemy.heroes:
             self.set_heroes_model(heroes)
 
-        selections: List[Tuple[List[List[Hero]], float]] = []
+        selections: List[Tuple[List[List[Hero]], float, float, float, float]] = []
 
         # Try to form attackers teams in different order and maximise the final probability.
         for order in permutations(range(constants.GRAND_TEAMS)):
@@ -136,12 +136,12 @@ class GrandArena(AbstractArena[GrandArenaEnemy, List[List[Hero]]]):
                 used_heroes.update(attacker.id for attacker in attackers)
             p1, p2, p3 = probabilities
             probability = p1 * p2 * p3 + p1 * p2 * (1.0 - p3) + p2 * p3 * (1.0 - p1) + p1 * p3 * (1.0 - p2)
-            selections.append((attackers_teams, probability))
+            selections.append((attackers_teams, probability, p1, p2, p3))
 
         # Choose best selection.
-        attackers_teams, probability = max(selections, key=itemgetter(1))
+        attackers_teams, probability, p1, p2, p3 = max(selections, key=itemgetter(1))
 
-        logger.debug(f'👊 Win probability: {100.0 * probability:.1f}%.')
+        logger.debug(f'👊 Win probability: {100 * probability:.1f}% ({100 * p1:.1f}%, {100 * p2:.1f}%, {100 * p3:.1f}%).')
         return attackers_teams, probability
 
 
