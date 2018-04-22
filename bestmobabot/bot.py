@@ -83,11 +83,11 @@ class BotHelper:
         return [hero.id for hero in heroes]
 
     @staticmethod
-    def naive_select_attackers(heroes: Iterable[Hero]) -> List[Hero]:
+    def naive_select_attackers(heroes: Iterable[Hero], count: int = constants.TEAM_SIZE) -> List[Hero]:
         """
         Selects the most powerful heroes.
         """
-        return sorted(heroes, key=attrgetter('power'), reverse=True)[:constants.TEAM_SIZE]
+        return sorted(heroes, key=attrgetter('power'), reverse=True)[:count]
 
     def get_model(self) -> Optional[Model]:
         """
@@ -107,6 +107,9 @@ class BotHelper:
         heroes = self.api.get_all_heroes()
         if len(heroes) < min_hero_count:
             raise TaskNotAvailable('not enough heroes')
+
+        # FIXME: workaround.
+        heroes = self.naive_select_attackers(heroes, constants.TOP_N_ARENA_HEROES)
 
         return model, heroes
 

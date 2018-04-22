@@ -23,6 +23,7 @@ N_ESTIMATORS_CHOICES = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 1
 ARENA_EARLY_STOP = 0.95
 MAX_ARENA_ITERATIONS = 10  # FIXME: make configurable
 MAX_GRAND_ARENA_ITERATIONS = 10  # FIXME: make configurable
+TOP_N_ARENA_HEROES = 25  # FIXME: workaround.
 
 # FIXME: obtain from the resources.
 COLORS: Dict[int, str] = {

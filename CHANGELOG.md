@@ -8,6 +8,7 @@
 * Added early stop to arena enemy selection, early stop improvements
 * Generated model is removed from the codebase
 * Hardcoded VK.com token is revoked
+* Workaround to speed up arena computations
 
 # `v0.3.1`
 
