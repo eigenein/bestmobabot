@@ -141,7 +141,7 @@ class GrandArena(AbstractArena[GrandArenaEnemy, List[List[Hero]]]):
         # Choose best selection.
         attackers_teams, probability, p1, p2, p3 = max(selections, key=itemgetter(1))
 
-        logger.debug(f'👊 Win probability: {100 * probability:.1f}% ({100 * p1:.1f}%, {100 * p2:.1f}%, {100 * p3:.1f}%).')
+        logger.debug(f'👊 Win probability: {100 * probability:.1f}% ({100 * p1:.1f}% {100 * p2:.1f}% {100 * p3:.1f}%).')
         return attackers_teams, probability
 
 
@@ -153,16 +153,25 @@ def secretary_max(items: Iterable[T1], n: int, key: Optional[Callable[[T1], T2]]
     Select best item while lazily iterating over the items.
     https://en.wikipedia.org/wiki/Secretary_problem#Deriving_the_optimal_policy
     """
-    key = key or (lambda item: item)
-    # We want to look at each item only once.
-    iterator = iter((item, key(item)) for item in items)
     r = int(n / math.e) + 1
-    # Skip first (r - 1) items and remember the maximum.
-    # FIXME: early stop should also work here.
-    _, max_key = max((next(iterator) for _ in range(r - 1)), key=itemgetter(1), default=(None, None))
-    # Find the first one that is better or the last one.
-    for item, item_key in iterator:  # type: T1, T2
-        if max_key is None or item_key > max_key or (early_stop is not None and item_key > early_stop):
-            break
-    # noinspection PyUnboundLocalVariable
-    return item, item_key
+
+    max_key = None
+    max_item = None
+
+    for i, item in enumerate(items, start=1):
+        item_key = key(item) if key else item
+        # Check early stop condition.
+        if early_stop is not None and item_key >= early_stop:
+            return item, item_key
+        # Otherwise, check if the item is better than previous ones.
+        if max_key is None or item_key > max_key:
+            if i >= r:
+                # Better than (r - 1) previous ones, return it.
+                return item, item_key
+            # Otherwise, update the best item.
+            max_key, max_item = item_key, item
+        elif i == n:
+            # The last item, return it.
+            max_key, max_item = item_key, item
+
+    return max_item, max_key

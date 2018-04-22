@@ -25,3 +25,21 @@ def test_secretary_max(items, expected, next_):
     iterator = iter(items)
     assert secretary_max(iterator, len(items)) == (expected, expected)
     assert next(iterator, None) == next_  # test the iterator position
+
+
+@pytest.mark.parametrize('items, early_stop, expected, next_', [
+    ([0], 42, 0, None),
+    ([100], 42, 100, None),
+    ([100, 45], 42, 100, 45),
+    ([0, 1], 42, 0, 1),
+    ([45, 100], 42, 45, 100),
+    ([1, 4, 5], 1, 1, 4),
+    ([1, 5, 4], 5, 5, 4),
+    ([5, 4, 1], 4, 5, 4),
+    ([5, 1, 4], 5, 5, 1),
+    ([4, 1, 5], 1, 4, 1),
+])
+def test_secretary_max_early_stop(items, early_stop, expected, next_):
+    iterator = iter(items)
+    assert secretary_max(iterator, len(items), early_stop=early_stop) == (expected, expected)
+    assert next(iterator, None) == next_  # test the iterator position

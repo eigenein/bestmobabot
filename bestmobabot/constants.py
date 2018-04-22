@@ -20,7 +20,7 @@ N_SPLITS = 5
 N_ESTIMATORS_CHOICES = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 250, 300]
 
 # Arena iterations control.
-ARENA_EARLY_STOP = 0.99
+ARENA_EARLY_STOP = 0.95
 MAX_ARENA_ITERATIONS = 10  # FIXME: make configurable
 MAX_GRAND_ARENA_ITERATIONS = 10  # FIXME: make configurable
 
