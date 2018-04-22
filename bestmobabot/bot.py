@@ -42,18 +42,18 @@ class Task(NamedTuple):
         return next_run_at
 
     @staticmethod
-    def every_n_seconds(seconds: float, *, offset: timedelta = timedelta()) -> NextRunAtCallable:
+    def every_n_seconds(seconds: float, offset: timedelta) -> NextRunAtCallable:
         def next_run_at(since: datetime) -> datetime:
             return since + timedelta(seconds=(seconds - (since.timestamp() - offset.total_seconds()) % seconds))
         return next_run_at
 
     @staticmethod
-    def every_n_minutes(minutes: float, *, offset: timedelta = timedelta()) -> NextRunAtCallable:
-        return Task.every_n_seconds(minutes * 60.0, offset=offset)
+    def every_n_minutes(minutes: float, offset: timedelta) -> NextRunAtCallable:
+        return Task.every_n_seconds(minutes * 60.0, offset)
 
     @staticmethod
-    def every_n_hours(hours: float, *, offset: timedelta = timedelta()) -> NextRunAtCallable:
-        return Task.every_n_minutes(hours * 60.0, offset=offset)
+    def every_n_hours(hours: float, offset: timedelta) -> NextRunAtCallable:
+        return Task.every_n_minutes(hours * 60.0, offset)
 
     @staticmethod
     def asap() -> NextRunAtCallable:
@@ -121,6 +121,7 @@ class Bot(contextlib.AbstractContextManager, BotHelper):
         is_trainer: bool,
         raids: List[Tuple[str, int]],
         shops: List[Tuple[str, str]],
+        time_offset: timedelta,
     ):
         self.db = db
         self.api = api
@@ -129,6 +130,7 @@ class Bot(contextlib.AbstractContextManager, BotHelper):
         self.is_trainer = is_trainer
         self.raids = raids
         self.shops = shops
+        self.time_offset = time_offset
 
         self.user: User = None
         self.tasks: List[Task] = []
@@ -155,13 +157,13 @@ class Bot(contextlib.AbstractContextManager, BotHelper):
             Task(next_run_at=Task.at(hour=14, minute=30, tz=self.user.tz), execute=self.farm_quests),
             Task(next_run_at=Task.at(hour=21, minute=30, tz=self.user.tz), execute=self.farm_quests),
 
-            # Other quests are simultaneous for everyone.
-            Task(next_run_at=Task.every_n_minutes(24 * 60 // 5, offset=timedelta(hours=-1)), execute=self.attack_arena),
-            Task(next_run_at=Task.every_n_minutes(24 * 60 // 5, offset=timedelta(minutes=-30)), execute=self.attack_grand_arena),
-            Task(next_run_at=Task.every_n_hours(6, offset=timedelta(minutes=15)), execute=self.farm_mail),
-            Task(next_run_at=Task.every_n_hours(6, offset=timedelta(minutes=30)), execute=self.check_freebie),
-            Task(next_run_at=Task.every_n_hours(8), execute=self.farm_expeditions),
-            Task(next_run_at=Task.every_n_hours(8), execute=self.get_arena_replays),
+            # Recurring tasks.
+            Task(next_run_at=Task.every_n_minutes(24 * 60 // 5, self.time_offset), execute=self.attack_arena),
+            Task(next_run_at=Task.every_n_minutes(24 * 60 // 5, self.time_offset), execute=self.attack_grand_arena),
+            Task(next_run_at=Task.every_n_hours(6, self.time_offset), execute=self.farm_mail),
+            Task(next_run_at=Task.every_n_hours(6, self.time_offset), execute=self.check_freebie),
+            Task(next_run_at=Task.every_n_hours(8, self.time_offset), execute=self.farm_expeditions),
+            Task(next_run_at=Task.every_n_hours(8, self.time_offset), execute=self.get_arena_replays),
 
             # One time a day.
             Task(next_run_at=Task.at(hour=6, minute=0), execute=self.skip_tower),
@@ -178,11 +180,11 @@ class Bot(contextlib.AbstractContextManager, BotHelper):
             # Task(next_run_at=Task.asap(), execute=self.check_freebie),
         ]
         for mission_id, number in self.raids:
-            self.tasks.append(Task(next_run_at=Task.every_n_hours(24 / number), execute=self.raid_mission, args=(mission_id,)))
+            self.tasks.append(Task(next_run_at=Task.every_n_hours(24 / number, self.time_offset), execute=self.raid_mission, args=(mission_id,)))
         if self.shops:
             self.tasks.extend([
                 Task(next_run_at=Task.at(hour=11, minute=1), execute=self.shop, args=(['4', '5', '6', '9'],)),
-                Task(next_run_at=Task.every_n_hours(8, offset=timedelta(minutes=1)), execute=self.shop, args=(['1'],)),
+                Task(next_run_at=Task.every_n_hours(8, self.time_offset), execute=self.shop, args=(['1'],)),
             ])
         if self.is_trainer:
             self.tasks.append(Task(next_run_at=Task.at(hour=22, minute=0, tz=self.user.tz), execute=self.train_arena_model))

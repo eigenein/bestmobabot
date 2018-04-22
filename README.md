@@ -23,6 +23,7 @@ services:
       - BESTMOBABOT_SHOP=1 4 1 5
       - BESTMOBABOT_TRAINER=true
       - BESTMOBABOT_VK_TOKEN=VK.com-API-token
+      - BESTMOBABOT_TIME_OFFSET=3600
     volumes:
       - /srv/bestmobabot:/srv/bestmobabot
       - /etc/timezone:/etc/timezone:ro
