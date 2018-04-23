@@ -165,7 +165,7 @@ class Bot(contextlib.AbstractContextManager, BotHelper):
             Task(next_run_at=Task.every_n_minutes(24 * 60 // 5, self.time_offset), execute=self.attack_grand_arena),
             Task(next_run_at=Task.every_n_hours(6, self.time_offset), execute=self.farm_mail),
             Task(next_run_at=Task.every_n_hours(6, self.time_offset), execute=self.check_freebie),
-            Task(next_run_at=Task.every_n_hours(8, self.time_offset), execute=self.farm_expeditions),
+            Task(next_run_at=Task.every_n_hours(6, self.time_offset), execute=self.farm_expeditions),
             Task(next_run_at=Task.every_n_hours(8, self.time_offset), execute=self.get_arena_replays),
 
             # One time a day.
