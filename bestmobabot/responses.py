@@ -165,7 +165,7 @@ class Hero(BaseResponse):
         self.features = numpy.fromiter((self.feature_dict.get(name, 0.0) for name in model.feature_names), numpy.float)
 
     def dump(self) -> dict:
-        return {key: self.raw[key] for key in ('id', 'level', 'color', 'star')}
+        return {key: self.raw[key] for key in ('id', 'level', 'color', 'star', 'power')}
 
     def order(self):
         """
