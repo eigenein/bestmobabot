@@ -10,6 +10,7 @@
 * Hardcoded VK.com token is revoked
 * Workaround to speed up arena computations
 * Save hero powers in the battle log
+* Update game locale to `v0351`
 
 # `v0.3.1`
 
