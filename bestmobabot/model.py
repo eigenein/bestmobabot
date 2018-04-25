@@ -44,7 +44,7 @@ class Trainer:
 
         estimator = RandomForestClassifier(class_weight='balanced', n_jobs=-1)
         param_grid = {
-            'n_estimators': constants.N_ESTIMATORS_CHOICES,
+            'n_estimators': constants.MODEL_N_ESTIMATORS_CHOICES,
             'criterion': ['entropy', 'gini'],
         }
         cv = StratifiedKFold(n_splits=self.n_splits, shuffle=True)
@@ -54,7 +54,7 @@ class Trainer:
             estimator,
             param_grid,
             cv=cv,
-            scoring=constants.SCORING,
+            scoring=constants.MODEL_SCORING,
             refit=False,
         )
 
@@ -63,7 +63,7 @@ class Trainer:
 
         # Perform cross-validation.
         self.logger.info('🤖 Cross validation…')
-        scores: numpy.ndarray = cross_val_score(estimator, x, y, scoring=constants.SCORING, cv=cv)
+        scores: numpy.ndarray = cross_val_score(estimator, x, y, scoring=constants.MODEL_SCORING, cv=cv)
         score_interval = stats.t.interval(0.95, len(scores) - 1, loc=numpy.mean(scores), scale=stats.sem(scores))
         self.logger.info(f'🤖 Best score: {search_cv.best_score_:.4f}')
         self.logger.info(f'🤖 Best params: {search_cv.best_params_}')

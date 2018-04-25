@@ -108,9 +108,6 @@ class BotHelper:
         if len(heroes) < min_hero_count:
             raise TaskNotAvailable('not enough heroes')
 
-        # FIXME: workaround.
-        heroes = self.naive_select_attackers(heroes, constants.TOP_N_ARENA_HEROES)
-
         return model, heroes
 
 
@@ -363,7 +360,7 @@ class Bot(contextlib.AbstractContextManager, BotHelper):
         Тренирует предсказательную модель для арены.
         """
         logger.info('🤖 Running trainer…')
-        Trainer(self.db, n_splits=constants.N_SPLITS, logger=logger).train()
+        Trainer(self.db, n_splits=constants.MODEL_N_SPLITS, logger=logger).train()
 
     def attack_arena(self):
         """
@@ -528,7 +525,7 @@ class Bot(contextlib.AbstractContextManager, BotHelper):
             elif tower.is_buff:
                 # Buffs go from the cheapest to the most expensive.
                 for buff_id in reversed(tower.buff_ids):
-                    if buff_id not in constants.IGNORED_BUFF_IDS:
+                    if buff_id not in constants.TOWER_IGNORED_BUFF_IDS:
                         try:
                             self.api.buy_tower_buff(buff_id)
                         except NotEnoughError:

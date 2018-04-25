@@ -11,19 +11,18 @@ GRAND_SIZE = GRAND_TEAMS * TEAM_SIZE  # heroes
 MAX_OPEN_ARTIFACT_CHESTS = 5
 
 # Tower control.
-IGNORED_BUFF_IDS = {13, 14, 17, 18, 19}  # These buffs require a hero ID.
+TOWER_IGNORED_BUFF_IDS = {13, 14, 17, 18, 19}  # These buffs require a hero ID.
 
 # Arena model training control.
-SCORING = 'accuracy'
-N_ITERATIONS = 25
-N_SPLITS = 5
-N_ESTIMATORS_CHOICES = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 250, 300]
+MODEL_SCORING = 'accuracy'
+MODEL_N_SPLITS = 5
+MODEL_N_ESTIMATORS_CHOICES = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 250, 300]
 
 # Arena iterations control.
 ARENA_EARLY_STOP = 0.95
-MAX_ARENA_ITERATIONS = 10  # FIXME: make configurable
-MAX_GRAND_ARENA_ITERATIONS = 10  # FIXME: make configurable
-TOP_N_ARENA_HEROES = 25  # FIXME: workaround.
+ARENA_MAX_ITERATIONS = 10  # FIXME: make configurable
+ARENA_COMBINATIONS_LIMIT = 1000  # FIXME: workaround
+GRAND_ARENA_MAX_ITERATIONS = 10  # FIXME: make configurable
 
 # FIXME: obtain from the resources.
 COLORS: Dict[int, str] = {

@@ -12,7 +12,7 @@ from bestmobabot.model import Trainer
 
 @click.command()
 @click.option('-v', '--verbose', is_flag=True, default=False, help='Increase verbosity.')
-@click.option('--n-splits', type=int, default=constants.N_SPLITS, help='K-fold splits.')
+@click.option('--n-splits', type=int, default=constants.MODEL_N_SPLITS, help='K-fold splits.')
 def main(verbose: bool, n_splits: int):
     """
     Train and generate arena prediction model.

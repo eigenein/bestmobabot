@@ -2,6 +2,7 @@
 Arena hero selection logic.
 """
 
+import heapq
 import math
 from abc import ABC, abstractmethod
 from functools import reduce
@@ -86,23 +87,31 @@ class AbstractArena(ABC, Generic[TEnemy, TAttackers]):
     def max_iterations(self):
         raise NotImplementedError
 
-    def _select_attackers(self, heroes: List[Hero], defenders: List[Hero], verbose=True):
+    def _select_attackers(self, heroes: List[Hero], defenders: List[Hero], verbose=True) -> Tuple[List[Hero], float]:
         """
         Select attackers for the given enemy to maximise win probability.
         """
-        attackers_list = [list(attackers) for attackers in combinations(heroes, constants.TEAM_SIZE)]
+
+        # Select top N combinations by power to reduce the list size.
+        attackers_list: List[Iterable[Hero]] = heapq.nlargest(
+            constants.ARENA_COMBINATIONS_LIMIT,
+            combinations(heroes, constants.TEAM_SIZE),
+            lambda attackers: sum(attacker.power for attacker in attackers),
+        )
+
+        # Select top combination by win probability.
         x = numpy.array([self.make_team_features(attackers) for attackers in attackers_list]) - self.make_team_features(defenders)
         y: numpy.ndarray = self.model.estimator.predict_proba(x)[:, 1]
         index: int = y.argmax()
         if verbose:
             logger.debug(f'👊 Win probability: {100.0 * y[index]:.1f}%.')
-        return attackers_list[index], y[index]
+        return list(attackers_list[index]), y[index]
 
 
 class Arena(AbstractArena[ArenaEnemy, List[Hero]]):
     @property
     def max_iterations(self):
-        return constants.MAX_ARENA_ITERATIONS
+        return constants.ARENA_MAX_ITERATIONS
 
     def select_attackers(self, enemy: ArenaEnemy) -> Tuple[List[Hero], float]:
         self.set_heroes_model(enemy.heroes)
@@ -112,7 +121,7 @@ class Arena(AbstractArena[ArenaEnemy, List[Hero]]):
 class GrandArena(AbstractArena[GrandArenaEnemy, List[List[Hero]]]):
     @property
     def max_iterations(self):
-        return constants.MAX_GRAND_ARENA_ITERATIONS
+        return constants.GRAND_ARENA_MAX_ITERATIONS
 
     def select_attackers(self, enemy: GrandArenaEnemy) -> Tuple[List[List[Hero]], float]:
         """
