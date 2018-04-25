@@ -5,13 +5,16 @@ Game API response wrappers.
 import logging
 from abc import ABC, ABCMeta
 from datetime import datetime, timedelta, timezone, tzinfo
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, TypeVar
 
 import numpy
 
 import bestmobabot.model
 from bestmobabot import constants
 from bestmobabot.resources import artifact_name, coin_name, consumable_name, gear_name, hero_name, scroll_name
+
+T1 = TypeVar('T1')
+T2 = TypeVar('T2')
 
 
 class BaseResponse(ABC):
@@ -135,7 +138,7 @@ class Hero(BaseResponse):
         self.level: int = int(raw['level'])
         self.color: int = int(raw['color'])
         self.star: int = int(raw['star'])
-        self.power: Optional[int] = int(raw.get('power', 0))
+        self.power: Optional[int] = cast_optional(raw.get('power'), int)
 
         # Should be here to optimise CPU usage.
         self.feature_dict = {
@@ -183,7 +186,7 @@ class BaseArenaEnemy(BaseResponse, metaclass=ABCMeta):
         self.user_id: str = str(raw['userId'])
         self.place: str = str(raw['place'])
         self.power: int = int(raw['power'])
-        self.user: Optional[User] = User(raw['user']) if raw.get('user') else None
+        self.user: Optional[User] = cast_optional(raw.get('user'), User)
 
 
 class ArenaEnemy(BaseArenaEnemy):
@@ -206,8 +209,8 @@ class ArenaResult(BaseResponse):
     def __init__(self, raw: Dict):
         super().__init__(raw)
         self.win: bool = raw['win']
-        self.arena_place: Optional[str] = raw['state'].get('arenaPlace')
-        self.grand_place: Optional[str] = raw['state'].get('grandPlace')
+        self.arena_place: Optional[str] = cast_optional(raw['state'].get('arenaPlace'), str)
+        self.grand_place: Optional[str] = cast_optional(raw['state'].get('grandPlace'), str)
         self.battles: List['BattleResult'] = [BattleResult(result) for result in raw['battles']]
         self.reward: Reward = Reward(raw['reward'] or {})
 
@@ -270,6 +273,10 @@ class Tower(BaseResponse):
     @property
     def is_chest(self):
         return self.floor_type == 'chest'
+
+
+def cast_optional(value: Optional[T1], cast: Callable[[T1], T2]) -> Optional[T2]:
+    return cast(value) if value is not None else None
 
 
 __all__ = [

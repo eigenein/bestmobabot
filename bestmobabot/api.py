@@ -237,8 +237,8 @@ class API(contextlib.AbstractContextManager):
     def get_user_info(self) -> User:
         return User(self.call('userGetInfo').response)
 
-    def get_all_heroes(self) -> List[Hero]:
-        return list_of(Hero, self.call('heroGetAll').response)
+    def get_all_heroes(self, random_sleep=True) -> List[Hero]:
+        return list_of(Hero, self.call('heroGetAll', random_sleep=random_sleep).response)
 
     # Daily bonus.
     # ------------------------------------------------------------------------------------------------------------------
