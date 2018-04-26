@@ -503,8 +503,10 @@ class Bot(contextlib.AbstractContextManager, BotHelper):
             logger.info(f'🛒 Buying slot #{slot_id} in shop «{shop_name(shop_id)}»…')
             try:
                 log_reward(self.api.shop(shop_id=shop_id, slot_id=slot_id))
-            except (NotEnoughError, AlreadyError) as e:
-                logger.warning(f'🛒 {e.description}')
+            except NotEnoughError as e:
+                logger.warning(f'🛒 Not enough: {e.description}')
+            except AlreadyError as e:
+                logger.warning(f'🛒 Already: {e.description}')
 
     def skip_tower(self):
         """
