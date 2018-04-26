@@ -16,7 +16,12 @@ TOWER_IGNORED_BUFF_IDS = {13, 14, 17, 18, 19}  # These buffs require a hero ID.
 # Arena model training control.
 MODEL_SCORING = 'accuracy'
 MODEL_N_SPLITS = 5
-MODEL_N_ESTIMATORS_CHOICES = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 250, 300]
+MODEL_N_ESTIMATORS_CHOICES = [
+    5, 10, 15, 20, 25, 30, 35, 40, 45, 50,
+    60, 70, 80, 90, 100,
+    120, 140, 160, 180, 200,
+    250, 300, 350, 400,
+]
 
 # Arena iterations control.
 ARENA_EARLY_STOP = 0.95

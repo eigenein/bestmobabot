@@ -12,6 +12,7 @@
 * Save hero powers in the battle log
 * Update game locale to `v0351`
 * Shift raid schedules over day
+* Add mirrored battles to the training data set
 
 # `v0.3.1`
 

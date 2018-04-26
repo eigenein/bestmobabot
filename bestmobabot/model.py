@@ -86,19 +86,25 @@ class Trainer:
     def read_battles(self) -> List[Dict[str, Any]]:
         self.logger.info('🤖 Reading battles…')
         battle_set: Set[Tuple[Tuple[str, Any]]] = {
-            tuple(sorted(self.parse_battle(value).items()))
+            tuple(sorted(battle.items()))
             for _, value in self.db.get_by_index('replays')
+            for battle in self.parse_battles(value)
         }
         return [dict(battle) for battle in battle_set]
 
     @classmethod
-    def parse_battle(cls, battle: Dict[str, Any]) -> Dict[str, Any]:
+    def parse_battles(cls, battle: Dict[str, Any]) -> Iterable[Dict[str, Any]]:
+        # Yield battle itself.
         result = defaultdict(int)
-
         cls.parse_heroes(battle.get('attackers') or battle['player'], True, result)
         cls.parse_heroes(battle.get('defenders') or battle['enemies'], False, result)
+        yield {'win': battle['win'], **result}
 
-        return {'win': battle['win'], **result}
+        # Yield mirrored battle.
+        result = defaultdict(int)
+        cls.parse_heroes(battle.get('attackers') or battle['player'], False, result)
+        cls.parse_heroes(battle.get('defenders') or battle['enemies'], True, result)
+        yield {'win': not battle['win'], **result}
 
     @staticmethod
     def parse_heroes(heroes: Iterable[Dict[str, int]], is_attackers: bool, result: DefaultDict[str, int]):
