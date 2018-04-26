@@ -1,3 +1,4 @@
+import os
 import signal
 from datetime import datetime, timedelta
 from typing import TextIO, Tuple
@@ -56,6 +57,7 @@ def main(
 
 # noinspection PyUnusedLocal
 def handle_sigterm(signum, frame):
+    logger.info(f'👋 SIGTERM received. Bye-bye!{os.linesep}')
     raise KeyboardInterrupt
 
 
