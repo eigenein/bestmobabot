@@ -165,22 +165,21 @@ def secretary_max(items: Iterable[T1], n: int, key: Optional[Callable[[T1], T2]]
     r = int(n / math.e) + 1
 
     max_key = None
-    max_item = None
 
     for i, item in enumerate(items, start=1):
         item_key = key(item) if key else item
         # Check early stop condition.
         if early_stop is not None and item_key >= early_stop:
             return item, item_key
+        # If it's the last item, just return it.
+        if i == n:
+            return item, item_key
         # Otherwise, check if the item is better than previous ones.
         if max_key is None or item_key > max_key:
             if i >= r:
                 # Better than (r - 1) previous ones, return it.
                 return item, item_key
-            # Otherwise, update the best item.
-            max_key, max_item = item_key, item
-        elif i == n:
-            # The last item, return it.
-            max_key, max_item = item_key, item
+            # Otherwise, update the best key.
+            max_key = item_key
 
-    return max_item, max_key
+    raise RuntimeError('unreachable code')
