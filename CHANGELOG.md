@@ -3,7 +3,7 @@
 * **Automatic arena model training**
 * **Battle logs are moved to SQLite**
 * **Configurable VK.com token**
-* Hotfix for out-of-memory error: `BESTMOBABOT_TIME_OFFSET` option
+* `BESTMOBABOT_ARENA_OFFSET` option to shift arena schedule
 * TinyDB is replaced with SQLite
 * Added early stop to arena enemy selection, early stop improvements
 * Generated model is removed from the codebase
@@ -11,6 +11,7 @@
 * Workaround to speed up arena computations
 * Save hero powers in the battle log
 * Update game locale to `v0351`
+* Shift raid schedules over day
 
 # `v0.3.1`
 
