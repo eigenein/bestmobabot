@@ -140,7 +140,7 @@ class Hero(BaseResponse):
         self.star: int = int(raw['star'])
         self.power: Optional[int] = cast_optional(raw.get('power'), int)
 
-        # Should be here to optimise CPU usage.
+        # Should be here to optimise performance.
         self.feature_dict = {
             f'color_{self.id}': float(self.color),
             f'level_{self.id}': float(self.level),
@@ -158,14 +158,12 @@ class Hero(BaseResponse):
             'total_stars': float(self.star),
             'total_heroes': 1.0,
         }
-        self.features: Optional[numpy.ndarray] = None
 
-    def set_model(self, model: 'bestmobabot.model.Model'):
+    def get_features(self, model: 'bestmobabot.model.Model') -> numpy.ndarray:
         """
-        Initialize hero features.
+        Construct hero features for prediction model.
         """
-        assert self.features is None, 'model should be set only once for each hero'
-        self.features = numpy.fromiter((self.feature_dict.get(name, 0.0) for name in model.feature_names), numpy.float)
+        return numpy.fromiter((self.feature_dict.get(name, 0.0) for name in model.feature_names), numpy.float)
 
     def dump(self) -> dict:
         return {key: self.raw[key] for key in ('id', 'level', 'color', 'star', 'power')}

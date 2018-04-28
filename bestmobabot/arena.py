@@ -2,11 +2,10 @@
 Arena hero selection logic.
 """
 
-import heapq
 import math
 from abc import ABC, abstractmethod
-from functools import reduce
-from itertools import combinations, permutations
+from functools import lru_cache
+from itertools import chain, combinations, permutations
 from operator import itemgetter
 from typing import Callable, Generic, Iterable, List, Tuple, Optional, TypeVar
 
@@ -45,7 +44,6 @@ class AbstractArena(ABC, Generic[TEnemy, TAttackers]):
         self.get_enemies_page = get_enemies_page
 
     def select_enemy(self) -> Tuple[TEnemy, TAttackers, float]:
-        self.set_heroes_model(self.heroes)
         (enemy, attackers, probability), _ = secretary_max(
             self.iterate_enemies_pages(),
             self.max_iterations,
@@ -63,21 +61,6 @@ class AbstractArena(ABC, Generic[TEnemy, TAttackers]):
             if enemy.user is not None and not enemy.user.is_from_clan(self.user_clan_id):
                 yield (enemy, *self.select_attackers(enemy))
 
-    def set_heroes_model(self, heroes: Iterable[Hero]):
-        """
-        Initialize heroes features.
-        """
-        for hero in heroes:
-            hero.set_model(self.model)
-
-    @staticmethod
-    def make_team_features(heroes: Iterable[Hero]) -> numpy.ndarray:
-        """
-        Build model features for the specified heroes.
-        """
-        # noinspection PyTypeChecker
-        return reduce(numpy.add, (hero.features for hero in heroes))
-
     @abstractmethod
     def select_attackers(self, enemy: TEnemy) -> Tuple[TAttackers, float]:
         raise NotImplementedError
@@ -92,20 +75,26 @@ class AbstractArena(ABC, Generic[TEnemy, TAttackers]):
         Select attackers for the given enemy to maximise win probability.
         """
 
-        # Select top N combinations by power to reduce the list size.
-        attackers_list: List[Iterable[Hero]] = heapq.nlargest(
-            constants.ARENA_COMBINATIONS_LIMIT,
-            combinations(heroes, constants.TEAM_SIZE),
-            lambda attackers: sum(attacker.power for attacker in attackers),
-        )
+        hero_combinations_ = hero_combinations(len(heroes))
+
+        # Select top N candidates by team power.
+        selected_combinations: numpy.ndarray = numpy \
+            .array([hero.power for hero in heroes])[hero_combinations_] \
+            .sum(axis=1) \
+            .argpartition(-constants.ARENA_COMBINATIONS_LIMIT)[-constants.ARENA_COMBINATIONS_LIMIT:]
+        hero_combinations_ = hero_combinations_[selected_combinations]
+
+        # Construct features.
+        hero_features: numpy.ndarray = numpy.vstack(hero.get_features(self.model) for hero in heroes)
+        defender_features: numpy.ndarray = numpy.vstack(hero.get_features(self.model) for hero in defenders)
+        x: numpy.ndarray = hero_features[hero_combinations_].sum(axis=1) - defender_features.sum(axis=0)
 
         # Select top combination by win probability.
-        x = numpy.array([self.make_team_features(attackers) for attackers in attackers_list]) - self.make_team_features(defenders)
         y: numpy.ndarray = self.model.estimator.predict_proba(x)[:, 1]
         index: int = y.argmax()
         if verbose:
             logger.debug(f'👊 Win probability: {100.0 * y[index]:.1f}%.')
-        return list(attackers_list[index]), y[index]
+        return [heroes[i] for i in hero_combinations_[index]], y[index]
 
 
 class Arena(AbstractArena[ArenaEnemy, List[Hero]]):
@@ -114,7 +103,6 @@ class Arena(AbstractArena[ArenaEnemy, List[Hero]]):
         return constants.ARENA_MAX_ITERATIONS
 
     def select_attackers(self, enemy: ArenaEnemy) -> Tuple[List[Hero], float]:
-        self.set_heroes_model(enemy.heroes)
         return self._select_attackers(self.heroes, enemy.heroes)
 
 
@@ -128,9 +116,6 @@ class GrandArena(AbstractArena[GrandArenaEnemy, List[List[Hero]]]):
         Select 3 teams of attackers for the given enemy to maximise win probability.
         It's not giving the best solution but it's fast enough.
         """
-        for heroes in enemy.heroes:
-            self.set_heroes_model(heroes)
-
         selections: List[Tuple[List[List[Hero]], float, float, float, float]] = []
 
         # Try to form attackers teams in different order and maximise the final probability.
@@ -156,6 +141,15 @@ class GrandArena(AbstractArena[GrandArenaEnemy, List[List[Hero]]]):
 
 # Utilities.
 # ----------------------------------------------------------------------------------------------------------------------
+
+@lru_cache(maxsize=1)
+def hero_combinations(hero_count: int) -> numpy.ndarray:
+    """
+    Used to generate indexes of possible heroes in a team.
+    It it cached because hero count rarely changes.
+    """
+    return numpy.fromiter(chain.from_iterable(combinations(range(hero_count), constants.TEAM_SIZE)), dtype=int).reshape(-1, constants.TEAM_SIZE)
+
 
 def secretary_max(items: Iterable[T1], n: int, key: Optional[Callable[[T1], T2]] = None, early_stop: T2 = None) -> Tuple[T1, T2]:
     """

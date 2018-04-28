@@ -54,15 +54,15 @@ class ArgumentError(ApiError):
     pass
 
 
+class OutOfRetargetDelta(ApiError):
+    pass
+
+
 class InvalidResponseError(ValueError):
     pass
 
 
 class InvalidSignatureError(ValueError):
-    pass
-
-
-class OutOfRetargetDelta(ValueError):
     pass
 
 
@@ -295,8 +295,7 @@ class API(contextlib.AbstractContextManager):
     # ------------------------------------------------------------------------------------------------------------------
 
     def find_arena_enemies(self) -> List[ArenaEnemy]:
-        # Random sleep is turned off because model prediction takes some time already.
-        return list_of(ArenaEnemy, self.call('arenaFindEnemies', random_sleep=False).response)
+        return list_of(ArenaEnemy, self.call('arenaFindEnemies').response)
 
     def attack_arena(self, user_id: str, hero_ids: Iterable[str]) -> Tuple[ArenaResult, Quests]:
         result = self.call('arenaAttack', {'userId': user_id, 'heroes': list(hero_ids)})

@@ -1,5 +1,8 @@
 # `test`
 
+* **Dramatically improved arena performance** (not for grand arena though)
+* **`ARENA_COMBINATIONS_LIMIT` is increased to `10000` because of the optimisation**
+* Random sleeps are enabled again for `find_arena_enemies`
 * Refactorings
 
 # `v0.4`

@@ -26,7 +26,7 @@ MODEL_N_ESTIMATORS_CHOICES = [
 # Arena iterations control.
 ARENA_EARLY_STOP = 0.95
 ARENA_MAX_ITERATIONS = 10  # FIXME: make configurable
-ARENA_COMBINATIONS_LIMIT = 1000  # FIXME: workaround
+ARENA_COMBINATIONS_LIMIT = 10000  # FIXME: workaround
 GRAND_ARENA_MAX_ITERATIONS = 10  # FIXME: make configurable
 
 # FIXME: obtain from the resources.
