@@ -1,4 +1,4 @@
-# `v0.4` (planned)
+# `v0.4`
 
 * **Automatic arena model training**
 * **Battle logs are moved to SQLite**
