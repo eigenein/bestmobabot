@@ -7,6 +7,7 @@ from abc import ABC, abstractmethod
 from functools import lru_cache
 from itertools import chain, combinations, permutations
 from operator import itemgetter
+from time import time
 from typing import Callable, Generic, Iterable, List, Tuple, Optional, TypeVar
 
 import numpy
@@ -61,6 +62,12 @@ class AbstractArena(ABC, Generic[TEnemy, TAttackers]):
             if enemy.user is not None and not enemy.user.is_from_clan(self.user_clan_id):
                 yield (enemy, *self.select_attackers(enemy))
 
+    def make_features(self, heroes: Iterable[Hero]) -> numpy.ndarray:
+        """
+        Make hero features array. Shape is number of heroes × number of features.
+        """
+        return numpy.vstack(hero.get_features(self.model) for hero in heroes)
+
     @abstractmethod
     def select_attackers(self, enemy: TEnemy) -> Tuple[TAttackers, float]:
         raise NotImplementedError
@@ -85,15 +92,16 @@ class AbstractArena(ABC, Generic[TEnemy, TAttackers]):
         hero_combinations_ = hero_combinations_[selected_combinations]
 
         # Construct features.
-        hero_features: numpy.ndarray = numpy.vstack(hero.get_features(self.model) for hero in heroes)
-        defender_features: numpy.ndarray = numpy.vstack(hero.get_features(self.model) for hero in defenders)
-        x: numpy.ndarray = hero_features[hero_combinations_].sum(axis=1) - defender_features.sum(axis=0)
+        x: numpy.ndarray = (
+            self.make_features(heroes)[hero_combinations_].sum(axis=1)
+            - self.make_features(defenders).sum(axis=0)
+        )
 
         # Select top combination by win probability.
         y: numpy.ndarray = self.model.estimator.predict_proba(x)[:, 1]
         index: int = y.argmax()
         if verbose:
-            logger.debug(f'👊 Win probability: {100.0 * y[index]:.1f}%.')
+            logger.debug(f'🎲 Win probability: {100.0 * y[index]:.1f}%%.')
         return [heroes[i] for i in hero_combinations_[index]], y[index]
 
 
@@ -135,8 +143,52 @@ class GrandArena(AbstractArena[GrandArenaEnemy, List[List[Hero]]]):
         # Choose best selection.
         attackers_teams, probability, p1, p2, p3 = max(selections, key=itemgetter(1))
 
-        logger.debug(f'👊 Win probability: {100 * probability:.1f}% ({100 * p1:.1f}% {100 * p2:.1f}% {100 * p3:.1f}%).')
+        logger.debug(f'🎲 Win probability: {100 * probability:.1f}%% ({100 * p1:.1f}%% {100 * p2:.1f}%% {100 * p3:.1f}%%).')
+        self.select_attackers_2(enemy)  # TODO
         return attackers_teams, probability
+
+    def select_attackers_2(self, enemy: GrandArenaEnemy) -> Tuple[List[List[Hero]], float]:
+        hero_features = self.make_features(self.heroes)
+        defenders_features = [self.make_features(heroes).sum(axis=0) for heroes in enemy.heroes]
+
+        n1 = 10
+        n2 = 1000
+
+        # Generate initial population.
+        population: numpy.ndarray = numpy.vstack(
+            numpy.random.choice(len(self.heroes), size=len(self.heroes), replace=False)
+            for _ in range(n1)
+        )
+
+        # And now do some magic.
+        row_selector = numpy.array([[i] for i in range(n2)])
+        column_selectors = (slice(0, 5), slice(5, 10), slice(10, 15))
+        for n_iteration in range(100):
+            # Generate new ones.
+            new = population[numpy.random.choice(population.shape[0], n2)]
+
+            # Generate permutation matrix. Swap two elements in each row.
+            swap = numpy.vstack(numpy.random.choice(len(self.heroes), size=2, replace=False) for _ in range(n2))
+            new[row_selector, swap] = new[row_selector, swap][:, ::-1]
+
+            # Stack population with the new rows.
+            population = numpy.vstack((population, new))
+
+            # Run predictors.
+            p1, p2, p3 = (
+                self.model.estimator.predict_proba(hero_features[population[:, selector]].sum(axis=1) - defender_features)[:, 1]
+                for selector, defender_features in zip(column_selectors, defenders_features)
+            )
+            probabilities = p1 * p2 * p3 + p1 * p2 * (1.0 - p3) + p2 * p3 * (1.0 - p1) + p1 * p3 * (1.0 - p2)
+
+            # Select top ones.
+            top_indexes = probabilities.argpartition(-n1)[-n1:]
+            population = population[top_indexes, :]
+
+            logger.debug(f'🎲 #{n_iteration}: {100.0 * probabilities.min():.1f}%% … {100.0 * probabilities.max():.1f}%%')
+
+        # Return top.
+        # TODO
 
 
 # Utilities.
