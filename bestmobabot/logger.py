@@ -11,10 +11,10 @@ from bestmobabot.responses import *
 logger = logging.getLogger('bestmobabot')
 
 
-def log_heroes(message: str, heroes: Iterable[Hero]):
-    logger.info(f'👊 {message}')
+def log_heroes(emoji: str, message: str, heroes: Iterable[Hero]):
+    logger.info(f'{emoji} {message}')
     for hero in sorted(heroes, reverse=True, key=Hero.order):
-        logger.info(f'👊 {hero}')
+        logger.info(f'{emoji} {hero}')
 
 
 def log_reward(reward: Reward):
