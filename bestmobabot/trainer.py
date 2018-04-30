@@ -16,7 +16,6 @@ from bestmobabot.model import Trainer
 def main(verbose: bool, n_splits: int):
     """
     Train and generate arena prediction model.
-    https://github.com/eigenein/bestmobabot/blob/master/research/bestmoba.ipynb
     """
     coloredlogs.install(
         fmt='%(asctime)s %(levelname)s %(message)s',
