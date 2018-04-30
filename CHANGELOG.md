@@ -1,9 +1,11 @@
 # `test`
 
+Arena time!
+
 * **Dramatically improved arena performance**
 * **Evolutionary algorithm for grand arena**
 * **`ARENA_COMBINATIONS_LIMIT` is increased to `20000` because of the optimisation**
-* Random sleeps are enabled again for `find_arena_enemies`
+* Random sleeps are enabled again for `find_arena_enemies` because of improved performance
 
 # `v0.4`
 
