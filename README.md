@@ -41,3 +41,23 @@ services:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
 ```
+
+### Trainer
+
+Arena model trainer could be run manually via:
+
+```bash
+python -m bestmobabot.trainer -v
+```
+
+Trained model is then saved back to the database.
+
+### Storage
+
+SQLite database is used as a sort of key-value store to preserve state between restarts:
+
+* Arena and grand arena battles
+* Authentication credentials
+* API session
+* Picked up gifts
+* Arena win probability prediction model
