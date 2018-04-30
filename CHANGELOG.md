@@ -2,7 +2,7 @@
 
 * **Dramatically improved arena performance**
 * **Evolutionary algorithm for grand arena**
-* **`ARENA_COMBINATIONS_LIMIT` is increased to `10000` because of the optimisation**
+* **`ARENA_COMBINATIONS_LIMIT` is increased to `20000` because of the optimisation**
 * Random sleeps are enabled again for `find_arena_enemies`
 
 # `v0.4`
