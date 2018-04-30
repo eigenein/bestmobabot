@@ -24,13 +24,14 @@ MODEL_N_ESTIMATORS_CHOICES = [
 ]
 
 # Arena iterations control.
+# FIXME: make configurable.
 ARENA_EARLY_STOP = 0.95
-ARENA_MAX_ITERATIONS = 10  # FIXME: make configurable
-ARENA_COMBINATIONS_LIMIT = 20000  # FIXME: make configurable
-GRAND_ARENA_MAX_ITERATIONS = 10  # FIXME: make configurable
-GRAND_ARENA_GENERATIONS = 30  # FIXME: make configurable
-GRAND_ARENA_N_KEEP = 200  # FIXME: make configurable
-GRAND_ARENA_N_GENERATE = 1000  # FIXME: make configurable
+ARENA_MAX_ITERATIONS = 10
+ARENA_COMBINATIONS_LIMIT = 20000
+GRAND_ARENA_MAX_ITERATIONS = 10
+GRAND_ARENA_GENERATIONS = 35
+GRAND_ARENA_N_KEEP = 200
+GRAND_ARENA_N_GENERATE = 1000
 
 # FIXME: obtain from the resources.
 COLORS: Dict[int, str] = {
