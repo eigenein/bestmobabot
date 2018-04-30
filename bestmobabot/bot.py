@@ -332,11 +332,11 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             arena.Arena(model, self.user.clan_id, heroes, self.api.find_arena_enemies).select_enemy()
 
         # Debugging.
-        log_heroes('👊', 'Attackers:', attackers)
-        log_heroes('🔰', f'Defenders:', enemy.heroes)
         logger.info(f'🔰 Enemy name: "{enemy.user.name}".')
         logger.info(f'🔰 Enemy place: {enemy.place}.')
         logger.info(f'🎲 Probability: {100.0 * probability:.1f}%.')
+        log_heroes('👊', 'Attackers:', attackers)
+        log_heroes('🔰', f'Defenders:', enemy.heroes)
 
         # Attack!
         result, quests = self.api.attack_arena(enemy.user.id, self.get_hero_ids(attackers))
@@ -358,13 +358,13 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             arena.GrandArena(model, self.user.clan_id, heroes, self.api.find_grand_enemies).select_enemy()
 
         # Debugging.
+        logger.info(f'🔰 Enemy name: "{enemy.user.name}".')
+        logger.info(f'🔰 Enemy place: {enemy.place}.')
+        logger.info(f'🎲 Probability: {100.0 * probability:.1f}%.')
         for i, (attackers, defenders) in enumerate(zip(attacker_teams, enemy.heroes), start=1):
             logger.info(f'👊 Battle #{i}.')
             log_heroes('👊', 'Attackers:', attackers)
             log_heroes('🔰', 'Defenders:', defenders)
-        logger.info(f'🔰 Enemy name: "{enemy.user.name}".')
-        logger.info(f'🔰 Enemy place: {enemy.place}.')
-        logger.info(f'🎲 Probability: {100.0 * probability:.1f}%.')
 
         # Attack!
         result, quests = self.api.attack_grand(enemy.user.id, [
