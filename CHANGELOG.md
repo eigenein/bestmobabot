@@ -7,6 +7,7 @@ Arena time!
 * **`ARENA_COMBINATIONS_LIMIT` is increased to `20000` because of the optimisation**
 * Random sleeps are enabled again for `find_arena_enemies` because of improved performance
 * Add timeout to API calls
+* Increase `ARENA_MAX_ITERATIONS`
 
 # `v0.4`
 
