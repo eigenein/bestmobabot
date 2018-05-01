@@ -1,5 +1,6 @@
 from typing import Dict
 
+API_TIMEOUT = 10.0
 DATABASE_NAME = 'db.sqlite3'
 
 # Fundamental constants.

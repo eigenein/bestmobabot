@@ -15,6 +15,7 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, TypeVar
 import requests
 from requests.adapters import HTTPAdapter
 
+from bestmobabot import constants
 from bestmobabot.database import Database
 from bestmobabot.enums import *
 from bestmobabot.logger import logger
@@ -172,7 +173,7 @@ class API(contextlib.AbstractContextManager):
             headers['X-Auth-Session-Init'] = '1'
         headers["X-Auth-Signature"] = self.sign_request(data, headers)
 
-        with self.session.post(self.API_URL, data=data, headers=headers) as response:
+        with self.session.post(self.API_URL, data=data, headers=headers, timeout=constants.API_TIMEOUT) as response:
             self.last_responses.append(response.text.strip())
             response.raise_for_status()
             try:
