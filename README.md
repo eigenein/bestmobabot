@@ -16,14 +16,14 @@ services:
     image: eigenein/bestmobabot
     restart: always
     environment:
-      - BESTMOBABOT_REMIXSID=VK.com-remixsid-cookie-1
-      - BESTMOBABOT_LOGFILE=/srv/bestmobabot/bestmobabot-user-1.log
-      - BESTMOBABOT_NO_EXPERIENCE=true
-      - BESTMOBABOT_RAID=16 3 57 3
-      - BESTMOBABOT_SHOP=1 4 1 5
-      - BESTMOBABOT_TRAINER=true
-      - BESTMOBABOT_VK_TOKEN=VK.com-API-token
-      - BESTMOBABOT_ARENA_OFFSET=3600
+      - REMIXSID=VK.com-remixsid-cookie-1
+      - LOGFILE=/srv/bestmobabot/bestmobabot-user-1.log
+      - NO_EXPERIENCE=true
+      - RAID=16 3 57 3
+      - SHOP=1 4 1 5
+      - IS_TRAINER=true
+      - VK_TOKEN=VK.com-API-token
+      - ARENA_OFFSET=3600
     volumes:
       - /srv/bestmobabot:/srv/bestmobabot
       - /etc/timezone:/etc/timezone:ro
@@ -32,10 +32,10 @@ services:
     image: eigenein/bestmobabot
     restart: always
     environment:
-      - BESTMOBABOT_REMIXSID=VK.com-remixsid-cookie-2
-      - BESTMOBABOT_LOGFILE=/srv/bestmobabot/bestmobabot-user-2.log
-      - BESTMOBABOT_NO_EXPERIENCE=false
-      - BESTMOBABOT_VK_TOKEN=VK.com-API-token
+      - REMIXSID=VK.com-remixsid-cookie-2
+      - LOGFILE=/srv/bestmobabot/bestmobabot-user-2.log
+      - NO_EXPERIENCE=false
+      - VK_TOKEN=VK.com-API-token
     volumes:
       - /srv/bestmobabot:/srv/bestmobabot
       - /etc/timezone:/etc/timezone:ro
@@ -43,6 +43,8 @@ services:
 ```
 
 ### Trainer
+
+Trainer is enabled by setting `IS_TRAINER` to `true`. Typically, you only need one trainer per a single database. It will perform training for all bots using the same database.
 
 Arena model trainer could be run manually via:
 
@@ -61,3 +63,5 @@ SQLite database is used as a sort of key-value store to preserve state between r
 * API session
 * Picked up gifts
 * Arena win probability prediction model
+
+The same database can be used by multiple bots. Actually, it is _recommended_ that multiple bots use the same database in order to share the arena prediction model.
