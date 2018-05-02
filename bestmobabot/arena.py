@@ -81,7 +81,7 @@ class AbstractArena(ABC, Generic[TEnemy, TAttackers]):
 class Arena(AbstractArena[ArenaEnemy, List[Hero]]):
     @property
     def max_iterations(self):
-        return constants.ARENA_MAX_ITERATIONS
+        return constants.ARENA_MAX_PAGES
 
     def select_attackers(self, enemy: ArenaEnemy) -> Tuple[List[Hero], float]:
         """
@@ -94,7 +94,7 @@ class Arena(AbstractArena[ArenaEnemy, List[Hero]]):
         selected_combinations: numpy.ndarray = numpy \
             .array([hero.power for hero in self.heroes])[hero_combinations_] \
             .sum(axis=1) \
-            .argpartition(-constants.ARENA_COMBINATIONS_LIMIT)[-constants.ARENA_COMBINATIONS_LIMIT:]
+            .argpartition(-constants.ARENA_TEAMS_LIMIT)[-constants.ARENA_TEAMS_LIMIT:]
         hero_combinations_ = hero_combinations_[selected_combinations]
 
         # Construct features.
@@ -113,7 +113,7 @@ class Arena(AbstractArena[ArenaEnemy, List[Hero]]):
 class GrandArena(AbstractArena[GrandArenaEnemy, List[List[Hero]]]):
     @property
     def max_iterations(self):
-        return constants.GRAND_ARENA_MAX_ITERATIONS
+        return constants.GRAND_ARENA_MAX_PAGES
 
     def select_attackers(self, enemy: GrandArenaEnemy) -> Tuple[List[List[Hero]], float]:
         n_heroes = len(self.heroes)
