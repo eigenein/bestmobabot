@@ -19,8 +19,8 @@ services:
       - REMIXSID=VK.com-remixsid-cookie-1
       - LOGFILE=/srv/bestmobabot/bestmobabot-user-1.log
       - NO_EXPERIENCE=true
-      - RAID=16 3 57 3
-      - SHOP=1 4 1 5
+      - RAIDS=16 3 57 3
+      - SHOPS=1 4 1 5
       - IS_TRAINER=true
       - VK_TOKEN=VK.com-API-token
       - ARENA_OFFSET=3600
