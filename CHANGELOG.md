@@ -8,6 +8,7 @@ Arena time!
 * Random sleeps are enabled again for `find_arena_enemies` because of improved performance
 * Add timeout to API calls
 * Increase `ARENA_MAX_ITERATIONS`
+* Increase `GRAND_ARENA_MAX_ITERATIONS`
 
 # `v0.4`
 
