@@ -55,7 +55,7 @@ class ArgumentError(ApiError):
     pass
 
 
-class OutOfRetargetDelta(ApiError):
+class OutOfRetargetDelta(Exception):
     pass
 
 
@@ -184,10 +184,13 @@ class API(contextlib.AbstractContextManager):
                 else:
                     raise InvalidResponseError(response.text)
 
+        # API developers are very funny people…
         # noinspection PyUnboundLocalVariable
         if 'results' in item:
             result = Result(item['results'][0]['result'])
             if result.response and 'error' in result.response:
+                if result.response['error'] == 'outOfRetargetDelta':
+                    raise OutOfRetargetDelta
                 raise ResponseError(result.response)
             return result
         if 'error' in item:
@@ -220,7 +223,6 @@ class API(contextlib.AbstractContextManager):
         'NotAvailable': NotAvailableError,
         'NotFound': NotFoundError,
         'ArgumentError': ArgumentError,
-        'outOfRetargetDelta': OutOfRetargetDelta,
     }
 
     @classmethod
