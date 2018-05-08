@@ -1,17 +1,8 @@
-# `test`
-
-Arena time!
-
-* **Dramatically improved arena performance**
-* **Evolutionary algorithm for grand arena**
-* **`ARENA_COMBINATIONS_LIMIT` is increased to `20000` because of the optimisation**
-* **`BESTMOBABOT_` prefix is removed from the environment variable names**
-* Random sleeps are enabled again for `find_arena_enemies` because of improved performance
-* Add timeout to API calls
-* Increase `ARENA_MAX_ITERATIONS`
-* Increase `GRAND_ARENA_MAX_ITERATIONS`
-
 # `v0.4`
+
+## «Arena Time»
+
+![Arena background](resources/gw_arena_heroes.jpg)
 
 * **Automatic arena model training**
 * **Battle logs are moved to SQLite**
