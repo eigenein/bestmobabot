@@ -1,6 +1,4 @@
-# `v0.4`
-
-## «Arena Time»
+# `v0.4` «Arena Time»
 
 ![Arena background](resources/gw_arena_heroes.jpg)
 
