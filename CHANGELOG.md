@@ -1,3 +1,7 @@
+# `v0.4.1`
+
+* Stability improvements and game translations update
+
 # `v0.4` «Arena Time»
 
 ![Arena background](resources/gw_arena_heroes.jpg)
