@@ -1,7 +1,0 @@
-requests
-click
-coloredlogs
-numpy
-scikit-learn
-scipy
-pandas

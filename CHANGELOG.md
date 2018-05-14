@@ -1,3 +1,7 @@
+# `v0.4.2`
+
+* Use Python docker image; switch to `pipenv`
+
 # `v0.4.1`
 
 * Stability improvements and game translations update
