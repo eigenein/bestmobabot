@@ -7,6 +7,8 @@ mkdir -p /srv/bestmobabot
 docker-compose up -d
 ```
 
+It's recommended that you copy `db.sqlite3` from a release to `/srv/bestmobabot`. Released databases already contain thousands of battle results which is very useful for arena automation.
+
 #### `docker-compose.yml`
 
 ```yaml
@@ -58,10 +60,12 @@ Trained model is then saved back to the database.
 
 SQLite database is used as a sort of key-value store to preserve state between restarts:
 
-* Arena and grand arena battles
+* Arena and grand arena battle results
 * Authentication credentials
 * API session
 * Picked up gifts
 * Arena win probability prediction model
 
 The same database can be used by multiple bots. Actually, it is _recommended_ that multiple bots use the same database in order to share the arena prediction model.
+
+**Warning.** *The database contains user IDs and Hero Wars API authentication tokens. Make sure that you remove them manually should you share your database. You can use the following statement to delete everything but battle results: `delete from "default" where "index" <> 'replays';`.*
