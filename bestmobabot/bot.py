@@ -70,20 +70,24 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         db: Database,
         api: API,
         vk: VK,
+        *,
         no_experience: bool,
         is_trainer: bool,
-        raids: List[Tuple[str, int]],
-        shops: List[Tuple[str, str]],
+        raids: Tuple[Tuple[str, int], ...],
+        shops: Tuple[Tuple[str, str], ...],
         arena_offset: timedelta,
+        arena_early_stop: float,
     ):
         self.db = db
         self.api = api
         self.vk = vk
+
         self.no_experience = no_experience
         self.is_trainer = is_trainer
         self.raids = raids
         self.shops = shops
         self.arena_offset = arena_offset
+        self.arena_early_stop = arena_early_stop
 
         self.user: User = None
         self.tasks: List[Task] = []
@@ -328,8 +332,13 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         model, heroes = self.check_arena(constants.TEAM_SIZE)
 
         # Pick an enemy and select attackers.
-        enemy, attackers, probability = \
-            arena.Arena(model, self.user.clan_id, heroes, self.api.find_arena_enemies).select_enemy()
+        enemy, attackers, probability = arena.Arena(
+            model,
+            self.user.clan_id,
+            heroes,
+            self.api.find_arena_enemies,
+            self.arena_early_stop,
+        ).select_enemy()
 
         # Debugging.
         logger.info(f'🔰 Enemy name: "{enemy.user.name}".')
@@ -354,8 +363,13 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         model, heroes = self.check_arena(constants.GRAND_SIZE)
 
         # Pick an enemy and select attackers.
-        enemy, attacker_teams, probability = \
-            arena.GrandArena(model, self.user.clan_id, heroes, self.api.find_grand_enemies).select_enemy()
+        enemy, attacker_teams, probability = arena.GrandArena(
+            model,
+            self.user.clan_id,
+            heroes,
+            self.api.find_grand_enemies,
+            self.arena_early_stop,
+        ).select_enemy()
 
         # Debugging.
         logger.info(f'🔰 Enemy name: "{enemy.user.name}".')

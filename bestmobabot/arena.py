@@ -37,18 +37,20 @@ class AbstractArena(ABC, Generic[TEnemy, TAttackers]):
         user_clan_id: Optional[str],
         heroes: List[Hero],
         get_enemies_page: Callable[[], List[TEnemy]],
+        early_stop: float,
     ):
         self.model = model
         self.user_clan_id = user_clan_id
         self.heroes = heroes
         self.get_enemies_page = get_enemies_page
+        self.arena_early_stop = early_stop
 
     def select_enemy(self) -> Tuple[TEnemy, TAttackers, float]:
         (enemy, attackers, probability), _ = secretary_max(
             self.iterate_enemies_pages(),
             self.max_iterations,
             key=self.probability_getter,
-            early_stop=constants.ARENA_EARLY_STOP,
+            early_stop=self.arena_early_stop,
         )
         return enemy, attackers, probability
 
