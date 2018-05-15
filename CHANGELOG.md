@@ -40,7 +40,7 @@
 * Shopping
 * Stability improvements
 
-# `v0.2`
+# `v0.2` «Machine Learning»
 
 * Bot is able to use the prediction model to attack the best arena enemy
 
