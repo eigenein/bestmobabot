@@ -29,7 +29,7 @@
 
 # `v0.3.1`
 
-* Stability improvements and model updates.
+* Stability improvements and model updates
 
 # `v0.3`
 
@@ -40,8 +40,8 @@
 
 # `v0.2`
 
-* Bot is able to use the prediction model to attack the best arena enemy.
+* Bot is able to use the prediction model to attack the best arena enemy
 
 # `v0.1`
 
-* The first pre-release that is more or less stable and performs common everyday tasks.
+* The first pre-release that is more or less stable and performs common everyday tasks
