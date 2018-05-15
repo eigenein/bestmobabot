@@ -1,5 +1,7 @@
 # `latest` «Playground»
 
+![](resources/strongford.jpg)
+
 * Use `3.6.5-wee` docker image
 * Switch to `pipenv`
 * Refactoring configuration; add `ARENA_EARLY_STOP` parameter
@@ -11,7 +13,7 @@
 
 # `v0.4` «Arena Time»
 
-![Arena background](resources/gw_arena_heroes.jpg)
+![](resources/gw_arena_heroes.jpg)
 
 * **Automatic arena model training**
 * **Battle logs are moved to SQLite**
