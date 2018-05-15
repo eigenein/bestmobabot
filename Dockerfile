@@ -1,4 +1,4 @@
-FROM python:3.6.5
+FROM revolutionsystems/python:3.6.5-wee
 MAINTAINER Pavel Perestoronin <eigenein@gmail.com>
 
 ENV LC_ALL=C.UTF-8
@@ -11,9 +11,8 @@ RUN mkdir -p /srv/bestmobabot
 VOLUME /srv/bestmobabot
 WORKDIR /srv/bestmobabot
 
-RUN pip install pipenv --upgrade
-
 COPY . /opt/bestmobabot
 RUN pipenv install --deploy --system
 
-CMD ["python", "-m", "bestmobabot", "-v"]
+ENTRYPOINT ["python", "-m", "bestmobabot"]
+CMD ["-v"]

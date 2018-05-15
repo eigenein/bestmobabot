@@ -1,6 +1,7 @@
 # `v0.4.2`
 
-* Use Python docker image; switch to `pipenv`
+* Use `3.6.5-wee` docker image
+* Switch to `pipenv`
 * Refactoring configuration; add `ARENA_EARLY_STOP` parameter
 
 # `v0.4.1`
