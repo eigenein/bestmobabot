@@ -1,8 +1,9 @@
-# `v0.4.2`
+# `latest` «Playground»
 
 * Use `3.6.5-wee` docker image
 * Switch to `pipenv`
 * Refactoring configuration; add `ARENA_EARLY_STOP` parameter
+* Delete `test` branch
 
 # `v0.4.1`
 
