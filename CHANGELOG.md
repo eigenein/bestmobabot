@@ -42,6 +42,8 @@
 
 # `v0.2` «Machine Learning»
 
+![](resources/arena.jpg)
+
 * Bot is able to use the prediction model to attack the best arena enemy
 
 # `v0.1`
