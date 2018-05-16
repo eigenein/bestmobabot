@@ -118,6 +118,8 @@ class TTestSearchCV:
         self.scoring = scoring
         self.logger = logger
         self.alpha = alpha
+
+        self.p = 1.0 - alpha
         self.best_params_: Optional[Dict[str, Any]] = None
         self.best_score_: Optional[float] = None
         self.best_scores_: Optional[numpy.ndarray] = None
@@ -144,4 +146,5 @@ class TTestSearchCV:
         if score < self.best_score_:
             return False
         _, p_value = stats.ttest_ind(self.best_scores_, scores)
-        return p_value < self.alpha
+        self.logger.debug(f'🤖 P-value: {p_value:.4f}.')
+        return p_value < self.p
