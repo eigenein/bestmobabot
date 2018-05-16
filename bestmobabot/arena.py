@@ -66,8 +66,8 @@ class AbstractArena(ABC, Generic[TEnemy, TAttackers]):
             if enemy.user is not None and not enemy.user.is_from_clan(self.user_clan_id):
                 # It appears that some enemies are repeated during the search. So don't repeat computations.
                 if enemy.user.id in self.cache:
-                    logger.debug('🎲 Cached entry found.')
                     attackers, probability = self.cache[enemy.user.id]
+                    logger.debug(f'🎲 Cached entry found: {100.0 * probability:.1f}% ("{enemy.user.name}").')
                 else:
                     attackers, probability = self.select_attackers(enemy)  # type: TAttackers, float
                     self.cache[enemy.user.id] = attackers, probability
