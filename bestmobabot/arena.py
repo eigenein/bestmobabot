@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from functools import lru_cache
 from itertools import chain, combinations, product
 from operator import itemgetter
-from typing import Callable, Generic, Iterable, List, Optional, Tuple, TypeVar
+from typing import Callable, Dict, Generic, Iterable, List, Optional, Tuple, TypeVar
 
 import numpy
 
@@ -45,6 +45,8 @@ class AbstractArena(ABC, Generic[TEnemy, TAttackers]):
         self.get_enemies_page = get_enemies_page
         self.arena_early_stop = early_stop
 
+        self.cache: Dict[str, Tuple[TAttackers, float]] = {}
+
     def select_enemy(self) -> Tuple[TEnemy, TAttackers, float]:
         (enemy, attackers, probability), _ = secretary_max(
             self.iterate_enemies_pages(),
@@ -62,7 +64,14 @@ class AbstractArena(ABC, Generic[TEnemy, TAttackers]):
         logger.debug('🎲 Estimating win probability…')
         for enemy in enemies:
             if enemy.user is not None and not enemy.user.is_from_clan(self.user_clan_id):
-                yield (enemy, *self.select_attackers(enemy))
+                # It appears that some enemies are repeated during the search. So don't repeat computations.
+                if enemy.user.id in self.cache:
+                    logger.debug('🎲 Cached entry found.')
+                    attackers, probability = self.cache[enemy.user.id]
+                else:
+                    attackers, probability = self.select_attackers(enemy)  # type: TAttackers, float
+                    self.cache[enemy.user.id] = attackers, probability
+                yield (enemy, attackers, probability)
 
     def make_features(self, heroes: Iterable[Hero]) -> numpy.ndarray:
         """

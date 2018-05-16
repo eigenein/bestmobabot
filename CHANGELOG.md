@@ -6,6 +6,7 @@
 * Switch to `pipenv`
 * Add `ARENA_EARLY_STOP` parameter
 * Model trainer is now using T-test to compare scores – it should decrease `n_estimators` and improve speed
+* Caching selected arena attackers during the search
 * Delete `test` branch
 
 # `v0.4.1`
