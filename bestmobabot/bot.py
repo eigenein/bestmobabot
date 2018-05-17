@@ -75,8 +75,10 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         is_trainer: bool,
         raids: Tuple[Tuple[str, int], ...],
         shops: Tuple[Tuple[str, str], ...],
-        arena_offset: timedelta,
         arena_early_stop: float,
+        arena_offset: timedelta,
+        arena_teams_limit: int,
+        grand_arena_generations: int,
     ):
         self.db = db
         self.api = api
@@ -86,8 +88,10 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         self.is_trainer = is_trainer
         self.raids = raids
         self.shops = shops
-        self.arena_offset = arena_offset
         self.arena_early_stop = arena_early_stop
+        self.arena_offset = arena_offset
+        self.arena_teams_limit = arena_teams_limit
+        self.grand_arena_generations = grand_arena_generations
 
         self.user: User = None
         self.tasks: List[Task] = []
@@ -333,11 +337,12 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
 
         # Pick an enemy and select attackers.
         enemy, attackers, probability = arena.Arena(
-            model,
-            self.user.clan_id,
-            heroes,
-            self.api.find_arena_enemies,
-            self.arena_early_stop,
+            model=model,
+            user_clan_id=self.user.clan_id,
+            heroes=heroes,
+            get_enemies_page=self.api.find_arena_enemies,
+            early_stop=self.arena_early_stop,
+            n_teams_limit=self.arena_teams_limit,
         ).select_enemy()
 
         # Debugging.
@@ -364,11 +369,12 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
 
         # Pick an enemy and select attackers.
         enemy, attacker_teams, probability = arena.GrandArena(
-            model,
-            self.user.clan_id,
-            heroes,
-            self.api.find_grand_enemies,
-            self.arena_early_stop,
+            model=model,
+            user_clan_id=self.user.clan_id,
+            heroes=heroes,
+            get_enemies_page=self.api.find_grand_enemies,
+            early_stop=self.arena_early_stop,
+            n_generations=self.grand_arena_generations,
         ).select_enemy()
 
         # Debugging.

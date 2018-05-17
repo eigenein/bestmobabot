@@ -33,6 +33,7 @@ class AbstractArena(ABC, Generic[TEnemy, TAttackers]):
 
     def __init__(
         self,
+        *,
         model: Model,
         user_clan_id: Optional[str],
         heroes: List[Hero],
@@ -90,6 +91,10 @@ class AbstractArena(ABC, Generic[TEnemy, TAttackers]):
 
 
 class Arena(AbstractArena[ArenaEnemy, List[Hero]]):
+    def __init__(self, n_teams_limit: int, **kwargs):
+        super().__init__(**kwargs)
+        self.n_teams_limit = n_teams_limit
+
     @property
     def max_iterations(self):
         return constants.ARENA_MAX_PAGES
@@ -105,7 +110,7 @@ class Arena(AbstractArena[ArenaEnemy, List[Hero]]):
         selected_combinations: numpy.ndarray = numpy \
             .array([hero.power for hero in self.heroes])[hero_combinations_] \
             .sum(axis=1) \
-            .argpartition(-constants.ARENA_TEAMS_LIMIT)[-constants.ARENA_TEAMS_LIMIT:]
+            .argpartition(-self.n_teams_limit)[-self.n_teams_limit:]
         hero_combinations_ = hero_combinations_[selected_combinations]
 
         # Construct features.
@@ -122,6 +127,10 @@ class Arena(AbstractArena[ArenaEnemy, List[Hero]]):
 
 
 class GrandArena(AbstractArena[GrandArenaEnemy, List[List[Hero]]]):
+    def __init__(self, *, n_generations: int, **kwargs):
+        super().__init__(**kwargs)
+        self.n_generations = n_generations
+
     @property
     def max_iterations(self):
         return constants.GRAND_ARENA_MAX_PAGES
@@ -150,7 +159,7 @@ class GrandArena(AbstractArena[GrandArenaEnemy, List[List[Hero]]]):
         max_index: int = None
         max_probability = 0.0
 
-        for n_generation in range(constants.GRAND_ARENA_GENERATIONS):
+        for n_generation in range(self.n_generations):
             # Generate new solutions.
             # Choose random solutions from the population and apply a random permutation to each of them.
             new_permutations = swaps[numpy.random.randint(0, swaps.shape[0], constants.GRAND_ARENA_N_GENERATE)]

@@ -15,17 +15,19 @@ from bestmobabot.resources import get_translations
 from bestmobabot.vk import VK
 
 
-@click.command()
+@click.command(context_settings={'max_content_width': 120})
 @click.option('-s', '--remixsid', help='VK.com remixsid cookie.', envvar='REMIXSID', required=True)
 @click.option('vk_token', '--vk', help='VK.com API token.', envvar='VK_TOKEN', required=True)
 @click.option('-l', '--log-file', help='Log file.', envvar='LOGFILE', type=click.File('at'), default=click.get_text_stream('stderr'))
 @click.option('-v', '--verbose', help='Increase verbosity.', is_flag=True)
 @click.option('--no-experience', help='Do not farm experience.', envvar='NO_EXPERIENCE', is_flag=True)
-@click.option('is_trainer', '--trainer', help='Automatically train arena model.', envvar='IS_TRAINER', is_flag=True)
+@click.option('is_trainer', '--trainer', help='Automatically train arena model once a day.', envvar='IS_TRAINER', is_flag=True)
 @click.option('raids', '--raid', help='Raid the mission specified by its ID and number of raids per day.', envvar='RAIDS', type=(str, int), multiple=True)
 @click.option('shops', '--shop', help='Buy goods specified by shop_id and slot_id every day', envvar='SHOPS', type=(str, str), multiple=True)
-@click.option('--arena-offset', help='Arena schedule offset in seconds.', envvar='ARENA_OFFSET', type=int, default=0)
-@click.option('--arena-early-stop', help='Minimum win probability to stop arena enemy search early.', envvar='ARENA_EARLY_STOP', type=float, default=0.95)
+@click.option('--arena-early-stop', help='Minimum win probability to stop (grand) arena enemy search early.', envvar='ARENA_EARLY_STOP', type=float, default=0.95, show_default=True)
+@click.option('--arena-offset', help='Arena schedule offset in seconds.', envvar='ARENA_OFFSET', type=int, default=0, show_default=True)
+@click.option('--arena-teams-limit', help='Greater: better arena attackers but uses more resources.', envvar='ARENA_TEAMS_LIMIT', type=int, default=20000, show_default=True)
+@click.option('--grand-arena-generations', help='Greater: better grand arena attackers but uses more resources.', envvar='GRAND_ARENA_GENERATIONS', type=int, default=35, show_default=True)
 def main(remixsid: str, vk_token: str, log_file: TextIO, verbose: bool, arena_offset: int, **kwargs):
     """
     Hero Wars bot.

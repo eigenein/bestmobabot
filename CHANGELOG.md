@@ -5,6 +5,8 @@
 * Use `3.6.5-wee` docker image
 * Switch to `pipenv`
 * Add `ARENA_EARLY_STOP` parameter
+* Add `GRAND_ARENA_GENERATIONS` parameter
+* Add `ARENA_TEAMS_LIMIT` parameter
 * Model trainer is now using T-test to compare scores – it should decrease `n_estimators` and improve speed
 * Caching selected arena attackers during the search
 * Delete `test` branch
