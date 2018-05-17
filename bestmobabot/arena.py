@@ -94,6 +94,7 @@ class Arena(AbstractArena[ArenaEnemy, List[Hero]]):
     def __init__(self, n_teams_limit: int, **kwargs):
         super().__init__(**kwargs)
         self.n_teams_limit = n_teams_limit
+        logger.info(f'🎲 Teams count limit: {n_teams_limit}.')
 
     @property
     def max_iterations(self):
@@ -130,6 +131,7 @@ class GrandArena(AbstractArena[GrandArenaEnemy, List[List[Hero]]]):
     def __init__(self, *, n_generations: int, **kwargs):
         super().__init__(**kwargs)
         self.n_generations = n_generations
+        logger.info(f'🎲 Generations count: {n_generations}.')
 
     @property
     def max_iterations(self):
