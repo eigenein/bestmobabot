@@ -75,8 +75,9 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         is_trainer: bool,
         raids: Tuple[Tuple[str, int], ...],
         shops: Tuple[Tuple[str, str], ...],
+        friend_ids: Tuple[str, ...],
         arena_early_stop: float,
-        arena_offset: timedelta,
+        arena_offset: int,
         arena_teams_limit: int,
         grand_arena_generations: int,
     ):
@@ -88,8 +89,9 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         self.is_trainer = is_trainer
         self.raids = raids
         self.shops = shops
+        self.friend_ids = list(friend_ids)
         self.arena_early_stop = arena_early_stop
-        self.arena_offset = arena_offset
+        self.arena_offset = timedelta(seconds=arena_offset)
         self.arena_teams_limit = arena_teams_limit
         self.grand_arena_generations = grand_arena_generations
 
@@ -319,7 +321,10 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         Отправляет сердечки друзьям.
         """
         logger.info('🎁 Sending daily gift…')
-        self.farm_quests(self.api.send_daily_gift(['15664420', '209336881', '386801200', '386796029']))  # FIXME
+        if self.friend_ids:
+            self.farm_quests(self.api.send_daily_gift(self.friend_ids))
+        else:
+            logger.warning('No friends specified.')
 
     def train_arena_model(self):
         """
