@@ -62,7 +62,7 @@ Random forest classifier is used to predict probability to win an arena (grand a
 
 ### Grand arena optimisation
 
-Grand arena is a bit special because the total number of hero combinations is too large to run the estimator on all of them. Thus, a sort of genetic algorithm is used to find the best attackers.
+Grand arena is a bit special because the total number of hero combinations is too large to run the estimator on all of them (there're `N choose 5 ⋅ (N - 5) choose 5 ⋅ (N - 10) choose 5` possible attackers combinations). Thus, a sort of genetic algorithm is used to find the best attackers.
 
 ## Storage
 
