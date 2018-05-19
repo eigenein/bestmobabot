@@ -60,5 +60,9 @@ class Database(AbstractContextManager):
                 VALUES (?, ?, ?)
             ''', (index, key, dumps(value)))
 
+    def vacuum(self):
+        with closing(self.connection.cursor()) as cursor:  # type: sqlite3.Cursor
+            cursor.execute('VACUUM')
+
     def __exit__(self, exc_type, exc_value, traceback):
         self.connection.__exit__(exc_type, exc_value, traceback)

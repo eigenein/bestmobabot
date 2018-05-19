@@ -77,6 +77,9 @@ class Trainer:
         logging.info('🤖 Saving model…')
         self.db.set('bot', 'model', pickle.dumps(Model(estimator, list(x.columns))), dumps=bytes.hex)
 
+        logging.info('🤖 Optimizing database…')
+        self.db.vacuum()
+
         self.logger.info('🤖 Finished.')
 
     def read_battles(self) -> List[Dict[str, Any]]:

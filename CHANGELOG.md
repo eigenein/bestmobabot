@@ -10,6 +10,7 @@
 * Add `FRIENDS` parameter
 * Model trainer is now using T-test to compare scores – it should decrease `n_estimators` and improve speed
 * Caching selected arena attackers during the search
+* Vacuum the database after training
 * Delete `test` branch
 
 # `v0.4.1`
