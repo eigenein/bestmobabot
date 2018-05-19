@@ -1,7 +1,10 @@
 .dockerignore
 .git
 .gitignore
+CHANGELOG.md
 Dockerfile
+LICENSE
+README.md
 resources
 tests
 
