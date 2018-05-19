@@ -1,6 +1,6 @@
 The bot playing [Hero Wars](https://vk.com/app5327745) MOBA-like game on [VK.com](https://vk.com).
 
-### Running with Docker Compose
+## Running with Docker Compose
 
 ```bash
 mkdir -p /srv/bestmobabot
@@ -9,7 +9,7 @@ docker-compose up -d
 
 It's recommended that you copy `db.sqlite3` from a release to `/srv/bestmobabot`. Released databases already contain thousands of battle results which is very useful for arena automation.
 
-#### `docker-compose.yml`
+### `docker-compose.yml`
 
 ```yaml
 version: "3.3"
@@ -44,7 +44,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
 ```
 
-### Trainer
+## Trainer
 
 Trainer is enabled by setting `IS_TRAINER` to `true`. Typically, you only need one trainer per a single database. It will perform training for all bots using the same database.
 
@@ -56,7 +56,7 @@ python -m bestmobabot.trainer -v
 
 Trained model is then saved back to the database.
 
-### Storage
+## Storage
 
 SQLite database is used as a sort of key-value store to preserve state between restarts:
 
