@@ -1,4 +1,4 @@
-# `latest` «Playground»
+# `0.5` «Playground»
 
 ![](resources/strongford.jpg)
 
