@@ -44,6 +44,10 @@ services:
       - /etc/localtime:/etc/localtime:ro
 ```
 
+### Running with Docker
+
+Of course, the bot could be running just with Docker. Run `docker run eigenein/bestmobabot --help` to see the possible options. Environment variables are accepted too.
+
 ## Trainer
 
 Trainer is enabled by setting `IS_TRAINER` to `true`. Typically, you only need one trainer per a single database. It will perform training for all bots using the same database.
