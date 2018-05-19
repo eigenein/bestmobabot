@@ -46,7 +46,7 @@ services:
 
 ### Running with Docker
 
-Of course, the bot could be running just with Docker. Run `docker run eigenein/bestmobabot --help` to see the possible options. Environment variables are accepted too.
+Of course, the bot could be run just with Docker. Run `docker run eigenein/bestmobabot --help` to see the possible options. Environment variables are accepted too.
 
 ## Trainer
 
