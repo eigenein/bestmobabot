@@ -1,4 +1,4 @@
-The bot playing [Hero Wars](https://vk.com/app5327745) MOBA-like game on [VK.com](https://vk.com).
+Bot playing [Hero Wars](https://vk.com/app5327745) MOBA-like game on [VK.com](https://vk.com). The bot uses pure reverse-engineered Hero Wars JSON API. No Flash-emulator is used.
 
 ## Running with Docker Compose
 
