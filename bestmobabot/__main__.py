@@ -11,7 +11,7 @@ from bestmobabot.api import API
 from bestmobabot.bot import Bot
 from bestmobabot.database import Database
 from bestmobabot.logger import logger
-from bestmobabot.resources import get_translations
+from bestmobabot.resources import get_library, get_translations
 from bestmobabot.vk import VK
 
 
@@ -22,7 +22,7 @@ from bestmobabot.vk import VK
 @click.option('-v', '--verbose', help='Increase verbosity.', is_flag=True)
 @click.option('--no-experience', help='Do not farm experience.', envvar='NO_EXPERIENCE', is_flag=True)
 @click.option('is_trainer', '--trainer', help='Automatically train arena model once a day.', envvar='IS_TRAINER', is_flag=True)
-@click.option('raids', '--raid', help='Raid the mission specified by its ID and number of raids per day.', envvar='RAIDS', type=(str, int), multiple=True)
+@click.option('raids', '--raid', help='Raid the mission specified by its ID.', envvar='RAIDS', type=str, multiple=True)
 @click.option('shops', '--shop', help='Buy goods specified by shop_id and slot_id every day', envvar='SHOPS', type=(str, str), multiple=True)
 @click.option('friend_ids', '--friend', help='Send daily gift to a friend specified by its ID.', envvar='FRIENDS', type=str, multiple=True)
 @click.option('--arena-early-stop', help='Minimum win probability to stop (grand) arena enemy search early.', envvar='ARENA_EARLY_STOP', type=float, default=0.95, show_default=True)
@@ -38,7 +38,9 @@ def main(remixsid: str, vk_token: str, log_file: TextIO, verbose: bool, **kwargs
     coloredlogs.install(fmt='%(asctime)s %(levelname)s %(message)s', level=level, logger=logger, stream=log_file)
     logger.info('🤖 Bot is starting.')
 
-    get_translations()  # prefetch game translations
+    # Prefetch game resources.
+    get_library()
+    get_translations()
 
     with Database(constants.DATABASE_NAME) as db, API(db, remixsid) as api:
         with Bot(db, api, VK(vk_token), **kwargs) as bot:

@@ -59,15 +59,15 @@ class OutOfRetargetDelta(Exception):
     pass
 
 
-class InvalidResponseError(ValueError):
-    pass
-
-
-class InvalidSignatureError(ValueError):
-    pass
-
-
 class ResponseError(ValueError):
+    pass
+
+
+class InvalidResponseError(ResponseError):
+    pass
+
+
+class InvalidSignatureError(ResponseError):
     pass
 
 
@@ -349,6 +349,9 @@ class API(contextlib.AbstractContextManager):
     def raid_mission(self, mission_id: str, times=1) -> List[Reward]:
         response = self.call('missionRaid', {'times': times, 'id': mission_id}).response
         return list_of(Reward, response)
+
+    def get_all_missions(self) -> List[Mission]:
+        return list_of(Mission, self.call('missionGetAll').response)
 
     # Boss.
     # https://github.com/eigenein/bestmobabot/wiki/Boss

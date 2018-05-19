@@ -1,3 +1,8 @@
+# `latest` «Raids Should Be Better»
+
+* **Completely redesign raids – spend all stamina**
+* Update translations
+
 # `0.5` «Playground»
 
 ![](resources/strongford.jpg)

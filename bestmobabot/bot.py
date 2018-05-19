@@ -9,15 +9,15 @@ from datetime import datetime, timedelta
 from operator import attrgetter
 from random import choice
 from time import sleep
-from typing import Iterable, List, Optional, Set, Tuple
+from typing import Dict, Iterable, List, Optional, Set, Tuple
 
 from bestmobabot import arena, constants
-from bestmobabot.api import AlreadyError, API, InvalidResponseError, NotEnoughError, NotFoundError, OutOfRetargetDelta
+from bestmobabot.api import API, AlreadyError, InvalidResponseError, NotEnoughError, NotFoundError, OutOfRetargetDelta
 from bestmobabot.database import Database
 from bestmobabot.enums import *
 from bestmobabot.logger import log_arena_result, log_heroes, log_reward, log_rewards, logger
 from bestmobabot.model import Model
-from bestmobabot.resources import mission_name, shop_name
+from bestmobabot.resources import get_heroic_mission_ids, mission_name, shop_name
 from bestmobabot.responses import *
 from bestmobabot.task import Task, TaskNotAvailable
 from bestmobabot.trainer import Trainer
@@ -30,6 +30,7 @@ class BotHelperMixin:
     """
     db: Database
     api: API
+    raids: Set[str]
 
     @staticmethod
     def get_hero_ids(heroes: Iterable[Hero]) -> List[str]:
@@ -63,6 +64,37 @@ class BotHelperMixin:
 
         return model, heroes
 
+    def get_raid_mission_ids(self) -> Iterable[str]:
+        # Get all missions that could be raided by the player.
+        missions: Dict[str, Mission] = {
+            mission.id: mission
+            for mission in self.api.get_all_missions()
+            if mission.stars == constants.RAID_N_STARS
+        }
+        # Get all mission IDs that are configured and could be raided.
+        raids = self.raids & missions.keys()
+
+        # Get heroic mission IDs.
+        heroic_mission_ids = get_heroic_mission_ids()
+
+        # First, yield heroic missions.
+        raided_heroic_mission_ids = raids & heroic_mission_ids
+        logger.info(f'👊 Raided heroic missions: {raided_heroic_mission_ids}.')
+        for mission_id in raided_heroic_mission_ids:
+            tries_left = constants.RAID_N_HEROIC_TRIES - missions[mission_id].tries_spent
+            logger.info(f'👊 Mission #{mission_id}: {tries_left} tries left.')
+            for _ in range(tries_left):
+                yield mission_id
+
+        # Then, randomly choose non-heroic missions infinitely.
+        non_heroic_mission_ids = list(raids - heroic_mission_ids)
+        logger.info(f'👊 Raided non-heroic missions: {non_heroic_mission_ids}.')
+        if not non_heroic_mission_ids:
+            logger.info('👊 No raided non-heroic missions.')
+            return
+        while True:
+            yield choice(non_heroic_mission_ids)
+
 
 class Bot(contextlib.AbstractContextManager, BotHelperMixin):
     def __init__(
@@ -73,7 +105,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         *,
         no_experience: bool,
         is_trainer: bool,
-        raids: Tuple[Tuple[str, int], ...],
+        raids: Tuple[str, ...],
         shops: Tuple[Tuple[str, str], ...],
         friend_ids: Tuple[str, ...],
         arena_early_stop: float,
@@ -87,7 +119,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
 
         self.no_experience = no_experience
         self.is_trainer = is_trainer
-        self.raids = raids
+        self.raids = set(raids)
         self.shops = shops
         self.friend_ids = list(friend_ids)
         self.arena_early_stop = arena_early_stop
@@ -127,6 +159,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             Task(next_run_at=Task.every_n_hours(6), execute=self.check_freebie),
             Task(next_run_at=Task.every_n_hours(6), execute=self.farm_expeditions),
             Task(next_run_at=Task.every_n_hours(8), execute=self.get_arena_replays),
+            Task(next_run_at=Task.every_n_hours(4), execute=self.raid_missions),
 
             # One time a day.
             Task(next_run_at=Task.at(hour=6, minute=0), execute=self.skip_tower),
@@ -140,15 +173,8 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             # Task(next_run_at=Task.every_n_minutes(1), execute=self.quack, args=('Quack 2!',)),
             # Task(next_run_at=Task.at(hour=22, minute=14, tz=None), execute=self.quack, args=('Fixed time!',)),
             # Task(next_run_at=Task.at(hour=22, minute=40, tz=None), execute=self.shop, args=(['1'],)),
-            # Task(next_run_at=Task.asap(), execute=self.attack_grand_arena),
+            # Task(next_run_at=Task.asap(), execute=self.raid_missions),
         ]
-        for i, (mission_id, number) in enumerate(self.raids):
-            self.tasks.append(Task(
-                # FIXME: each mission is shifted by an hour to allow stamina to accumulate.
-                next_run_at=Task.every_n_hours(24 / number, timedelta(hours=i)),
-                execute=self.raid_mission,
-                args=(mission_id,)),
-            )
         if self.shops:
             self.tasks.extend([
                 Task(next_run_at=Task.at(hour=11, minute=1), execute=self.shop, args=(['4', '5', '6', '9'],)),
@@ -458,12 +484,18 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         else:
             logger.info('💬 All chests have been opened.')
 
-    def raid_mission(self, mission_id: str):
+    def raid_missions(self):
         """
-        Ходит в рейд в миссию в кампании за предметами.
+        Ходит в рейды в миссиях в кампании за предметами.
         """
-        logger.info(f'👊 Raid mission «{mission_name(mission_id)}»…')
-        log_rewards(self.api.raid_mission(mission_id))
+        logger.info(f'👊 Raid missions…')
+        for mission_id in self.get_raid_mission_ids():
+            logger.info(f'👊 Raid mission #{mission_id} «{mission_name(mission_id)}»…')
+            try:
+                log_rewards(self.api.raid_mission(mission_id))
+            except NotEnoughError as e:
+                logger.info(f'👊 Not enough: {e.description}.')
+                break
 
     def shop(self, shop_ids: List[str]):
         """

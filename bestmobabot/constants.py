@@ -26,6 +26,10 @@ MODEL_N_ESTIMATORS_CHOICES = [
     250, 300, 350, 400,
 ]
 
+# Raids.
+RAID_N_HEROIC_TRIES = 3
+RAID_N_STARS = 3
+
 # Arena iterations control.
 # FIXME: make configurable.
 ARENA_MAX_PAGES = 15

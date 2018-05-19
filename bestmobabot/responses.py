@@ -273,6 +273,14 @@ class Tower(BaseResponse):
         return self.floor_type == 'chest'
 
 
+class Mission(BaseResponse):
+    def __init__(self, raw: Dict):
+        super().__init__(raw)
+        self.id = str(raw['id'])
+        self.tries_spent = int(raw['triesSpent'])
+        self.stars = int(raw['stars'])
+
+
 def cast_optional(value: Optional[T1], cast: Callable[[T1], T2]) -> Optional[T2]:
     return cast(value) if value is not None else None
 
@@ -297,4 +305,5 @@ __all__ = [
     'Replay',
     'ShopSlot',
     'Tower',
+    'Mission',
 ]
