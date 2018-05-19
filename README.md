@@ -64,9 +64,13 @@ Trained model is then saved back to the database.
 
 Random forest classifier is used to predict probability to win an arena (grand arena) battle. The input for this classifier is features of attackers and defenders such as: hero level, hero color and hero stars. [Secretary problem](https://en.wikipedia.org/wiki/Secretary_problem) optimal policy is then used to maximise win probability across possible enemies. The model is trained on past battles from the arena and grand arena journals.
 
+### Arena optimisation
+
+To find the best attackers, top N most powerful teams are fed into the classifier. The best one is then chosen as attackers. Usually, it's a global optimum when N is large enough (say 20000-40000).
+
 ### Grand arena optimisation
 
-Grand arena is a bit special because the total number of hero combinations is too large to run the estimator on all of them (there're `N choose 5 ⋅ (N - 5) choose 5 ⋅ (N - 10) choose 5` possible attackers combinations). Thus, a sort of genetic algorithm is used to find the best attackers.
+Grand arena is a bit special because the total number of hero combinations is too large to run the estimator on all of them (there're `N choose 5 ⋅ (N - 5) choose 5 ⋅ (N - 10) choose 5` possible attackers combinations). Thus, a sort of genetic algorithm is used to find the best attackers (local optimum perhaps).
 
 ## Storage
 
