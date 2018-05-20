@@ -59,13 +59,17 @@ class AbstractArena(ABC, Generic[TEnemy, TAttackers]):
 
     def iterate_enemies_pages(self) -> Iterable[Tuple[TEnemy, TAttackers, float]]:
         while True:
-            yield max(self.iterate_enemies(self.get_enemies_page()), key=self.probability_getter)
+            enemies: List[Tuple[TEnemy, TAttackers, float]] = list(self.iterate_enemies(self.get_enemies_page()))
+            # Yes, sometimes all enemies are filtered out.
+            if enemies:
+                yield max(enemies, key=self.probability_getter)
 
     def iterate_enemies(self, enemies: Iterable[TEnemy]) -> Tuple[TEnemy, TAttackers, float]:
         logger.debug('🎲 Estimating win probability…')
         for enemy in enemies:
+            # Some enemies don't have user assigned. Filter them out.
             if enemy.user is not None and not enemy.user.is_from_clan(self.user_clan_id):
-                # It appears that some enemies are repeated during the search. So don't repeat computations.
+                # It appears that often enemies are repeated during the search. So don't repeat computations.
                 if enemy.user.id in self.cache:
                     attackers, probability = self.cache[enemy.user.id]
                     logger.debug(f'🎲 Cached entry found: {100.0 * probability:.1f}% ("{enemy.user.name}").')

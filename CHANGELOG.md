@@ -2,6 +2,7 @@
 
 * **Completely redesign raids – spend all stamina**
 * Update translations
+* Fix `ValueError: max() arg is an empty sequence` in arena
 
 # `0.5` «Playground»
 
