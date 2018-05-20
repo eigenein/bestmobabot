@@ -3,6 +3,7 @@
 * **Completely redesign raids – spend all stamina**
 * Update translations
 * Fix `ValueError: max() arg is an empty sequence` in arena
+* Add `SPAM` logging level
 
 # `0.5` «Playground»
 

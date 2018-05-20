@@ -3,25 +3,21 @@ import sys
 import warnings
 
 import click
-import coloredlogs
 
+import bestmobabot.logger
 from bestmobabot import constants
 from bestmobabot.database import Database
 from bestmobabot.model import Trainer
 
 
 @click.command()
-@click.option('-v', '--verbose', is_flag=True, default=False, help='Increase verbosity.')
+@click.option('verbosity', '-v', '--verbose', count=True, help='Increase verbosity.')
 @click.option('--n-splits', type=int, default=constants.MODEL_N_SPLITS, help='K-fold splits.')
-def main(verbose: bool, n_splits: int):
+def main(verbosity: int, n_splits: int):
     """
     Train and generate arena prediction model.
     """
-    coloredlogs.install(
-        fmt='%(asctime)s %(levelname)s %(message)s',
-        level=(logging.INFO if not verbose else logging.DEBUG),
-        stream=sys.stderr,
-    )
+    bestmobabot.logger.install_logging(logging.getLogger(), verbosity, sys.stderr)
     if not sys.warnoptions:
         warnings.simplefilter('ignore')
 

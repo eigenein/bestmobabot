@@ -12,6 +12,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 
 from bestmobabot import constants, responses
+from bestmobabot.constants import SPAM
 from bestmobabot.database import Database
 
 
@@ -132,6 +133,7 @@ class TTestSearchCV:
         for values in itertools.product(*self.param_grid.values()):
             params = dict(zip(self.param_grid.keys(), values))
             self.estimator.set_params(**params)
+            self.logger.log(SPAM, f'🤖 CV started: {params}')
             scores: numpy.ndarray = cross_val_score(self.estimator, x, y, scoring=self.scoring, cv=self.cv)
             score: float = scores.mean()
             self.logger.debug(f'🤖 Score: {score:.4f} with {params}.')
@@ -149,5 +151,5 @@ class TTestSearchCV:
         if score < self.best_score_:
             return False
         _, p_value = stats.ttest_ind(self.best_scores_, scores)
-        self.logger.debug(f'🤖 P-value: {p_value:.4f}.')
+        self.logger.log(SPAM, f'🤖 P-value: {p_value:.4f}.')
         return p_value < self.p

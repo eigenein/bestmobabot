@@ -72,7 +72,7 @@ class AbstractArena(ABC, Generic[TEnemy, TAttackers]):
                 # It appears that often enemies are repeated during the search. So don't repeat computations.
                 if enemy.user.id in self.cache:
                     attackers, probability = self.cache[enemy.user.id]
-                    logger.debug(f'🎲 Cached entry found: {100.0 * probability:.1f}% ("{enemy.user.name}").')
+                    logger.info(f'🎲 Cached entry found: {100.0 * probability:.1f}% ("{enemy.user.name}").')
                 else:
                     attackers, probability = self.select_attackers(enemy)  # type: TAttackers, float
                     self.cache[enemy.user.id] = attackers, probability
@@ -127,7 +127,7 @@ class Arena(AbstractArena[ArenaEnemy, List[Hero]]):
         # Select top combination by win probability.
         y: numpy.ndarray = self.model.estimator.predict_proba(x)[:, 1]
         index: int = y.argmax()
-        logger.debug(f'🎲 Win probability: {100.0 * y[index]:.1f}% ("{enemy.user.name}").')
+        logger.info(f'🎲 Win probability: {100.0 * y[index]:.1f}% ("{enemy.user.name}").')
         return [self.heroes[i] for i in hero_combinations_[index]], y[index]
 
 
@@ -195,7 +195,7 @@ class GrandArena(AbstractArena[GrandArenaEnemy, List[List[Hero]]]):
             max_index = probabilities.argmax()
             max_probability = probabilities[max_index]
 
-        logger.debug(
+        logger.info(
             '🎲 Win probability:'
             f' {100.0 * max_probability:.2f}%'
             f' ({100 * p1[max_index]:.1f}% {100 * p2[max_index]:.1f}% {100 * p3[max_index]:.1f}%)'

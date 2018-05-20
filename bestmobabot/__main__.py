@@ -4,13 +4,12 @@ from datetime import datetime
 from typing import TextIO
 
 import click
-import coloredlogs
 
 from bestmobabot import constants
 from bestmobabot.api import API
 from bestmobabot.bot import Bot
 from bestmobabot.database import Database
-from bestmobabot.logger import logger
+from bestmobabot.logger import install_logging, logger
 from bestmobabot.resources import get_library, get_translations
 from bestmobabot.vk import VK
 
@@ -19,7 +18,7 @@ from bestmobabot.vk import VK
 @click.option('-s', '--remixsid', help='VK.com remixsid cookie.', envvar='REMIXSID', required=True)
 @click.option('vk_token', '--vk', help='VK.com API token.', envvar='VK_TOKEN', required=True)
 @click.option('-l', '--log-file', help='Log file.', envvar='LOGFILE', type=click.File('at'), default=click.get_text_stream('stderr'))
-@click.option('-v', '--verbose', help='Increase verbosity.', is_flag=True)
+@click.option('verbosity', '-v', '--verbose', help='Increase verbosity.', count=True)
 @click.option('--no-experience', help='Do not farm experience.', envvar='NO_EXPERIENCE', is_flag=True)
 @click.option('is_trainer', '--trainer', help='Automatically train arena model once a day.', envvar='IS_TRAINER', is_flag=True)
 @click.option('raids', '--raid', help='Raid the mission specified by its ID.', envvar='RAIDS', type=str, multiple=True)
@@ -29,13 +28,12 @@ from bestmobabot.vk import VK
 @click.option('--arena-offset', help='Arena schedule offset in seconds.', envvar='ARENA_OFFSET', type=int, default=0, show_default=True)
 @click.option('--arena-teams-limit', help='Greater: better arena attackers but uses more resources.', envvar='ARENA_TEAMS_LIMIT', type=int, default=20000, show_default=True)
 @click.option('--grand-arena-generations', help='Greater: better grand arena attackers but uses more resources.', envvar='GRAND_ARENA_GENERATIONS', type=int, default=35, show_default=True)
-def main(remixsid: str, vk_token: str, log_file: TextIO, verbose: bool, **kwargs):
+def main(remixsid: str, vk_token: str, log_file: TextIO, verbosity: int, **kwargs):
     """
     Hero Wars bot.
     """
     signal.signal(signal.SIGTERM, handle_sigterm)
-    level = 'DEBUG' if verbose else 'INFO'
-    coloredlogs.install(fmt='%(asctime)s %(levelname)s %(message)s', level=level, logger=logger, stream=log_file)
+    install_logging(logger, verbosity, log_file)
     logger.info('🤖 Bot is starting.')
 
     # Prefetch game resources.
