@@ -169,7 +169,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             Task(next_run_at=Task.at(hour=10, minute=0), execute=self.farm_zeppelin_gift),
 
             # Debug tasks. Uncomment when needed.
-            Task(next_run_at=Task.asap(), execute=self.attack_grand_arena),
+            # Task(next_run_at=Task.asap(), execute=self.attack_grand_arena),
         ]
         if self.shops:
             self.tasks.extend([
