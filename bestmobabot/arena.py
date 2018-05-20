@@ -65,7 +65,7 @@ class AbstractArena(ABC, Generic[TEnemy, TAttackers]):
                 yield max(enemies, key=self.probability_getter)
 
     def iterate_enemies(self, enemies: Iterable[TEnemy]) -> Tuple[TEnemy, TAttackers, float]:
-        logger.debug('🎲 Estimating win probability…')
+        logger.info('🎲 Estimating win probability…')
         for enemy in enemies:
             # Some enemies don't have user assigned. Filter them out.
             if enemy.user is not None and not enemy.user.is_from_clan(self.user_clan_id):
