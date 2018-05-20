@@ -73,7 +73,7 @@ class Trainer:
         # Print debugging info.
         self.logger.debug(f'🤖 Classes: {estimator.classes_}')
         for column, importance in sorted(zip(x.columns, estimator.feature_importances_), key=itemgetter(1), reverse=True):
-            self.logger.debug(f'🤖 Feature {column}: {importance:.7f}')
+            self.logger.log(SPAM, f'🤖 Feature {column}: {importance:.7f}')
 
         logging.info('🤖 Saving model…')
         self.db.set('bot', 'model', pickle.dumps(Model(estimator, list(x.columns))), dumps=bytes.hex)
