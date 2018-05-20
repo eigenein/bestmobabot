@@ -12,6 +12,7 @@ from typing import Callable, Dict, Generic, Iterable, List, Optional, Tuple, Typ
 import numpy
 
 from bestmobabot import constants
+from bestmobabot.constants import SPAM
 from bestmobabot.logger import logger
 from bestmobabot.model import Model
 from bestmobabot.responses import ArenaEnemy, GrandArenaEnemy, Hero
@@ -137,17 +138,23 @@ class GrandArena(AbstractArena[GrandArenaEnemy, List[List[Hero]]]):
         self.n_generations = n_generations
         logger.info(f'🎲 Generations count: {n_generations}.')
 
+        # We keep solutions in an attribute because we want to retry the best solutions across different enemies.
+        logger.log(SPAM, f'🎲 Generating initial solutions…')
+        self.solutions: numpy.ndarray = numpy.vstack(
+            numpy.random.permutation(len(self.heroes))
+            for _ in range(constants.GRAND_ARENA_N_KEEP)
+        )
+
     @property
     def max_iterations(self):
         return constants.GRAND_ARENA_MAX_PAGES
 
     def select_attackers(self, enemy: GrandArenaEnemy) -> Tuple[List[List[Hero]], float]:
+        logger.log(SPAM, f'🎲 Selecting attackers ({enemy.user.name})…')
+
         n_heroes = len(self.heroes)
         hero_features = self.make_features(self.heroes)
         defenders_features = [self.make_features(heroes).sum(axis=0) for heroes in enemy.heroes]
-
-        # Generate initial solutions.
-        solutions: numpy.ndarray = numpy.vstack(numpy.random.permutation(n_heroes) for _ in range(constants.GRAND_ARENA_N_KEEP))
 
         # Used to select separate teams from the population array.
         team_selectors = (slice(0, 5), slice(5, 10), slice(10, 15))
@@ -169,18 +176,18 @@ class GrandArena(AbstractArena[GrandArenaEnemy, List[List[Hero]]]):
             # Generate new solutions.
             # Choose random solutions from the population and apply a random permutation to each of them.
             new_permutations = swaps[numpy.random.randint(0, swaps.shape[0], constants.GRAND_ARENA_N_GENERATE)]
-            new_solutions = solutions[
-                numpy.random.choice(solutions.shape[0], constants.GRAND_ARENA_N_GENERATE).reshape(-1, 1),
+            new_solutions = self.solutions[
+                numpy.random.choice(self.solutions.shape[0], constants.GRAND_ARENA_N_GENERATE).reshape(-1, 1),
                 new_permutations
             ]
 
             # Stack past solutions with the new ones.
-            solutions = numpy.vstack((solutions, new_solutions))
+            self.solutions = numpy.vstack((self.solutions, new_solutions))
 
             # Predict probabilities.
             # Call to `predict_proba` is expensive, thus call it for all the grand teams at once. Stack and split.
             x = numpy.vstack(
-                hero_features[solutions[:, selector]].sum(axis=1) - defender_features
+                hero_features[self.solutions[:, selector]].sum(axis=1) - defender_features
                 for selector, defender_features in zip(team_selectors, defenders_features)
             )
             p1, p2, p3 = numpy.split(self.model.estimator.predict_proba(x)[:, 1], 3)
@@ -188,12 +195,13 @@ class GrandArena(AbstractArena[GrandArenaEnemy, List[List[Hero]]]):
 
             # Select top ones.
             top_indexes = probabilities.argpartition(-constants.GRAND_ARENA_N_KEEP)[-constants.GRAND_ARENA_N_KEEP:]
-            solutions = solutions[top_indexes, :]
+            self.solutions = self.solutions[top_indexes, :]
             probabilities = probabilities[top_indexes]
 
             # Select the best one.
             max_index = probabilities.argmax()
             max_probability = probabilities[max_index]
+            logger.log(SPAM, f'🎲 Generation #{n_generation}: {max_probability:.4f}.')
 
         logger.info(
             '🎲 Win probability:'
@@ -202,7 +210,7 @@ class GrandArena(AbstractArena[GrandArenaEnemy, List[List[Hero]]]):
             f' ("{enemy.user.name}")'
         )
 
-        return [[self.heroes[i] for i in solutions[max_index, selector]] for selector in team_selectors], max_probability
+        return [[self.heroes[i] for i in self.solutions[max_index, selector]] for selector in team_selectors], max_probability
 
 
 # Utilities.

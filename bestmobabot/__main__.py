@@ -27,7 +27,7 @@ from bestmobabot.vk import VK
 @click.option('--arena-early-stop', help='Minimum win probability to stop (grand) arena enemy search early.', envvar='ARENA_EARLY_STOP', type=float, default=0.95, show_default=True)
 @click.option('--arena-offset', help='Arena schedule offset in seconds.', envvar='ARENA_OFFSET', type=int, default=0, show_default=True)
 @click.option('--arena-teams-limit', help='Greater: better arena attackers but uses more resources.', envvar='ARENA_TEAMS_LIMIT', type=int, default=20000, show_default=True)
-@click.option('--grand-arena-generations', help='Greater: better grand arena attackers but uses more resources.', envvar='GRAND_ARENA_GENERATIONS', type=int, default=35, show_default=True)
+@click.option('--grand-arena-generations', help='Greater: better grand arena attackers but uses more resources.', envvar='GRAND_ARENA_GENERATIONS', type=int, default=25, show_default=True)
 def main(remixsid: str, vk_token: str, log_file: TextIO, verbosity: int, **kwargs):
     """
     Hero Wars bot.

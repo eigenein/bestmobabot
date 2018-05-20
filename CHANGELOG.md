@@ -1,6 +1,7 @@
 # `latest` «Raids Should Be Better»
 
 * **Completely redesign raids – spend all stamina**
+* Optimise grand arena by keeping the best solutions during the entire search process
 * Update translations
 * Fix `ValueError: max() arg is an empty sequence` in arena
 * Add `SPAM` logging level
