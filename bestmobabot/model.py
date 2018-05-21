@@ -60,7 +60,10 @@ class Trainer:
             logger=self.logger,
             alpha=constants.MODEL_SCORING_ALPHA,
         )
-        search_cv.fit(x, y)
+        try:
+            search_cv.fit(x, y)
+        except KeyboardInterrupt:
+            pass  # allow stopping the process
         score_interval = search_cv.best_confidence_interval_
         self.logger.info(f'🤖 Best score: {search_cv.best_score_:.4f} ({score_interval[0]:.4f} … {score_interval[1]:.4f})')
         self.logger.info(f'🤖 Best params: {search_cv.best_params_}')
