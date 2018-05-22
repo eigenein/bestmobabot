@@ -72,9 +72,10 @@ class Trainer:
         self.logger.info('🤖 Refitting…')
         estimator.set_params(**search_cv.best_params_)
         estimator.fit(x, y)
+        if not numpy.array_equal(estimator.classes_, numpy.array([False, True])):
+            raise RuntimeError(f'unexpected classes: {estimator.classes_}')
 
         # Print debugging info.
-        self.logger.debug(f'🤖 Classes: {estimator.classes_}')
         for column, importance in sorted(zip(x.columns, estimator.feature_importances_), key=itemgetter(1), reverse=True):
             self.logger.log(SPAM, f'🤖 Feature {column}: {importance:.7f}')
 
