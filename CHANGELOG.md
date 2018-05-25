@@ -1,4 +1,4 @@
-# `latest` «Raids Should Be Better»
+# `1.0` «It's 1.0»
 
 * **Completely redesign raids – spend all stamina**
 * Optimise grand arena by keeping the best solutions during the entire search process
