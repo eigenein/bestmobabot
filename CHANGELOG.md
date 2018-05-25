@@ -5,7 +5,7 @@
 * Update translations
 * Fix `ValueError: max() arg is an empty sequence` in arena
 * Add `SPAM` logging level
-* Allow stopping the hyper-parameters search proccess with Command+C
+* Allow stopping the hyper-parameters search process with Command+C
 
 # `0.5` «Playground»
 
