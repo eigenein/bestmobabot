@@ -16,6 +16,7 @@ import requests
 from requests.adapters import HTTPAdapter
 
 from bestmobabot import constants
+from bestmobabot.analytics import send_event
 from bestmobabot.database import Database
 from bestmobabot.enums import *
 from bestmobabot.logger import logger
@@ -152,6 +153,8 @@ class API(contextlib.AbstractContextManager):
         sleep_time = random.uniform(5.0, 10.0) if random_sleep and self.request_id != 1 else 0.0
         logger.info(f'🔔 #{self.request_id} {name}({arguments or {}}) in {sleep_time:.1f} seconds…')
         sleep(sleep_time)
+
+        send_event(category='api', action=name, user_id=self.user_id)
 
         calls = [{'ident': name, 'name': name, 'args': arguments or {}}]
         data = json.dumps({"session": None, "calls": calls})

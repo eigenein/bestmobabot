@@ -12,6 +12,7 @@ from time import sleep
 from typing import Dict, Iterable, List, Optional, Set, Tuple
 
 from bestmobabot import arena, constants
+from bestmobabot.analytics import send_exception
 from bestmobabot.api import API, AlreadyError, InvalidResponseError, NotEnoughError, NotFoundError, OutOfRetargetDelta
 from bestmobabot.database import Database
 from bestmobabot.enums import *
@@ -225,6 +226,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             logger.critical('😱 Uncaught error.', exc_info=e)
             for result in self.api.last_responses:
                 logger.critical(f'💬 API result: {result}')
+            send_exception(description=str(e), user_id=self.user.id)
         else:
             logger.info(f'✅ Well done.')
             return next_run_at
