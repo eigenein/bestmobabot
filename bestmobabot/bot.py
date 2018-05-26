@@ -166,6 +166,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             Task(next_run_at=Task.at(hour=8, minute=0), execute=self.farm_daily_bonus),
             Task(next_run_at=Task.at(hour=8, minute=30), execute=self.buy_chest),
             Task(next_run_at=Task.at(hour=9, minute=0), execute=self.send_daily_gift),
+            Task(next_run_at=Task.at(hour=9, minute=30), execute=self.farm_offers),
             Task(next_run_at=Task.at(hour=10, minute=0), execute=self.farm_zeppelin_gift),
 
             # Debug tasks. Uncomment when needed.
@@ -555,37 +556,13 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             else:
                 logger.error('🗼 Unknown floor type.')
 
-    '''
-    def attack_boss(self):
+    def farm_offers(self):
         """
-        Выполняет бой в Запределье.
+        Фармит предложения (камни обликов).
         """
-        logger.info('👊 Attacking a boss…')
-
-        # Get current boss.
-        boss, *_ = self.api.get_current_boss()
-        logger.info('👊 Boss %s.', boss.id)
-
-        # Find appropriate heroes.
-        heroes = sorted([
-            hero
-            for hero in self.api.get_all_heroes()
-            if hero.id in API.RECOMMENDED_HEROES[boss.id]
-        ], key=self.get_power, reverse=True)[:5]
-        if not heroes:
-            logger.warning('😞 No appropriate heroes.')
-            return
-
-        # Attack boss.
-        hero_ids = self.get_hero_ids(heroes)
-        battle = self.api.attack_boss(boss.id, hero_ids)
-        logger.warning('👊 Seed %s.', battle.seed)
-        self.api.sleep(20.0)
-        quests = self.api.end_boss_battle(battle.seed, hero_ids)
-
-        # Farm rewards.
-        self.farm_quests(quests)
-        reward, quests = self.api.open_boss_chest(boss.id)
-        self.print_reward(reward)
-        self.farm_quests(quests)
-    '''
+        logger.info('🎁 Farming offers…')
+        for offer in self.api.get_all_offers():
+            if not offer.is_free_reward_obtained:
+                log_reward(self.api.farm_offer_reward(offer.id))
+            else:
+                logger.info(f'🎁 #{offer.id}: free reward is already obtained.')

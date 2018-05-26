@@ -1,3 +1,7 @@
+# `latest`
+
+* Farm offers
+
 # `1.0` «It's 1.0»
 
 * **Completely redesign raids – spend all stamina**

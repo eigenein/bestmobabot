@@ -281,6 +281,13 @@ class Mission(BaseResponse):
         self.stars = int(raw['stars'])
 
 
+class Offer(BaseResponse):
+    def __init__(self, raw: Dict):
+        super().__init__(raw)
+        self.id = str(raw['id'])
+        self.is_free_reward_obtained: bool = raw.get('freeRewardObtained', False)
+
+
 def cast_optional(value: Optional[T1], cast: Callable[[T1], T2]) -> Optional[T2]:
     return cast(value) if value is not None else None
 
@@ -306,4 +313,5 @@ __all__ = [
     'ShopSlot',
     'Tower',
     'Mission',
+    'Offer',
 ]

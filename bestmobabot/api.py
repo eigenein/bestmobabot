@@ -398,6 +398,15 @@ class API(contextlib.AbstractContextManager):
     def next_tower_floor(self) -> Tower:
         return Tower(self.call('towerNextFloor').response)
 
+    # Offers.
+    # ------------------------------------------------------------------------------------------------------------------
+
+    def get_all_offers(self) -> List[Offer]:
+        return list_of(Offer, self.call('offerGetAll').response)
+
+    def farm_offer_reward(self, offer_id: str) -> Reward:
+        return Reward(self.call('offerFarmReward', {'offerId': offer_id}).response)
+
 
 def list_of(constructor: Callable[[Any], T], items: Iterable) -> List[T]:
     """
