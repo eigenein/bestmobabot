@@ -1,6 +1,7 @@
 # `latest`
 
 * Farm offers
+* Simplify expeditions code
 
 # `1.0` «It's 1.0»
 

@@ -280,21 +280,14 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
                 logger.info(f'✅ Started expedition ends at {expedition.end_time}.')
                 return expedition.end_time
 
-        # Get all busy heroes.
-        busy_hero_ids = set.union(*(set(expedition.hero_ids) for expedition in expeditions))
-        logger.info(f'👊 Busy heroes: {busy_hero_ids}.')
-
         # Choose the most powerful available heroes.
-        heroes = self.naive_select_attackers(hero for hero in self.api.get_all_heroes() if hero.id not in busy_hero_ids)
-        if not heroes:
-            logger.info('✅ No heroes available.')
-            return None
+        heroes = self.naive_select_attackers(self.api.get_all_heroes())
         team_power = sum(hero.power for hero in heroes)
 
         # Find available expeditions.
         expeditions = [
             expedition
-            for expedition in self.api.list_expeditions()
+            for expedition in expeditions
             if expedition.is_available and expedition.power <= team_power
         ]
         if not expeditions:
