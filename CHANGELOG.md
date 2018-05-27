@@ -2,6 +2,7 @@
 
 * Farm offers
 * Simplify expeditions code
+* Check expeditions more frequently
 
 # `1.0` «It's 1.0»
 
