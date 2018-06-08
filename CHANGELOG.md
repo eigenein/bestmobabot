@@ -3,6 +3,7 @@
 * Farm offers
 * Simplify expeditions code
 * Check expeditions more frequently
+* Gracefully handle offer farm error
 
 # `1.0` «It's 1.0»
 

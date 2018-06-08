@@ -559,6 +559,9 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         logger.info('🎁 Farming offers…')
         for offer in self.api.get_all_offers():
             if not offer.is_free_reward_obtained:
-                log_reward(self.api.farm_offer_reward(offer.id))
+                try:
+                    log_reward(self.api.farm_offer_reward(offer.id))
+                except NotFoundError:
+                    logger.warning(f'🤔 Offer #{offer.id} is not found.')
             else:
                 logger.info(f'🎁 #{offer.id}: free reward is already obtained.')
