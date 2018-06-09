@@ -22,11 +22,11 @@ def get_resource(url: str) -> Dict:
 
 def get_translations() -> Dict[str, str]:
     # FIXME: dynamically find out the latest server version. Or at least make configurable.
-    return get_resource('https://heroes.cdnvideo.ru/vk/v0377/locale/ru.json.gz')
+    return get_resource('https://heroes.cdnvideo.ru/vk/v0384/locale/ru.json.gz')
 
 
 def get_library() -> Dict:
-    return get_resource('https://heroes.cdnvideo.ru/vk/v0377/lib/lib.json.gz')
+    return get_resource('https://heroes.cdnvideo.ru/vk/v0386/lib/lib.json.gz')
 
 
 def hero_name(hero_id: str) -> str:

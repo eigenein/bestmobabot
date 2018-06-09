@@ -4,6 +4,7 @@
 * Simplify expeditions code
 * Check expeditions more frequently
 * Gracefully handle offer farm error
+* Update resources
 
 # `1.0` «It's 1.0»
 
