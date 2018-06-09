@@ -1,4 +1,4 @@
-# `latest`
+# `1.1`
 
 * Farm offers
 * Simplify expeditions code
