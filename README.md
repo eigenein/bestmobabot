@@ -21,7 +21,7 @@ services:
       - REMIXSID=VK.com-remixsid-cookie-1
       - LOGFILE=/srv/bestmobabot/bestmobabot-user-1.log
       - NO_EXPERIENCE=true
-      - RAIDS=16 3 57 3
+      - RAIDS=16 57
       - SHOPS=1 4 1 5
       - IS_TRAINER=true
       - VK_TOKEN=VK.com-API-token
@@ -47,6 +47,12 @@ services:
 ### Running with Docker
 
 Of course, the bot could be run just with Docker. Run `docker run eigenein/bestmobabot --help` to see the possible options. Environment variables are accepted too.
+
+## Tasks
+
+Bot uses its own cron-like scheduler to perform game tasks. There're tasks that performed daily at particular time and there're periodic tasks that performed every N minutes/hours. They're spread over a day to decrease game API requests frequency.
+
+Also, for expeditions the bot tries to pick up a reward and start the next expedition as soon as possible, given that the bot is not restarted in the meantime.
 
 ## Trainer
 
