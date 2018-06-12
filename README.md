@@ -90,4 +90,8 @@ SQLite database is used as a sort of key-value store to preserve state between r
 
 The same database can be used by multiple bots. Actually, it is _recommended_ that multiple bots use the same database in order to share the arena prediction model.
 
-**Warning.** *The database contains user IDs and Hero Wars API authentication tokens. Make sure that you remove them manually should you share your database. You can use the following statement to delete everything but battle results: `delete from "default" where "index" <> 'replays';`.*
+**Warning.** The database contains user IDs and Hero Wars API authentication tokens. Make sure that you remove them manually should you share your database. You can use the following statement to delete everything except of battle results:
+
+```sql
+delete from "default" where "index" <> 'replays';
+```
