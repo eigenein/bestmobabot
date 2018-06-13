@@ -286,6 +286,7 @@ class Offer(BaseResponse):
         super().__init__(raw)
         self.id = str(raw['id'])
         self.is_free_reward_obtained: bool = raw.get('freeRewardObtained', False)
+        self.offer_type: str = raw.get('offerType', '')
 
 
 def cast_optional(value: Optional[T1], cast: Callable[[T1], T2]) -> Optional[T2]:

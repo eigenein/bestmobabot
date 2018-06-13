@@ -1,3 +1,7 @@
+# `latest`
+
+* Fix offer farming
+
 # `1.1`
 
 * Farm offers
