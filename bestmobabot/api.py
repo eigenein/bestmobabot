@@ -360,15 +360,15 @@ class API(contextlib.AbstractContextManager):
     # https://github.com/eigenein/bestmobabot/wiki/Boss
     # ------------------------------------------------------------------------------------------------------------------
 
-    def get_current_boss(self) -> List[Boss]:
-        return list_of(Boss, self.call('bossGetCurrent').response)
+    def get_all_bosses(self) -> List[Boss]:
+        return list_of(Boss, self.call('bossGetAll').response)
 
-    def attack_boss(self, boss_id: str, hero_ids: Iterable[str]) -> Battle:
-        return Battle(self.call('bossAttack', {'bossId': boss_id, 'heroes': list(hero_ids)}).response)
+    def raid_boss(self, boss_id: str) -> Reward:
+        return Reward(self.call('bossRaid', {'bossId': boss_id}).response['everyWinReward'])
 
-    def open_boss_chest(self, boss_id: str) -> Tuple[Reward, Quests]:
-        result = self.call('bossOpenChest', {'bossId': boss_id})
-        return Reward(result.response['reward']), result.quests
+    def open_boss_chest(self, boss_id: str) -> Tuple[List[Reward], Quests]:
+        result = self.call('bossOpenChest', {'bossId': boss_id, 'starmoney': 0, 'amount': 1})
+        return list_of(Reward, result.response['rewards']['free']), result.quests
 
     # Shop.
     # ------------------------------------------------------------------------------------------------------------------

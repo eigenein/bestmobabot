@@ -164,6 +164,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
 
             # One time a day.
             Task(next_run_at=Task.at(hour=6, minute=0), execute=self.skip_tower),
+            Task(next_run_at=Task.at(hour=7, minute=30), execute=self.raid_bosses),
             Task(next_run_at=Task.at(hour=8, minute=0), execute=self.farm_daily_bonus),
             Task(next_run_at=Task.at(hour=8, minute=30), execute=self.buy_chest),
             Task(next_run_at=Task.at(hour=9, minute=0), execute=self.send_daily_gift),
@@ -171,7 +172,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             Task(next_run_at=Task.at(hour=10, minute=0), execute=self.farm_zeppelin_gift),
 
             # Debug tasks. Uncomment when needed.
-            # Task(next_run_at=Task.asap(), execute=self.attack_grand_arena),
+            Task(next_run_at=Task.asap(), execute=self.raid_bosses),
         ]
         if self.shops:
             self.tasks.extend([
@@ -563,3 +564,19 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
                 log_reward(self.api.farm_offer_reward(offer.id))
             else:
                 logger.info(f'🎁 #{offer.id}: free reward is already obtained.')
+
+    def raid_bosses(self):
+        """
+        Рейдит боссов Запределья.
+        """
+        logger.info('👊 Raid bosses…')
+        for boss in self.api.get_all_bosses():
+            if boss.may_raid:
+                logger.info(f'👊 Raid boss #{boss.id}…')
+                every_win_reward = self.api.raid_boss(boss.id)
+                log_reward(every_win_reward)
+                rewards, quests = self.api.open_boss_chest(boss.id)
+                log_rewards(rewards)
+                self.farm_quests(quests)
+            else:
+                logger.info(f'🤔 May not raid boss #{boss.id}.')

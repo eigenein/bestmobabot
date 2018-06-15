@@ -224,6 +224,7 @@ class Boss(BaseResponse):
     def __init__(self, raw: Dict):
         super().__init__(raw)
         self.id: str = str(raw['id'])
+        self.may_raid: bool = raw['mayRaid']
 
 
 class Battle(BaseResponse):
