@@ -24,6 +24,9 @@ MODEL_N_ESTIMATORS_CHOICES = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 
 RAID_N_HEROIC_TRIES = 3
 RAID_N_STARS = 3
 
+# Offers.
+OFFER_FARMED_TYPES = ('dailyReward',)
+
 # Logging.
 SPAM = 5
 
