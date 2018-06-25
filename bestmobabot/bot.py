@@ -139,12 +139,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
     # ------------------------------------------------------------------------------------------------------------------
 
     def start(self):
-        user_raw = self.db.get_by_key(f'bot:{self.api.user_id}', 'user.raw')
-        if user_raw:
-            self.user = User(user_raw)
-        else:
-            self.user = self.api.get_user_info()
-            self.db.set(f'bot:{self.api.user_id}', 'user.raw', self.user.raw)
+        self.user = self.api.get_user_info()
 
         self.tasks = [
             # These tasks depend on player's time zone.
@@ -250,6 +245,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         """
         self.api.start(invalidate_session=True)
         self.api.register()
+        self.user = self.api.get_user_info()
 
     def farm_daily_bonus(self):
         """

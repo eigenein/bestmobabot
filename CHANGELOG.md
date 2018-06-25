@@ -1,3 +1,7 @@
+# `latest`
+
+* **Fix forever cached user info**
+
 # `1.2`
 
 * **Raid bosses**
