@@ -562,8 +562,6 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             logger.debug(f'🎁 #{offer.id}: {offer.offer_type}.')
             if offer.offer_type in constants.OFFER_FARMED_TYPES and not offer.is_free_reward_obtained:
                 log_reward(self.api.farm_offer_reward(offer.id))
-            else:
-                logger.info(f'🎁 #{offer.id}: free reward is already obtained.')
 
     def raid_bosses(self):
         """
