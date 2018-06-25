@@ -1,4 +1,4 @@
-# `latest`
+# `1.2`
 
 * **Raid bosses**
 * Fix offer farming
