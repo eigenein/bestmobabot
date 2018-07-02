@@ -12,7 +12,7 @@ from time import sleep
 from typing import Dict, Iterable, List, Optional, Set, Tuple
 
 from bestmobabot import arena, constants
-from bestmobabot.analytics import send_event, send_exception
+from bestmobabot.analytics import send_event
 from bestmobabot.api import API, AlreadyError, InvalidResponseError, NotEnoughError, NotFoundError, OutOfRetargetDelta
 from bestmobabot.database import Database
 from bestmobabot.enums import *
@@ -204,7 +204,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         return datetime.now().astimezone()
 
     def execute(self, task: Task) -> Optional[datetime]:
-        send_event(category='bot', action=task.execute.__name__, label=self.user.name, user_id=self.user.id)
+        send_event(category='bot', action=task.execute.__name__, user_id=self.user.id)
         self.api.last_responses.clear()
         try:
             next_run_at = task.execute(*task.args)
@@ -223,7 +223,6 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             logger.critical('😱 Uncaught error.', exc_info=e)
             for result in self.api.last_responses:
                 logger.critical(f'💬 API result: {result}')
-            send_exception(description=str(e), user_id=self.user.id)
         else:
             logger.info(f'✅ Well done.')
             return next_run_at
