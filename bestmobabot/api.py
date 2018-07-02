@@ -154,7 +154,7 @@ class API(contextlib.AbstractContextManager):
         logger.info(f'🔔 #{self.request_id} {name}({arguments or {}}) in {sleep_time:.1f} seconds…')
         sleep(sleep_time)
 
-        send_event(action=name, user_id=self.user_id)
+        send_event(category='api', action=name, user_id=self.user_id)
 
         calls = [{'ident': name, 'name': name, 'args': arguments or {}}]
         data = json.dumps({"session": None, "calls": calls})
