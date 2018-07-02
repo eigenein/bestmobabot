@@ -9,12 +9,12 @@ from typing import Dict, Set
 
 import requests
 
-import bestmobabot.logger
+import bestmobabot.logging_
 
 
 @lru_cache(maxsize=None)
 def get_resource(url: str) -> Dict:
-    bestmobabot.logger.logger.info(f'🌎 Loading {url}…')
+    bestmobabot.logging_.logger.info(f'🌎 Loading {url}…')
     response = requests.get(url, stream=True)
     response.raise_for_status()
     return json.load(gzip.GzipFile(fileobj=response.raw))

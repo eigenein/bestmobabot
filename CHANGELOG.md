@@ -1,6 +1,7 @@
 # `latest`
 
 * **Fix forever cached user info**
+* Improve logging code
 
 # `1.2`
 

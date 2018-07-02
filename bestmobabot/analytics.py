@@ -1,6 +1,6 @@
 import requests
 
-from bestmobabot.logger import logger
+from bestmobabot.logging_ import logger
 
 URL = 'https://www.google-analytics.com/collect'
 TID = 'UA-65034198-7'

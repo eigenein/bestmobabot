@@ -13,7 +13,7 @@ import numpy
 
 from bestmobabot import constants
 from bestmobabot.constants import SPAM
-from bestmobabot.logger import logger
+from bestmobabot.logging_ import logger
 from bestmobabot.model import Model
 from bestmobabot.responses import ArenaEnemy, GrandArenaEnemy, Hero
 

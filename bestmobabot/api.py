@@ -19,7 +19,7 @@ from bestmobabot import constants
 from bestmobabot.analytics import send_event
 from bestmobabot.database import Database
 from bestmobabot.enums import *
-from bestmobabot.logger import logger
+from bestmobabot.logging_ import logger
 from bestmobabot.responses import *
 
 T = TypeVar('T')

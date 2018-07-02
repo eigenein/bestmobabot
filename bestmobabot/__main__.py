@@ -9,7 +9,7 @@ from bestmobabot import constants
 from bestmobabot.api import API
 from bestmobabot.bot import Bot
 from bestmobabot.database import Database
-from bestmobabot.logger import install_logging, logger
+from bestmobabot.logging_ import install_logging, logger
 from bestmobabot.resources import get_library, get_translations
 from bestmobabot.vk import VK
 
@@ -33,7 +33,7 @@ def main(remixsid: str, vk_token: str, log_file: TextIO, verbosity: int, **kwarg
     Hero Wars bot.
     """
     signal.signal(signal.SIGTERM, handle_sigterm)
-    install_logging(logger, verbosity, log_file)
+    install_logging(verbosity, log_file)
     logger.info('🤖 Bot is starting.')
 
     # Prefetch game resources.

@@ -8,7 +8,7 @@ from typing import Any, Dict, Iterable
 
 import requests
 
-from bestmobabot.logger import logger
+from bestmobabot.logging_ import logger
 
 
 class VK(contextlib.AbstractContextManager):

@@ -16,7 +16,7 @@ from bestmobabot.analytics import send_event
 from bestmobabot.api import API, AlreadyError, InvalidResponseError, NotEnoughError, NotFoundError, OutOfRetargetDelta
 from bestmobabot.database import Database
 from bestmobabot.enums import *
-from bestmobabot.logger import log_arena_result, log_heroes, log_reward, log_rewards, logger
+from bestmobabot.logging_ import log_arena_result, log_heroes, log_reward, log_rewards, logger
 from bestmobabot.model import Model
 from bestmobabot.resources import get_heroic_mission_ids, mission_name, shop_name
 from bestmobabot.responses import *
@@ -346,7 +346,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         Тренирует предсказательную модель для арены.
         """
         logger.info('🤖 Running trainer…')
-        Trainer(self.db, n_splits=constants.MODEL_N_SPLITS, logger=logger).train()
+        Trainer(self.db, n_splits=constants.MODEL_N_SPLITS).train()
 
     def attack_arena(self):
         """

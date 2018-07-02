@@ -9,7 +9,6 @@ from typing import Any, Callable, Dict, List, Optional, TypeVar
 
 import numpy
 
-import bestmobabot.model
 from bestmobabot import constants
 from bestmobabot.resources import artifact_name, coin_name, consumable_name, gear_name, hero_name, scroll_name
 
@@ -159,7 +158,7 @@ class Hero(BaseResponse):
             'total_heroes': 1.0,
         }
 
-    def get_features(self, model: 'bestmobabot.model.Model') -> numpy.ndarray:
+    def get_features(self, model) -> numpy.ndarray:
         """
         Construct hero features for prediction model.
         """

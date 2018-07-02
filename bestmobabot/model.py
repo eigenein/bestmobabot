@@ -1,5 +1,4 @@
 import itertools
-import logging
 import pickle
 from collections import defaultdict
 from operator import itemgetter
@@ -14,6 +13,7 @@ from sklearn.model_selection import StratifiedKFold, cross_val_score
 from bestmobabot import constants, responses
 from bestmobabot.constants import SPAM
 from bestmobabot.database import Database
+from bestmobabot.logging_ import logger
 
 
 class Model(NamedTuple):
@@ -22,10 +22,9 @@ class Model(NamedTuple):
 
 
 class Trainer:
-    def __init__(self, db: Database, *, n_splits: int, logger: logging.Logger):
+    def __init__(self, db: Database, *, n_splits: int):
         self.db = db
         self.n_splits = n_splits
-        self.logger = logger
 
     def train(self):
         numpy.random.seed(42)
@@ -33,16 +32,16 @@ class Trainer:
         # Read battles.
         battle_list = self.read_battles()
         if not battle_list:
-            self.logger.info('🤖 There are no battles. Wait until someone attacks you.')
+            logger.info('🤖 There are no battles. Wait until someone attacks you.')
             return
         battles = DataFrame(battle_list).fillna(value=0.0)
-        self.logger.info(f'🤖 Battles shape: {battles.shape}.')
+        logger.info(f'🤖 Battles shape: {battles.shape}.')
 
         # Split into X and y.
         x: DataFrame = battles.drop(['win'], axis=1)
         y: Series = battles['win']
         value_counts: DataFrame = y.value_counts()
-        self.logger.info(f'🤖 Wins: {value_counts[False]}. Losses: {value_counts[True]}.')
+        logger.info(f'🤖 Wins: {value_counts[False]}. Losses: {value_counts[True]}.')
 
         estimator = RandomForestClassifier(class_weight='balanced', n_jobs=-1)
         param_grid = {
@@ -51,13 +50,12 @@ class Trainer:
         }
         cv = StratifiedKFold(n_splits=self.n_splits, shuffle=True)
 
-        self.logger.info('🤖 Adjusting hyper-parameters…')
+        logger.info('🤖 Adjusting hyper-parameters…')
         search_cv = TTestSearchCV(
             estimator,
             param_grid,
             cv=cv,
             scoring=constants.MODEL_SCORING,
-            logger=self.logger,
             alpha=constants.MODEL_SCORING_ALPHA,
         )
         try:
@@ -65,11 +63,11 @@ class Trainer:
         except KeyboardInterrupt:
             pass  # allow stopping the process
         score_interval = search_cv.best_confidence_interval_
-        self.logger.info(f'🤖 Best score: {search_cv.best_score_:.4f} ({score_interval[0]:.4f} … {score_interval[1]:.4f})')
-        self.logger.info(f'🤖 Best params: {search_cv.best_params_}')
+        logger.info(f'🤖 Best score: {search_cv.best_score_:.4f} ({score_interval[0]:.4f} … {score_interval[1]:.4f})')
+        logger.info(f'🤖 Best params: {search_cv.best_params_}')
 
         # Re-train the best model on the entire data.
-        self.logger.info('🤖 Refitting…')
+        logger.info('🤖 Refitting…')
         estimator.set_params(**search_cv.best_params_)
         estimator.fit(x, y)
         if not numpy.array_equal(estimator.classes_, numpy.array([False, True])):
@@ -77,18 +75,18 @@ class Trainer:
 
         # Print debugging info.
         for column, importance in sorted(zip(x.columns, estimator.feature_importances_), key=itemgetter(1), reverse=True):
-            self.logger.log(SPAM, f'🤖 Feature {column}: {importance:.7f}')
+            logger.log(SPAM, f'🤖 Feature {column}: {importance:.7f}')
 
-        logging.info('🤖 Saving model…')
+        logger.info('🤖 Saving model…')
         self.db.set('bot', 'model', pickle.dumps(Model(estimator, list(x.columns))), dumps=bytes.hex)
 
-        logging.info('🤖 Optimizing database…')
+        logger.info('🤖 Optimizing database…')
         self.db.vacuum()
 
-        self.logger.info('🤖 Finished.')
+        logger.info('🤖 Finished.')
 
     def read_battles(self) -> List[Dict[str, Any]]:
-        self.logger.info('🤖 Reading battles…')
+        logger.info('🤖 Reading battles…')
         battle_set: Set[Tuple[Tuple[str, Any]]] = {
             tuple(sorted(battle.items()))
             for _, value in self.db.get_by_index('replays')
@@ -119,12 +117,11 @@ class Trainer:
 
 
 class TTestSearchCV:
-    def __init__(self, estimator, param_grid, *, cv, scoring, logger, alpha=0.95):
+    def __init__(self, estimator, param_grid, *, cv, scoring, alpha=0.95):
         self.estimator = estimator
         self.param_grid: Dict[str, Any] = param_grid
         self.cv = cv
         self.scoring = scoring
-        self.logger = logger
         self.alpha = alpha
 
         self.p = 1.0 - alpha
@@ -137,13 +134,13 @@ class TTestSearchCV:
         for values in itertools.product(*self.param_grid.values()):
             params = dict(zip(self.param_grid.keys(), values))
             self.estimator.set_params(**params)
-            self.logger.log(SPAM, f'🤖 CV started: {params}')
+            logger.log(SPAM, f'🤖 CV started: {params}')
             scores: numpy.ndarray = cross_val_score(self.estimator, x, y, scoring=self.scoring, cv=self.cv)
             score: float = scores.mean()
-            self.logger.debug(f'🤖 Score: {score:.4f} with {params}.')
+            logger.debug(f'🤖 Score: {score:.4f} with {params}.')
             if not self.is_better_score(score, scores):
                 continue
-            self.logger.debug(f'🤖 Found significantly better score: {score:.4f}.')
+            logger.debug(f'🤖 Found significantly better score: {score:.4f}.')
             self.best_params_ = params
             self.best_score_ = score
             self.best_scores_ = scores
@@ -155,5 +152,5 @@ class TTestSearchCV:
         if score < self.best_score_:
             return False
         _, p_value = stats.ttest_ind(self.best_scores_, scores)
-        self.logger.log(SPAM, f'🤖 P-value: {p_value:.4f}.')
+        logger.log(SPAM, f'🤖 P-value: {p_value:.4f}.')
         return p_value < self.p
