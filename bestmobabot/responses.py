@@ -46,8 +46,8 @@ class User(BaseResponse):
         self.next_day: datetime = datetime.fromtimestamp(raw.get('nextDayTs', 0), self.tz)
         self.server_id: str = raw['serverId']
         self.level: str = raw['level']
-        self.star_money: str = raw['starMoney']
-        self.gold: str = raw['gold']
+        self.star_money: Optional[str] = raw.get('starMoney')
+        self.gold: Optional[str] = raw.get('gold')
 
     def is_from_clan(self, clan_id: Optional[str]) -> bool:
         return clan_id and self.clan_id and self.clan_id == clan_id
