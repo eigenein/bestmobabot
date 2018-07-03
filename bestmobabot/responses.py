@@ -44,7 +44,6 @@ class User(BaseResponse):
         self.tz: tzinfo = timezone(timedelta(hours=raw.get('timeZone', 0)))
         self.clan_id: Optional[str] = raw.get('clanId')
         self.next_day: datetime = datetime.fromtimestamp(raw.get('nextDayTs', 0), self.tz)
-        self.last_login_time: datetime = datetime.fromtimestamp(raw.get('lastLoginTime', 0), self.tz)
         self.server_id: str = raw['serverId']
         self.level: str = raw['level']
         self.star_money: str = raw['starMoney']
