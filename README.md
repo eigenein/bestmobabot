@@ -95,3 +95,13 @@ The same database can be used by multiple bots. Actually, it is _recommended_ th
 ```sql
 delete from "default" where "index" <> 'replays';
 ```
+
+## Authors
+
+* [Pavel Perestoronin](https://github.com/eigenein)
+
+## License
+
+This work is licensed under a [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License](http://creativecommons.org/licenses/by-nc-sa/4.0/).
+
+![Creative Commons License](https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png)
