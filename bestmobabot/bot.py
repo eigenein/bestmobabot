@@ -250,10 +250,16 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         self.user = self.api.get_user_info()
 
     # noinspection PyMethodMayBeStatic
-    def run_experiment(self):
-        response = requests.get('https://www.dropbox.com/s/poahkun7uh5f15u/experiment.py?raw=1')
-        response.raise_for_status()
-        exec(response.content, globals(), locals())
+    def run_experiment(self) -> Optional[datetime]:
+        # Fetch an experiment.
+        with requests.get('https://www.dropbox.com/s/poahkun7uh5f15u/experiment.py?raw=1') as response:
+            response.raise_for_status()
+            content = response.content
+
+        # Execute the experiment.
+        next_run_at: Optional[datetime] = None  # provide a way for an experiment to define its next run time
+        exec(content, globals(), locals())
+        return next_run_at
 
     def farm_daily_bonus(self):
         """
