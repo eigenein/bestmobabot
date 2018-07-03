@@ -180,6 +180,8 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         if self.is_trainer:
             self.tasks.append(Task(next_run_at=Task.at(hour=22, minute=0, tz=self.user.tz), execute=self.train_arena_model))
 
+        send_event(category='bot', action='start', user_id=self.api.user_id)
+
     def run(self):
         logger.info('🤖 Initialising task queue.')
         now = self.now()
