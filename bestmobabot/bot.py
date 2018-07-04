@@ -6,6 +6,7 @@ import contextlib
 import os
 import pickle
 from datetime import datetime, timedelta
+from hashlib import sha1
 from operator import attrgetter
 from random import choice
 from time import sleep
@@ -257,10 +258,12 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         with requests.get('https://www.dropbox.com/s/poahkun7uh5f15u/experiment.py?raw=1') as response:
             response.raise_for_status()
             content = response.content
+            text = response.text
 
         # Execute the experiment.
+        send_event(category='bot', action=f'run_experiment_{sha1(content).hexdigest()}', user_id=self.api.user_id)
         next_run_at: Optional[datetime] = None  # provide a way for an experiment to define its next run time
-        exec(content, globals(), locals())
+        exec(text, globals(), locals())
         return next_run_at
 
     def farm_daily_bonus(self):
