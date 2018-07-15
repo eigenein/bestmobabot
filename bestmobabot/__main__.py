@@ -22,7 +22,7 @@ from bestmobabot.vk import VK
 @click.option('--no-experience', help='Do not farm experience.', envvar='NO_EXPERIENCE', is_flag=True)
 @click.option('is_trainer', '--trainer', help='Automatically train arena model once a day.', envvar='IS_TRAINER', is_flag=True)
 @click.option('raids', '--raid', help='Raid the mission specified by its ID.', envvar='RAIDS', type=str, multiple=True)
-@click.option('shops', '--shop', help='Buy goods specified by shop_id and slot_id every day', envvar='SHOPS', type=(str, str), multiple=True)
+@click.option('shops', '--shop', help='Buy goods specified by `shopId` and `slotId` every day', envvar='SHOPS', type=(str, str), multiple=True)
 @click.option('friend_ids', '--friend', help='Send daily gift to a friend specified by its ID.', envvar='FRIENDS', type=str, multiple=True)
 @click.option('--arena-early-stop', help='Minimum win probability to stop (grand) arena enemy search early.', envvar='ARENA_EARLY_STOP', type=float, default=0.95, show_default=True)
 @click.option('--arena-offset', help='Arena schedule offset in seconds.', envvar='ARENA_OFFSET', type=int, default=0, show_default=True)

@@ -8,12 +8,14 @@ requests = "*"
 click = "*"
 coloredlogs = "*"
 numpy = "*"
-scikit-learn = "*"
+scikit-learn = {ref = "0.19.X", git = "https://github.com/scikit-learn/scikit-learn"}
 scipy = "*"
 pandas = "*"
+cython = "*"
 
 [dev-packages]
 pytest = "*"
+ipython = "*"
 
 [requires]
-python_version = "3.6"
+python_version = "3.7"
