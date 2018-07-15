@@ -1,6 +1,7 @@
 # `latest`
 
 * **Fix forever cached user info**
+* **Farm shop #8**
 * Improve logging code
 * Upgrade to Python 3.7
 * Configure automated tests
