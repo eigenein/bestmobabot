@@ -1,4 +1,4 @@
-FROM revolutionsystems/python:3.6.5-wee
+FROM revolutionsystems/python:3.7.0-wee
 MAINTAINER Pavel Perestoronin <eigenein@gmail.com>
 
 ENV LC_ALL=C.UTF-8
