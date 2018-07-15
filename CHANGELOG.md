@@ -4,7 +4,6 @@
 * **Farm shop #8**
 * Improve logging code
 * Upgrade to Python 3.7
-* Configure automated tests
 * Upgrade game resources
 
 # `1.2`

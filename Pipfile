@@ -14,8 +14,8 @@ pandas = "*"
 cython = "*"
 
 [dev-packages]
-pytest = "*"
 ipython = "*"
+pytest = "*"
 
 [requires]
 python_version = "3.7"
