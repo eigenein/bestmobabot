@@ -1,10 +1,4 @@
-.dockerignore
 .git
-.gitignore
-CHANGELOG.md
-Dockerfile
-README.md
-resources
 
 # Created by https://www.gitignore.io/api/git,macos,python,jetbrains,virtualenv
 
