@@ -1,17 +1,17 @@
 Bot playing [Hero Wars](https://vk.com/app5327745) MOBA-like game on [VK.com](https://vk.com). The bot uses pure reverse-engineered Hero Wars JSON API. No Flash-emulator is used.
 
-## Running with Pipenv
+## Running with [Pipenv](https://docs.pipenv.org/)
 
+```bash
+pipenv run python -m bestmobabot --help
+```
 
-
-## Running with Docker Compose
+## Running with [Docker Compose](https://docs.docker.com/compose/)
 
 ```bash
 mkdir -p /srv/bestmobabot
 docker-compose up -d
 ```
-
-It's recommended that you copy `db.sqlite3` from a release to `/srv/bestmobabot`. Released databases already contain thousands of battle results which is very useful for arena automation.
 
 ### `docker-compose.yml`
 
