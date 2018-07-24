@@ -75,10 +75,10 @@ class AbstractArena(ABC, Generic[TEnemy, TAttackers]):
                 logger.debug(f'🎲 Empty user enemy is skipped.')
                 continue
             if self.user_clan_id and enemy.user.is_from_clans((self.user_clan_id,)):
-                logger.debug(f'🎲 Same clan enemy is skipped: {enemy.user.name}.')
+                logger.debug(f'🎲 Same clan enemy is skipped: "{enemy.user.name}".')
                 continue
             if enemy.user.is_from_clans(self.skip_clans):
-                logger.debug(f'🎲 Configured clan enemy is skipped: #{enemy.user.clan_id} ({enemy.user.clan_title}).')
+                logger.debug(f'🎲 Configured clan enemy is skipped: #{enemy.user.clan_id} ("{enemy.user.clan_title}").')
                 continue
 
             # It appears that often enemies are repeated during the search. So don't repeat computations.
