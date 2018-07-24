@@ -1,7 +1,7 @@
 # `latest`
 
 * **Fix forever cached user info**
-* **Farm shop #8**
+* **Farm shops #8 and #10**
 * **Option to skip particular clans in arena**
 * Improve logging code
 * Upgrade to Python 3.7
