@@ -5,6 +5,7 @@
 * Improve logging code
 * Upgrade to Python 3.7
 * Upgrade game resources
+* Improve parameters validation
 
 # `1.2`
 
