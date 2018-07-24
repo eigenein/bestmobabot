@@ -42,7 +42,7 @@ class User(BaseResponse):
         self.id: str = str(raw['id'])
         self.name: str = raw['name']
         self.tz: tzinfo = timezone(timedelta(hours=raw.get('timeZone', 0)))
-        self.clan_id: Optional[str] = raw.get('clanId')
+        self.clan_id: Optional[str] = cast_optional(raw.get('clanId'), str)
         self.clan_title: Optional[str] = raw.get('clanTitle')
         self.next_day: datetime = datetime.fromtimestamp(raw.get('nextDayTs', 0), self.tz)
         self.server_id: str = raw['serverId']
