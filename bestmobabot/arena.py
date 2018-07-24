@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from functools import lru_cache
 from itertools import chain, combinations, product
 from operator import itemgetter
-from typing import Callable, Dict, Generic, Hashable, Iterable, List, Optional, Tuple, TypeVar
+from typing import Callable, Dict, Generic, Iterable, List, Optional, Tuple, TypeVar
 
 import numpy
 
@@ -37,14 +37,14 @@ class AbstractArena(ABC, Generic[TEnemy, TAttackers]):
         *,
         model: Model,
         user_clan_id: Optional[str],
-        skip_clans: Hashable[str],
+        skip_clans: Iterable[str],
         heroes: Iterable[Hero],
         get_enemies_page: Callable[[], List[TEnemy]],
         early_stop: float,
     ):
         self.model = model
         self.user_clan_id = user_clan_id
-        self.skip_clans = skip_clans
+        self.skip_clans = set(skip_clans)
         self.heroes = list(heroes)
         self.get_enemies_page = get_enemies_page
         self.arena_early_stop = early_stop

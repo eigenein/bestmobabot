@@ -5,7 +5,7 @@ Game API response wrappers.
 import logging
 from abc import ABC, ABCMeta
 from datetime import datetime, timedelta, timezone, tzinfo
-from typing import Any, Callable, Dict, Hashable, List, Optional, TypeVar
+from typing import Any, Callable, Dict, Iterable, List, Optional, TypeVar
 
 import numpy
 
@@ -50,7 +50,7 @@ class User(BaseResponse):
         self.star_money: Optional[str] = raw.get('starMoney')
         self.gold: Optional[str] = raw.get('gold')
 
-    def is_from_clans(self, clans: Hashable[str]) -> bool:
+    def is_from_clans(self, clans: Iterable[str]) -> bool:
         return (self.clan_id and self.clan_id in clans) or (self.clan_title and self.clan_title.lower() in clans)
 
 
