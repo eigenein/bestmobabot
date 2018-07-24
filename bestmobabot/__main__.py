@@ -24,6 +24,7 @@ from bestmobabot.vk import VK
 @option('raids', '--raid', help='Raid the mission specified by its ID.', envvar='RAIDS', type=str, multiple=True)
 @option('shops', '--shop', help='Buy goods specified by `shopId` and `slotId` every day', envvar='SHOPS', type=(str, str), multiple=True)
 @option('friend_ids', '--friend', help='Send daily gift to a friend specified by its ID.', envvar='FRIENDS', type=str, multiple=True)
+@option('--arena-skip-clan', 'arena_skip_clans', help='Do not attack members of a clan (title or ID).', envvar='ARENA_SKIP_CLANS', type=str, multiple=True)
 @option('--arena-early-stop', help='Minimum win probability to stop (grand) arena enemy search early.', envvar='ARENA_EARLY_STOP', type=float, default=0.95, show_default=True)
 @option('--arena-offset', help='Arena schedule offset in seconds.', envvar='ARENA_OFFSET', type=int, default=0, show_default=True)
 @option('--arena-teams-limit', help='Greater: better arena attackers but uses more resources.', envvar='ARENA_TEAMS_LIMIT', type=IntRange(min=1), default=20000, show_default=True)

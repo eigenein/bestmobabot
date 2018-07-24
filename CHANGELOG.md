@@ -2,6 +2,7 @@
 
 * **Fix forever cached user info**
 * **Farm shop #8**
+* **Option to skip particular clans in arena**
 * Improve logging code
 * Upgrade to Python 3.7
 * Upgrade game resources

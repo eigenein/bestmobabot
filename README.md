@@ -26,6 +26,7 @@ services:
       - IS_TRAINER=true
       - VK_TOKEN=VK.com-API-token
       - ARENA_OFFSET=3600
+      - ARENA_SKIP_CLANS=123456 FriendlyClan AnotherFriendlyClan
     volumes:
       - /srv/bestmobabot:/srv/bestmobabot
       - /etc/timezone:/etc/timezone:ro

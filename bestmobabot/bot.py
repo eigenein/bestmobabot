@@ -109,13 +109,14 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         *,
         no_experience: bool,
         is_trainer: bool,
-        raids: Tuple[str, ...],
+        raids: Iterable[str],
         shops: Tuple[Tuple[str, str], ...],
-        friend_ids: Tuple[str, ...],
+        friend_ids: Iterable[str],
         arena_early_stop: float,
         arena_offset: int,
         arena_teams_limit: int,
         grand_arena_generations: int,
+        arena_skip_clans: Iterable[str],
     ):
         self.db = db
         self.api = api
@@ -130,6 +131,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         self.arena_offset = timedelta(seconds=arena_offset)
         self.arena_teams_limit = arena_teams_limit
         self.grand_arena_generations = grand_arena_generations
+        self.arena_skip_clans: Set[str] = {clan.lower() for clan in arena_skip_clans}
 
         self.user: User = None
         self.tasks: List[Task] = []
@@ -379,6 +381,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         enemy, attackers, probability = arena.Arena(
             model=model,
             user_clan_id=self.user.clan_id,
+            skip_clans=self.arena_skip_clans,
             heroes=heroes,
             get_enemies_page=self.api.find_arena_enemies,
             early_stop=self.arena_early_stop,
@@ -411,6 +414,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         enemy, attacker_teams, probability = arena.GrandArena(
             model=model,
             user_clan_id=self.user.clan_id,
+            skip_clans=self.arena_skip_clans,
             heroes=heroes,
             get_enemies_page=self.api.find_grand_enemies,
             early_stop=self.arena_early_stop,

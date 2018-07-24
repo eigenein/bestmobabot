@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from functools import lru_cache
 from itertools import chain, combinations, product
 from operator import itemgetter
-from typing import Callable, Dict, Generic, Iterable, List, Optional, Tuple, TypeVar
+from typing import Callable, Dict, Generic, Hashable, Iterable, List, Optional, Tuple, TypeVar
 
 import numpy
 
@@ -37,13 +37,15 @@ class AbstractArena(ABC, Generic[TEnemy, TAttackers]):
         *,
         model: Model,
         user_clan_id: Optional[str],
-        heroes: List[Hero],
+        skip_clans: Hashable[str],
+        heroes: Iterable[Hero],
         get_enemies_page: Callable[[], List[TEnemy]],
         early_stop: float,
     ):
         self.model = model
         self.user_clan_id = user_clan_id
-        self.heroes = heroes
+        self.skip_clans = skip_clans
+        self.heroes = list(heroes)
         self.get_enemies_page = get_enemies_page
         self.arena_early_stop = early_stop
 
@@ -68,16 +70,25 @@ class AbstractArena(ABC, Generic[TEnemy, TAttackers]):
     def iterate_enemies(self, enemies: Iterable[TEnemy]) -> Tuple[TEnemy, TAttackers, float]:
         logger.info('🎲 Estimating win probability…')
         for enemy in enemies:
-            # Some enemies don't have user assigned. Filter them out.
-            if enemy.user is not None and not enemy.user.is_from_clan(self.user_clan_id):
-                # It appears that often enemies are repeated during the search. So don't repeat computations.
-                if enemy.user.id in self.cache:
-                    attackers, probability = self.cache[enemy.user.id]
-                    logger.info(f'🎲 Cached entry found: {100.0 * probability:.1f}% ("{enemy.user.name}").')
-                else:
-                    attackers, probability = self.select_attackers(enemy)  # type: TAttackers, float
-                    self.cache[enemy.user.id] = attackers, probability
-                yield (enemy, attackers, probability)
+            if enemy.user is None:
+                # Some enemies don't have user assigned. Filter them out.
+                logger.debug(f'🎲 Empty user enemy is skipped.')
+                continue
+            if self.user_clan_id and enemy.user.is_from_clans((self.user_clan_id,)):
+                logger.debug(f'🎲 Same clan enemy is skipped: {enemy.user.name}.')
+                continue
+            if enemy.user.is_from_clans(self.skip_clans):
+                logger.debug(f'🎲 Configured clan enemy is skipped: #{enemy.user.clan_id} ({enemy.user.clan_title}).')
+                continue
+
+            # It appears that often enemies are repeated during the search. So don't repeat computations.
+            if enemy.user.id in self.cache:
+                attackers, probability = self.cache[enemy.user.id]
+                logger.info(f'🎲 Cached entry found: {100.0 * probability:.1f}% ("{enemy.user.name}").')
+            else:
+                attackers, probability = self.select_attackers(enemy)  # type: TAttackers, float
+                self.cache[enemy.user.id] = attackers, probability
+            yield (enemy, attackers, probability)
 
     def make_features(self, heroes: Iterable[Hero]) -> numpy.ndarray:
         """

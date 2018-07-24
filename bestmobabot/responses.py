@@ -5,7 +5,7 @@ Game API response wrappers.
 import logging
 from abc import ABC, ABCMeta
 from datetime import datetime, timedelta, timezone, tzinfo
-from typing import Any, Callable, Dict, List, Optional, TypeVar
+from typing import Any, Callable, Dict, Hashable, List, Optional, TypeVar
 
 import numpy
 
@@ -43,14 +43,15 @@ class User(BaseResponse):
         self.name: str = raw['name']
         self.tz: tzinfo = timezone(timedelta(hours=raw.get('timeZone', 0)))
         self.clan_id: Optional[str] = raw.get('clanId')
+        self.clan_title: Optional[str] = raw.get('clanTitle')
         self.next_day: datetime = datetime.fromtimestamp(raw.get('nextDayTs', 0), self.tz)
         self.server_id: str = raw['serverId']
         self.level: str = raw['level']
         self.star_money: Optional[str] = raw.get('starMoney')
         self.gold: Optional[str] = raw.get('gold')
 
-    def is_from_clan(self, clan_id: Optional[str]) -> bool:
-        return clan_id and self.clan_id and self.clan_id == clan_id
+    def is_from_clans(self, clans: Hashable[str]) -> bool:
+        return (self.clan_id and self.clan_id in clans) or (self.clan_title and self.clan_title.lower() in clans)
 
 
 class Expedition(BaseResponse):
