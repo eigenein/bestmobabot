@@ -1,7 +1,12 @@
 from typing import Dict
 
+# General.
+VERSION = '1.2.1'
 API_TIMEOUT = 10.0
 DATABASE_NAME = 'db.sqlite3'
+ANALYTICS_URL = 'https://www.google-analytics.com/collect'
+ANALYTICS_TID = 'UA-65034198-7'
+IP_URL = 'https://ipinfo.io/ip'
 
 # Fundamental constants.
 TEAM_SIZE = 5  # heroes

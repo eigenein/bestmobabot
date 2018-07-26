@@ -14,7 +14,7 @@ from typing import Dict, Iterable, List, Optional, Set, Tuple
 import requests
 
 from bestmobabot import arena, constants
-from bestmobabot.analytics import send_event
+from bestmobabot.tracking import send_event
 from bestmobabot.api import API, AlreadyError, InvalidResponseError, NotEnoughError, NotFoundError, OutOfRetargetDelta
 from bestmobabot.database import Database
 from bestmobabot.enums import *

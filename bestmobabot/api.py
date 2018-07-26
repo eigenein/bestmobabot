@@ -16,7 +16,7 @@ import requests
 from requests.adapters import HTTPAdapter
 
 from bestmobabot import constants
-from bestmobabot.analytics import send_event
+from bestmobabot.tracking import send_event
 from bestmobabot.database import Database
 from bestmobabot.enums import *
 from bestmobabot.logging_ import logger
