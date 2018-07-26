@@ -1,4 +1,7 @@
+import itertools
 from functools import lru_cache
+from glob import glob
+from hashlib import sha1
 
 import requests
 
@@ -9,7 +12,15 @@ session = requests.Session()
 
 
 @lru_cache(maxsize=None)
-def get_ip():
+def get_version() -> str:
+    return sha1(bytes(itertools.chain.from_iterable(
+        open(path, 'rb').read()
+        for path in sorted(glob('**/*.py'))
+    ))).hexdigest()[-8:]
+
+
+@lru_cache(maxsize=None)
+def get_ip() -> str:
     try:
         with session.get(constants.IP_URL) as response:
             response.raise_for_status()
@@ -29,7 +40,7 @@ def send_event(*, category: str, action: str, user_id: str):
             'el': user_id,
             'cid': user_id,
             'ni': '1',
-            'cd1': constants.VERSION,
+            'cd1': get_version(),
             'cd2': get_ip(),
         }) as response:
             response.raise_for_status()
