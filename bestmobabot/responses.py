@@ -10,7 +10,15 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, TypeVar
 import numpy
 
 from bestmobabot import constants
-from bestmobabot.resources import artifact_name, coin_name, consumable_name, gear_name, hero_name, scroll_name
+from bestmobabot.resources import (
+    artifact_name,
+    coin_name,
+    consumable_name,
+    gear_name,
+    hero_name,
+    scroll_name,
+    titan_artifact_name,
+)
 
 T1 = TypeVar('T1')
 T2 = TypeVar('T2')
@@ -88,6 +96,7 @@ class Reward(BaseResponse):
         self.gear: Dict[str, str] = raw.get('gear', {})
         self.scroll_fragment: Dict[str, str] = raw.get('fragmentScroll', {})
         self.tower_point = int(raw.get('towerPoint', 0))
+        self.titan_artifact_fragment: Dict[str, int] = raw.get('fragmentTitanArtifact', {})
 
     def log(self, logger: logging.Logger):
         if self.stamina:
@@ -112,6 +121,8 @@ class Reward(BaseResponse):
             logger.info(f'👕 {value} × «{gear_name(gear_id)}» gear.')
         for scroll_id, value in self.scroll_fragment.items():
             logger.info(f'👕 {value} × «{scroll_name(scroll_id)}» scroll fragment.')
+        for artifact_id, value in self.titan_artifact_fragment.items():
+            logger.info(f'👕 {value} × «{titan_artifact_name(artifact_id)}» titan artifact fragment.')
 
 
 class Quest(BaseResponse):

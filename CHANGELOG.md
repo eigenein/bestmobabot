@@ -3,6 +3,7 @@
 * **Fix forever cached user info**
 * **Farm shops #8 and #10**
 * **Option to skip particular clans in arena**
+* **Open titan artifact chests**
 * Improve logging code
 * Upgrade to Python 3.7
 * Upgrade game resources

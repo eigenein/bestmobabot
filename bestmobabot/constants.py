@@ -13,7 +13,7 @@ GRAND_TEAMS = 3
 GRAND_SIZE = GRAND_TEAMS * TEAM_SIZE  # heroes
 
 # Chests control.
-MAX_OPEN_ARTIFACT_CHESTS = 5
+MAX_OPEN_ARTIFACT_CHESTS = 10
 
 # Tower control.
 TOWER_IGNORED_BUFF_IDS = {13, 14, 17, 18, 19}  # These buffs require a hero ID.

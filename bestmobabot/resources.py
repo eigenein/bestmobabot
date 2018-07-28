@@ -22,11 +22,11 @@ def get_resource(url: str) -> Dict:
 
 def get_translations() -> Dict[str, str]:
     # FIXME: dynamically find out the latest server version. Or at least make configurable.
-    return get_resource('https://heroes.cdnvideo.ru/vk/v0397/locale/ru.json.gz')
+    return get_resource('https://heroes.cdnvideo.ru/vk/v0401/locale/ru.json.gz')
 
 
 def get_library() -> Dict:
-    return get_resource('https://heroes.cdnvideo.ru/vk/v0396/lib/lib.json.gz')
+    return get_resource('https://heroes.cdnvideo.ru/vk/v0404/lib/lib.json.gz')
 
 
 def hero_name(hero_id: str) -> str:
@@ -59,6 +59,10 @@ def mission_name(mission_id: str) -> str:
 
 def artifact_name(artifact_id: str) -> str:
     return get_translations().get(f'LIB_ARTIFACT_NAME_{artifact_id}', f'#{artifact_id}')
+
+
+def titan_artifact_name(artifact_id: str) -> str:
+    return get_translations().get(f'LIB_TITAN_ARTIFACT_NAME_{artifact_id}', f'#{artifact_id}')
 
 
 @lru_cache(maxsize=None)

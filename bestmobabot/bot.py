@@ -162,6 +162,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             Task(next_run_at=Task.every_n_hours(4), execute=self.raid_missions),
 
             # One time a day.
+            Task(next_run_at=Task.at(hour=5, minute=30), execute=self.open_titan_artifact_chest),
             Task(next_run_at=Task.at(hour=6, minute=0), execute=self.skip_tower),
             Task(next_run_at=Task.at(hour=7, minute=30), execute=self.raid_bosses),
             Task(next_run_at=Task.at(hour=8, minute=0), execute=self.farm_daily_bonus),
@@ -171,7 +172,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             Task(next_run_at=Task.at(hour=10, minute=0), execute=self.farm_zeppelin_gift),
 
             # Debug tasks. Uncomment when needed.
-            # Task(next_run_at=Task.asap(), execute=self.raid_bosses),
+            # Task(next_run_at=Task.asap(), execute=self.open_titan_artifact_chest),
         ]
         if self.shops:
             self.tasks.extend([
@@ -312,7 +313,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         """
         Собирает награды из заданий.
         """
-        logger.info('💰 Farming quests…')
+        logger.info('💰 Farming quests if any…')
         if quests is None:
             quests = self.api.get_all_quests()
         for quest in quests:
@@ -478,12 +479,14 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         log_reward(self.api.farm_zeppelin_gift())
         for _ in range(constants.MAX_OPEN_ARTIFACT_CHESTS):
             try:
-                log_rewards(self.api.open_artifact_chest())
+                rewards = self.api.open_artifact_chest()
             except NotEnoughError:
                 logger.info('💬 All keys are spent.')
                 break
+            else:
+                log_rewards(rewards)
         else:
-            logger.info('💬 All chests have been opened.')
+            logger.warning('💬 Maximum number of chests opened.')
 
     def raid_missions(self):
         """
@@ -585,3 +588,20 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
                 self.farm_quests(quests)
             else:
                 logger.info(f'🤔 May not raid boss #{boss.id}.')
+
+    def open_titan_artifact_chest(self):
+        """
+        Открывает сферы артефактов титанов.
+        """
+        logger.info('🎁 Opening titan artifact chests…')
+        for _ in range(constants.MAX_OPEN_ARTIFACT_CHESTS):
+            try:
+                rewards, quests = self.api.open_titan_artifact_chest(1)
+            except NotEnoughError:
+                logger.info('💬 Not enough resources.')
+                break
+            else:
+                log_rewards(rewards)
+                self.farm_quests(quests)
+        else:
+            logger.warning('💬 Maximum number of chests opened.')

@@ -410,6 +410,13 @@ class API(contextlib.AbstractContextManager):
     def farm_offer_reward(self, offer_id: str) -> Reward:
         return Reward(self.call('offerFarmReward', {'offerId': offer_id}).response)
 
+    # Titans.
+    # ------------------------------------------------------------------------------------------------------------------
+
+    def open_titan_artifact_chest(self, amount: int, free: bool = True) -> Tuple[List[Reward], Quests]:
+        result = self.call('titanArtifactChestOpen', {'amount': amount, 'free': free})
+        return list_of(Reward, result.response['reward']), result.quests
+
 
 def list_of(constructor: Callable[[Any], T], items: Iterable) -> List[T]:
     """
