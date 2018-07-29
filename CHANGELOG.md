@@ -1,5 +1,7 @@
 # `latest`
 
+# `2.0b`
+
 * **Fix forever cached user info**
 * **Farm shops #8 and #10**
 * **Option to skip particular clans in arena**
