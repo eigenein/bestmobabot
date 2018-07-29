@@ -59,7 +59,7 @@ class User(BaseResponse):
         self.gold: Optional[str] = raw.get('gold')
 
     def is_from_clans(self, clans: Iterable[str]) -> bool:
-        return (self.clan_id and self.clan_id in clans) or (self.clan_title and self.clan_title.lower() in clans)
+        return (self.clan_id and self.clan_id in clans) or (self.clan_title and self.clan_title in clans)
 
 
 class Expedition(BaseResponse):

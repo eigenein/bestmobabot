@@ -22,6 +22,7 @@ from bestmobabot.logging_ import log_arena_result, log_heroes, log_reward, log_r
 from bestmobabot.model import Model
 from bestmobabot.resources import get_heroic_mission_ids, mission_name, shop_name
 from bestmobabot.responses import *
+from bestmobabot.settings import Settings
 from bestmobabot.task import Task, TaskNotAvailable
 from bestmobabot.trainer import Trainer
 from bestmobabot.vk import VK
@@ -33,7 +34,7 @@ class BotHelperMixin:
     """
     db: Database
     api: API
-    raids: Set[str]
+    settings: Settings
 
     @staticmethod
     def get_hero_ids(heroes: Iterable[Hero]) -> List[str]:
@@ -75,7 +76,7 @@ class BotHelperMixin:
             if mission.stars == constants.RAID_N_STARS
         }
         # Get all mission IDs that are configured and could be raided.
-        raids = self.raids & missions.keys()
+        raids = self.settings.bot.raids & missions.keys()
 
         # Get heroic mission IDs.
         heroic_mission_ids = get_heroic_mission_ids()
@@ -100,37 +101,11 @@ class BotHelperMixin:
 
 
 class Bot(contextlib.AbstractContextManager, BotHelperMixin):
-    def __init__(
-        self,
-        db: Database,
-        api: API,
-        vk: VK,
-        *,
-        no_experience: bool,
-        is_trainer: bool,
-        raids: Iterable[str],
-        shops: Tuple[Tuple[str, str], ...],
-        friend_ids: Iterable[str],
-        arena_early_stop: float,
-        arena_offset: int,
-        arena_teams_limit: int,
-        grand_arena_generations: int,
-        arena_skip_clans: Iterable[str],
-    ):
+    def __init__(self, db: Database, api: API, vk: VK, settings: Settings):
         self.db = db
         self.api = api
         self.vk = vk
-
-        self.no_experience = no_experience
-        self.is_trainer = is_trainer
-        self.raids = set(raids)
-        self.shops = shops
-        self.friend_ids = list(friend_ids)
-        self.arena_early_stop = arena_early_stop
-        self.arena_offset = timedelta(seconds=arena_offset)
-        self.arena_teams_limit = arena_teams_limit
-        self.grand_arena_generations = grand_arena_generations
-        self.arena_skip_clans: Set[str] = {clan.lower() for clan in arena_skip_clans}
+        self.settings = settings
 
         self.user: User = None
         self.tasks: List[Task] = []
@@ -153,8 +128,8 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             Task(next_run_at=Task.at(hour=21, minute=30, tz=self.user.tz), execute=self.farm_quests),
 
             # Recurring tasks.
-            Task(next_run_at=Task.every_n_minutes(24 * 60 // 5, self.arena_offset), execute=self.attack_arena),
-            Task(next_run_at=Task.every_n_minutes(24 * 60 // 5, self.arena_offset), execute=self.attack_grand_arena),
+            Task(next_run_at=Task.every_n_minutes(24 * 60 // 5, self.settings.bot.arena.schedule_offset), execute=self.attack_arena),
+            Task(next_run_at=Task.every_n_minutes(24 * 60 // 5, self.settings.bot.arena.schedule_offset), execute=self.attack_grand_arena),
             Task(next_run_at=Task.every_n_hours(6), execute=self.farm_mail),
             Task(next_run_at=Task.every_n_hours(6), execute=self.check_freebie),
             Task(next_run_at=Task.every_n_hours(4), execute=self.farm_expeditions),
@@ -174,12 +149,12 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             # Debug tasks. Uncomment when needed.
             # Task(next_run_at=Task.asap(), execute=self.open_titan_artifact_chest),
         ]
-        if self.shops:
+        if self.settings.bot.shops:
             self.tasks.extend([
                 Task(next_run_at=Task.at(hour=11, minute=1), execute=self.shop, args=(['4', '5', '6', '8', '9', '10'],)),
                 Task(next_run_at=Task.every_n_hours(8), execute=self.shop, args=(['1'],)),
             ])
-        if self.is_trainer:
+        if self.settings.bot.is_trainer:
             self.tasks.append(Task(next_run_at=Task.at(hour=22, minute=0, tz=self.user.tz), execute=self.train_arena_model))
 
         send_event(category='bot', action='start', user_id=self.api.user_id)
@@ -319,7 +294,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         for quest in quests:
             if not quest.is_reward_available:
                 continue
-            if self.no_experience and quest.reward.experience:
+            if self.settings.bot.no_experience and quest.reward.experience:
                 logger.warning(f'🙈 Ignoring {quest.reward.experience} experience reward for quest #{quest.id}.')
                 continue
             log_reward(self.api.farm_quest(quest.id))
@@ -347,8 +322,8 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         Отправляет сердечки друзьям.
         """
         logger.info('🎁 Sending daily gift…')
-        if self.friend_ids:
-            self.farm_quests(self.api.send_daily_gift(self.friend_ids))
+        if self.settings.bot.friend_ids:
+            self.farm_quests(self.api.send_daily_gift(self.settings.bot.friend_ids))
         else:
             logger.warning('No friends specified.')
 
@@ -370,11 +345,11 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         enemy, attackers, probability = arena.Arena(
             model=model,
             user_clan_id=self.user.clan_id,
-            skip_clans=self.arena_skip_clans,
+            skip_clans=self.settings.bot.arena.skip_clans,
             heroes=heroes,
             get_enemies_page=self.api.find_arena_enemies,
-            early_stop=self.arena_early_stop,
-            n_teams_limit=self.arena_teams_limit,
+            early_stop=self.settings.bot.arena.early_stop,
+            n_teams_limit=self.settings.bot.arena.teams_limit,
         ).select_enemy()
 
         # Debugging.
@@ -403,11 +378,11 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         enemy, attacker_teams, probability = arena.GrandArena(
             model=model,
             user_clan_id=self.user.clan_id,
-            skip_clans=self.arena_skip_clans,
+            skip_clans=self.settings.bot.arena.skip_clans,
             heroes=heroes,
             get_enemies_page=self.api.find_grand_enemies,
-            early_stop=self.arena_early_stop,
-            n_generations=self.grand_arena_generations,
+            early_stop=self.settings.bot.arena.early_stop,
+            n_generations=self.settings.bot.arena.grand_generations,
         ).select_enemy()
 
         # Debugging.
@@ -514,16 +489,16 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         }
 
         logger.info('🛒 Buying stuff…')
-        for shop_id, slot_id in self.shops:
-            if shop_id not in shop_ids:
-                logger.debug(f'🛒 Ignoring shop «{shop_name(shop_id)}».')
+        for shop in self.settings.bot.shops:
+            if shop.shop_id not in shop_ids:
+                logger.debug(f'🛒 Ignoring shop «{shop_name(shop.shop_id)}».')
                 continue
-            if (shop_id, slot_id) not in available_slots:
-                logger.warning(f'🛒 Slot #{slot_id} is not available in shop «{shop_name(shop_id)}».')
+            if (shop.shop_id, shop.slot_id) not in available_slots:
+                logger.warning(f'🛒 Slot #{shop.slot_id} is not available in shop «{shop_name(shop.shop_id)}».')
                 continue
-            logger.info(f'🛒 Buying slot #{slot_id} in shop «{shop_name(shop_id)}»…')
+            logger.info(f'🛒 Buying slot #{shop.slot_id} in shop «{shop_name(shop.shop_id)}»…')
             try:
-                log_reward(self.api.shop(shop_id=shop_id, slot_id=slot_id))
+                log_reward(self.api.shop(shop_id=shop.shop_id, slot_id=shop.slot_id))
             except NotEnoughError as e:
                 logger.warning(f'🛒 Not enough: {e.description}')
             except AlreadyError as e:

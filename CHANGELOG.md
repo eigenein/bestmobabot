@@ -1,5 +1,9 @@
 # `latest`
 
+**Breaking change.** As I keep adding more and more configuration options, I decided to move them out from the command line and environment variables to a separate configuration file. If you upgraded to this version, make sure you properly move your settings.
+
+* **Introducing configuration file**
+
 # `2.0b`
 
 * **Fix forever cached user info**

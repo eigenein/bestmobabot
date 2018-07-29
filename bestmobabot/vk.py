@@ -9,6 +9,7 @@ from typing import Any, Dict, Iterable
 import requests
 
 from bestmobabot.logging_ import logger
+from bestmobabot.settings import Settings
 
 
 class VK(contextlib.AbstractContextManager):
@@ -16,9 +17,9 @@ class VK(contextlib.AbstractContextManager):
     GIFT_RE = re.compile(r'gift_id=(\w+)')
     VK_CC_RE = re.compile(r'https://vk.cc/\w+')
 
-    def __init__(self, token: str):
+    def __init__(self, settings: Settings):
         self.session = requests.Session()
-        self.params = {'access_token': token, 'owner_id': '-116039030', 'count': '5', 'v': '5.69'}
+        self.params = {'access_token': settings.vk.access_token, 'owner_id': '-116039030', 'count': '5', 'v': '5.69'}
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.session.__exit__(exc_type, exc_val, exc_tb)

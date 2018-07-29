@@ -1,3 +1,6 @@
+*.yml
+*.yaml
+
 *.env
 *.log
 *.sqlite3

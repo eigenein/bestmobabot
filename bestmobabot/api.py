@@ -21,6 +21,7 @@ from bestmobabot.database import Database
 from bestmobabot.enums import *
 from bestmobabot.logging_ import logger
 from bestmobabot.responses import *
+from bestmobabot.settings import Settings
 
 T = TypeVar('T')
 
@@ -78,9 +79,9 @@ class API(contextlib.AbstractContextManager):
     API_URL = 'https://heroes-vk.nextersglobal.com/api/'
     USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Safari/537.36'
 
-    def __init__(self, db: Database, remixsid: str):
+    def __init__(self, db: Database, settings: Settings):
         self.db = db
-        self.remixsid = remixsid
+        self.remixsid = settings.vk.remixsid
         self.auth_token: str = None
         self.user_id: str = None
         self.request_id: int = None

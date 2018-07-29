@@ -1,9 +1,38 @@
-Bot playing [Hero Wars](https://vk.com/app5327745) MOBA-like game on [VK.com](https://vk.com). The bot uses pure reverse-engineered Hero Wars JSON API. No Flash-emulator is used.
+Bot playing [Hero Wars](https://vk.com/app5327745) MOBA-like game on [VK.com](https://vk.com). The bot uses pure reverse-engineered Hero Wars JSON API. No Flash-emulator is used. No browser is needed.
 
 ## Running with [Pipenv](https://docs.pipenv.org/)
 
 ```bash
-pipenv run python -m bestmobabot --help
+pipenv run python -m bestmobabot --settings settings.yaml
+```
+
+### Settings
+
+At the moment settings are described only in `settings.py`. Here is an example settings file:
+
+```yaml
+vk:
+  remixsid: <VK.com remixsid cookie>
+  access_token: <VK.com API access token>
+bot:
+  no_experience: no
+  is_trainer: yes
+  arena:
+    schedule_offset: 01:00:00
+    teams_limit: 40000
+    grand_generations: 50
+  friend_ids:
+  - 123456789
+  - 123456790
+  shops:
+  - shop_id: 1
+    slot_id: 4
+  - shop_id: 1
+    slot_id: 5
+  raids:
+  - 16
+  - 57
+  - 100
 ```
 
 ## Running with [Docker Compose](https://docs.docker.com/compose/)
@@ -22,15 +51,8 @@ services:
     image: eigenein/bestmobabot
     restart: always
     environment:
-      - REMIXSID=VK.com-remixsid-cookie-1
       - LOGFILE=/srv/bestmobabot/bestmobabot-user-1.log
-      - NO_EXPERIENCE=true
-      - RAIDS=16 57
-      - SHOPS=1 4 1 5
-      - IS_TRAINER=true
-      - VK_TOKEN=VK.com-API-token
-      - ARENA_OFFSET=3600
-      - ARENA_SKIP_CLANS=123456 FriendlyClan AnotherFriendlyClan
+      - SETTINGS=/srv/bestmobabot/bestmobabot-user-1.yaml
     volumes:
       - /srv/bestmobabot:/srv/bestmobabot
       - /etc/timezone:/etc/timezone:ro
@@ -39,10 +61,9 @@ services:
     image: eigenein/bestmobabot
     restart: always
     environment:
-      - REMIXSID=VK.com-remixsid-cookie-2
       - LOGFILE=/srv/bestmobabot/bestmobabot-user-2.log
-      - NO_EXPERIENCE=false
-      - VK_TOKEN=VK.com-API-token
+      - SETTINGS=/srv/bestmobabot/bestmobabot-user-2.yaml
+      - VERBOSITY=1
     volumes:
       - /srv/bestmobabot:/srv/bestmobabot
       - /etc/timezone:/etc/timezone:ro
@@ -51,7 +72,7 @@ services:
 
 ### Running with Docker
 
-Of course, the bot could be run just with Docker. Run `docker run eigenein/bestmobabot --help` to see the possible options. Environment variables are accepted too.
+Of course, the bot could be run just with Docker. Run `docker run eigenein/bestmobabot --help` to see the possible options.
 
 ## Tasks
 
@@ -61,7 +82,7 @@ Also, for expeditions the bot tries to pick up a reward and start the next exped
 
 ## Trainer
 
-Trainer is enabled by setting `IS_TRAINER` to `true`. Typically, you only need one trainer per a single database. It will perform training for all bots using the same database.
+Trainer is enabled by setting `is_trainer` to `true`. Typically, you only need one trainer per a single database. It will perform training for all bots using the same database.
 
 Arena model trainer could be run manually via:
 
