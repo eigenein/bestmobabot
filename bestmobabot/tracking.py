@@ -40,7 +40,6 @@ def send_event(*, category: str, action: str, user_id: str):
             'el': user_id,
             'cid': user_id,
             'ni': '1',
-            'av': get_version(),
             'cd1': get_version(),
             'cd2': get_ip(),
         }) as response:
