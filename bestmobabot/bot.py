@@ -345,11 +345,9 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         enemy, attackers, probability = arena.Arena(
             model=model,
             user_clan_id=self.user.clan_id,
-            skip_clans=self.settings.bot.arena.skip_clans,
             heroes=heroes,
             get_enemies_page=self.api.find_arena_enemies,
-            early_stop=self.settings.bot.arena.early_stop,
-            n_teams_limit=self.settings.bot.arena.teams_limit,
+            settings=self.settings,
         ).select_enemy()
 
         # Debugging.
@@ -378,11 +376,9 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         enemy, attacker_teams, probability = arena.GrandArena(
             model=model,
             user_clan_id=self.user.clan_id,
-            skip_clans=self.settings.bot.arena.skip_clans,
             heroes=heroes,
             get_enemies_page=self.api.find_grand_enemies,
-            early_stop=self.settings.bot.arena.early_stop,
-            n_generations=self.settings.bot.arena.grand_generations,
+            settings=self.settings,
         ).select_enemy()
 
         # Debugging.

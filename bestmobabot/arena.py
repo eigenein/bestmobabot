@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from functools import lru_cache
 from itertools import chain, combinations, product
 from operator import itemgetter
-from typing import Callable, Dict, Generic, Iterable, List, Optional, Set, Tuple, TypeVar
+from typing import Callable, Dict, Generic, Iterable, List, Optional, Tuple, TypeVar
 
 import numpy
 
@@ -16,6 +16,7 @@ from bestmobabot.constants import SPAM
 from bestmobabot.logging_ import logger
 from bestmobabot.model import Model
 from bestmobabot.responses import ArenaEnemy, GrandArenaEnemy, Hero
+from bestmobabot.settings import Settings
 
 T = TypeVar('T')
 T1 = TypeVar('T1')
@@ -37,17 +38,15 @@ class AbstractArena(ABC, Generic[TEnemy, TAttackers]):
         *,
         model: Model,
         user_clan_id: Optional[str],
-        skip_clans: Set[str],
         heroes: List[Hero],
         get_enemies_page: Callable[[], List[TEnemy]],
-        early_stop: float,
+        settings: Settings,
     ):
         self.model = model
         self.user_clan_id = user_clan_id
-        self.skip_clans = skip_clans
         self.heroes = heroes
         self.get_enemies_page = get_enemies_page
-        self.arena_early_stop = early_stop
+        self.settings = settings
 
         self.cache: Dict[str, Tuple[TAttackers, float]] = {}
 
@@ -56,7 +55,7 @@ class AbstractArena(ABC, Generic[TEnemy, TAttackers]):
             self.iterate_enemies_pages(),
             self.max_iterations,
             key=self.probability_getter,
-            early_stop=self.arena_early_stop,
+            early_stop=self.settings.bot.arena.early_stop,
         )
         return enemy, attackers, probability
 
@@ -77,7 +76,7 @@ class AbstractArena(ABC, Generic[TEnemy, TAttackers]):
             if self.user_clan_id and enemy.user.is_from_clans((self.user_clan_id,)):
                 logger.debug(f'🎲 Same clan enemy is skipped: "{enemy.user.name}".')
                 continue
-            if enemy.user.is_from_clans(self.skip_clans):
+            if enemy.user.is_from_clans(self.settings.bot.arena.skip_clans):
                 logger.debug(f'🎲 Configured clan enemy is skipped: #{enemy.user.clan_id} ("{enemy.user.clan_title}").')
                 continue
 
@@ -107,14 +106,14 @@ class AbstractArena(ABC, Generic[TEnemy, TAttackers]):
 
 
 class Arena(AbstractArena[ArenaEnemy, List[Hero]]):
-    def __init__(self, n_teams_limit: int, **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.n_teams_limit = n_teams_limit
-        logger.info(f'🎲 Teams count limit: {n_teams_limit}.')
+        self.n_teams_limit = self.settings.bot.arena.teams_limit
+        logger.info(f'🎲 Teams count limit: {self.n_teams_limit}.')
 
     @property
     def max_iterations(self):
-        return constants.ARENA_MAX_PAGES
+        return self.settings.bot.arena.max_pages
 
     def select_attackers(self, enemy: ArenaEnemy) -> Tuple[List[Hero], float]:
         """
@@ -144,10 +143,10 @@ class Arena(AbstractArena[ArenaEnemy, List[Hero]]):
 
 
 class GrandArena(AbstractArena[GrandArenaEnemy, List[List[Hero]]]):
-    def __init__(self, *, n_generations: int, **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.n_generations = n_generations
-        logger.info(f'🎲 Generations count: {n_generations}.')
+        self.n_generations = self.settings.bot.arena.grand_generations
+        logger.info(f'🎲 Generations count: {self.n_generations}.')
 
         # We keep solutions in an attribute because we want to retry the best solutions across different enemies.
         logger.log(SPAM, f'🎲 Generating initial solutions…')
@@ -158,7 +157,7 @@ class GrandArena(AbstractArena[GrandArenaEnemy, List[List[Hero]]]):
 
     @property
     def max_iterations(self):
-        return constants.GRAND_ARENA_MAX_PAGES
+        return self.settings.bot.arena.max_grand_pages
 
     def select_attackers(self, enemy: GrandArenaEnemy) -> Tuple[List[List[Hero]], float]:
         logger.log(SPAM, f'🎲 Selecting attackers ({enemy.user.name})…')

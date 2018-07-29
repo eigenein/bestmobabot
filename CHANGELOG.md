@@ -3,6 +3,7 @@
 **Breaking change.** As I keep adding more and more configuration options, I decided to move them out from the command line and environment variables to a separate configuration file. If you upgraded to this version, make sure you properly move your settings.
 
 * **Introducing configuration file**
+* **Configure maximum number of arena pages during enemy search**
 
 # `2.0b`
 

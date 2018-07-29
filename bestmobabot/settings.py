@@ -18,6 +18,8 @@ class ArenaSettings(BaseModel):
     schedule_offset: timedelta = timedelta()  # arena task schedule offset
     teams_limit: int = 20000  # number of the most powerful teams tested
     grand_generations: int = 25  # number of grand arena GA iterations
+    max_pages: int = 15
+    max_grand_pages: int = 15
 
     # noinspection PyMethodParameters
     @validator('early_stop')

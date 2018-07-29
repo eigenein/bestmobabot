@@ -36,8 +36,6 @@ SPAM = 5
 
 # Arena iterations control.
 # FIXME: make configurable.
-ARENA_MAX_PAGES = 15
-GRAND_ARENA_MAX_PAGES = 15
 GRAND_ARENA_N_KEEP = 200
 GRAND_ARENA_N_GENERATE = 1000
 
