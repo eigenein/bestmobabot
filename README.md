@@ -51,8 +51,8 @@ services:
     image: eigenein/bestmobabot
     restart: always
     environment:
-      - LOGFILE=/srv/bestmobabot/bestmobabot-user-1.log
-      - SETTINGS=/srv/bestmobabot/bestmobabot-user-1.yaml
+      - LOGFILE=/srv/bestmobabot/user-1.log
+      - SETTINGS=/srv/bestmobabot/user-1.yaml
     volumes:
       - /srv/bestmobabot:/srv/bestmobabot
       - /etc/timezone:/etc/timezone:ro
@@ -61,8 +61,8 @@ services:
     image: eigenein/bestmobabot
     restart: always
     environment:
-      - LOGFILE=/srv/bestmobabot/bestmobabot-user-2.log
-      - SETTINGS=/srv/bestmobabot/bestmobabot-user-2.yaml
+      - LOGFILE=/srv/bestmobabot/user-2.log
+      - SETTINGS=/srv/bestmobabot/user-2.yaml
       - VERBOSITY=1
     volumes:
       - /srv/bestmobabot:/srv/bestmobabot
