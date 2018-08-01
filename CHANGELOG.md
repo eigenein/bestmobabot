@@ -4,6 +4,7 @@
 
 * **Introducing configuration file**
 * **Configure maximum number of arena pages during enemy search**
+* Distribute stamina evenly between heroic missions
 
 # `2.0b`
 

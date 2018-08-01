@@ -7,7 +7,7 @@ import os
 import pickle
 from datetime import datetime, timedelta
 from operator import attrgetter
-from random import choice
+from random import choice, shuffle
 from time import sleep
 from typing import Dict, Iterable, List, Optional, Set, Tuple
 
@@ -82,7 +82,8 @@ class BotHelperMixin:
         heroic_mission_ids = get_heroic_mission_ids()
 
         # First, yield heroic missions.
-        raided_heroic_mission_ids = raids & heroic_mission_ids
+        raided_heroic_mission_ids = list(raids & heroic_mission_ids)
+        shuffle(raided_heroic_mission_ids)  # shuffle in order to distribute stamina evenly
         logger.info(f'👊 Raided heroic missions: {raided_heroic_mission_ids}.')
         for mission_id in raided_heroic_mission_ids:
             tries_left = constants.RAID_N_HEROIC_TRIES - missions[mission_id].tries_spent
