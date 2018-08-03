@@ -1,10 +1,11 @@
 import itertools
 from functools import lru_cache
-from glob import glob
 from hashlib import sha1
+from pathlib import Path
 
 import requests
 
+import bestmobabot
 from bestmobabot import constants
 from bestmobabot.logging_ import logger
 
@@ -14,8 +15,8 @@ session = requests.Session()
 @lru_cache(maxsize=None)
 def get_version() -> str:
     return sha1(bytes(itertools.chain.from_iterable(
-        open(path, 'rb').read()
-        for path in sorted(glob('**/*.py'))
+        path.open('rb').read()
+        for path in sorted(Path(bestmobabot.__file__).parent.glob('**/*.py'))
     ))).hexdigest()[-8:]
 
 
