@@ -12,6 +12,7 @@ from bestmobabot.database import Database
 from bestmobabot.logging_ import install_logging, logger
 from bestmobabot.resources import get_library, get_translations
 from bestmobabot.settings import SettingsFileParamType, Settings
+from bestmobabot.tracking import get_version
 from bestmobabot.vk import VK
 
 
@@ -31,7 +32,7 @@ def main(settings: Settings, log_file: TextIO, verbosity: int, **kwargs):
     """
     signal.signal(signal.SIGTERM, handle_sigterm)
     install_logging(verbosity, log_file)
-    logger.info('🤖 Bot is starting.')
+    logger.info(f'🤖 Bot is starting. Version: {get_version()}.')
 
     # Prefetch game resources.
     get_library()
