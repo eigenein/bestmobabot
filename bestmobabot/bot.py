@@ -566,14 +566,12 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         Открывает сферы артефактов титанов.
         """
         logger.info('🎁 Opening titan artifact chests…')
-        for _ in range(constants.MAX_OPEN_ARTIFACT_CHESTS):
+        for amount in [10, 1]:
             try:
-                rewards, quests = self.api.open_titan_artifact_chest(1)
+                rewards, quests = self.api.open_titan_artifact_chest(amount)
             except NotEnoughError:
-                logger.info('💬 Not enough resources.')
-                break
+                logger.info(f'💬 Not enough resources to open {amount} chests.')
             else:
                 log_rewards(rewards)
                 self.farm_quests(quests)
-        else:
-            logger.warning('💬 Maximum number of chests opened.')
+                break
