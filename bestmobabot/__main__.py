@@ -24,7 +24,7 @@ from bestmobabot.vk import VK
 )
 @option('-l', '--log-file', help=f'Log file.', envvar='LOGFILE', type=File('at'), default=get_text_stream('stderr'))
 @option('verbosity', '-v', '--verbose', help='Increase verbosity.', envvar='VERBOSITY', count=True)
-def main(settings: Settings, log_file: TextIO, verbosity: int, **kwargs):
+def main(settings: Settings, log_file: TextIO, verbosity: int):
     """
     Hero Wars bot.
     """
