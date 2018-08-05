@@ -22,5 +22,6 @@ RUN pipenv install --deploy --system
 COPY . /opt/bestmobabot
 
 # Start.
+STOPSIGNAL SIGINT
 ENTRYPOINT ["python", "-m", "bestmobabot"]
 CMD ["-v"]

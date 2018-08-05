@@ -1,5 +1,3 @@
-import os
-import signal
 from datetime import datetime
 from typing import TextIO
 
@@ -11,7 +9,7 @@ from bestmobabot.bot import Bot
 from bestmobabot.database import Database
 from bestmobabot.logging_ import install_logging, logger
 from bestmobabot.resources import get_library, get_translations
-from bestmobabot.settings import SettingsFileParamType, Settings
+from bestmobabot.settings import Settings, SettingsFileParamType
 from bestmobabot.tracking import get_version
 from bestmobabot.vk import VK
 
@@ -30,7 +28,6 @@ def main(settings: Settings, log_file: TextIO, verbosity: int, **kwargs):
     """
     Hero Wars bot.
     """
-    signal.signal(signal.SIGTERM, handle_sigterm)
     install_logging(verbosity, log_file)
     logger.info(f'🤖 Bot is starting. Version: {get_version()}.')
 
@@ -44,12 +41,6 @@ def main(settings: Settings, log_file: TextIO, verbosity: int, **kwargs):
         logger.info(f'👋 Welcome {bot.user.name}! Your game time is {datetime.now(bot.user.tz):%H:%M:%S}.')
         logger.info('👋 Next day starts at %s.', bot.user.next_day)
         bot.run()
-
-
-# noinspection PyUnusedLocal
-def handle_sigterm(signum, frame):
-    logger.info(f'👋 SIGTERM received. Bye-bye!{os.linesep}')
-    raise KeyboardInterrupt
 
 
 if __name__ == '__main__':
