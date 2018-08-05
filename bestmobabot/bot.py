@@ -333,7 +333,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         Тренирует предсказательную модель для арены.
         """
         logger.info('🤖 Running trainer…')
-        Trainer(self.db, n_splits=constants.MODEL_N_SPLITS).train()
+        Trainer(self.db, n_splits=constants.MODEL_N_SPLITS).train(params=self.settings.bot.arena.hyper_params)
 
     def attack_arena(self):
         """

@@ -26,7 +26,10 @@ class Trainer:
         self.db = db
         self.n_splits = n_splits
 
-    def train(self):
+    def train(self, params: Optional[Dict] = None):
+        """
+        Train the model. If `params` is not set, hyper-parameters search will be performed.
+        """
         numpy.random.seed(42)
 
         # Read battles.
@@ -43,33 +46,16 @@ class Trainer:
         value_counts: DataFrame = y.value_counts()
         logger.info(f'🤖 Wins: {value_counts[False]}. Losses: {value_counts[True]}.')
 
+        # Here's our model.
         estimator = RandomForestClassifier(class_weight='balanced', n_jobs=-1)
-        param_grid = {
-            'n_estimators': constants.MODEL_N_ESTIMATORS_CHOICES,
-            'criterion': ['entropy', 'gini'],
-        }
-        cv = StratifiedKFold(n_splits=self.n_splits, shuffle=True)
 
-        logger.info('🤖 Adjusting hyper-parameters…')
-        search_cv = TTestSearchCV(
-            estimator,
-            param_grid,
-            cv=cv,
-            scoring=constants.MODEL_SCORING,
-            alpha=constants.MODEL_SCORING_ALPHA,
-        )
-        try:
-            search_cv.fit(x, y)
-        except KeyboardInterrupt:
-            pass  # allow stopping the process
-        score_interval = search_cv.best_confidence_interval_
-        logger.info(f'🤖 Best score: {search_cv.best_score_:.4f} ({score_interval[0]:.4f} … {score_interval[1]:.4f})')
-        logger.info(f'🤖 Best params: {search_cv.best_params_}')
+        # Search for hyper-parameters if not explicitly set.
+        params = params or self.search_hyper_parameters(
+            x, y, estimator, constants.MODEL_PARAM_GRID, StratifiedKFold(n_splits=self.n_splits, shuffle=True))
 
         # Re-train the best model on the entire data.
-        logger.info('🤖 Refitting…')
-        estimator.set_params(**search_cv.best_params_)
-        estimator.fit(x, y)
+        logger.info(f'🤖 Refitting with params: {params}…')
+        estimator.set_params(**params).fit(x, y)
         if not numpy.array_equal(estimator.classes_, numpy.array([False, True])):
             raise RuntimeError(f'unexpected classes: {estimator.classes_}')
 
@@ -84,6 +70,23 @@ class Trainer:
         self.db.vacuum()
 
         logger.info('🤖 Finished.')
+
+    @staticmethod
+    def search_hyper_parameters(x, y, estimator, param_grid, cv) -> Dict:
+        logger.info('🤖 Searching for the best hyper-parameters…')
+        search_cv = TTestSearchCV(
+            estimator, param_grid, cv=cv, scoring=constants.MODEL_SCORING, alpha=constants.MODEL_SCORING_ALPHA)
+
+        try:
+            search_cv.fit(x, y)
+        except KeyboardInterrupt:
+            pass  # allow stopping the process
+
+        score_interval = search_cv.best_confidence_interval_
+        logger.info(f'🤖 Best score: {search_cv.best_score_:.4f} ({score_interval[0]:.4f} … {score_interval[1]:.4f})')
+        logger.info(f'🤖 Best params: {search_cv.best_params_}')
+
+        return search_cv.best_params_
 
     def read_battles(self) -> List[Dict[str, Any]]:
         logger.info('🤖 Reading battles…')

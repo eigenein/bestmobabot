@@ -23,6 +23,10 @@ MODEL_SCORING = 'accuracy'
 MODEL_SCORING_ALPHA = 0.95
 MODEL_N_SPLITS = 5
 MODEL_N_ESTIMATORS_CHOICES = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 70, 80, 90, 100, 150, 200]
+MODEL_PARAM_GRID = {
+    'n_estimators': MODEL_N_ESTIMATORS_CHOICES,
+    'criterion': ['entropy', 'gini'],
+}
 
 # Raids.
 RAID_N_HEROIC_TRIES = 3

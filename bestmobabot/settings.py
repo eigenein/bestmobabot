@@ -1,6 +1,6 @@
 import os
 from datetime import timedelta
-from typing import List, Set, Type, TypeVar
+from typing import List, Optional, Set, Type, TypeVar
 
 import click
 import yaml
@@ -18,8 +18,9 @@ class ArenaSettings(BaseModel):
     schedule_offset: timedelta = timedelta()  # arena task schedule offset
     teams_limit: int = 20000  # number of the most powerful teams tested
     grand_generations: int = 25  # number of grand arena GA iterations
-    max_pages: int = 15
-    max_grand_pages: int = 15
+    max_pages: int = 15  # maximal number of pages during enemy search
+    max_grand_pages: int = 15  # maximal number of pages during grand enemy search
+    hyper_params: Optional[dict] = None  # hyper-parameters of the predictive model
 
     # noinspection PyMethodParameters
     @validator('early_stop')
