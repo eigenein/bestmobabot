@@ -68,11 +68,29 @@ def read_tags(io: BinaryIO):
             tag_length: int = read_value(io, ui32)
         logger.debug(f'Type {type_}: length: {tag_length}')
         if type_ == 82:
-            # DoABC
-            io.read(tag_length)  # FIXME: read .abc bytecode
+            read_do_abc(io, tag_length)
         else:
             # Skip unknown tag.
             io.read(tag_length)
+
+
+def read_do_abc(io: BinaryIO, tag_length: int):
+    io = BytesIO(io.read(tag_length))
+    read_value(io, ui32)  # flags
+    logger.info(f'Name: {read_string(io)}.')
+    print(read_value(io, ui16), read_value(io, ui16))
+
+
+def read_string(io: BinaryIO) -> str:
+    return bytes(read_until(io, 0)).decode('utf-8')
+
+
+def read_until(io: BinaryIO, sentinel: int) -> Iterable[int]:
+    while True:
+        byte, = io.read(1)
+        if byte == sentinel:
+            break
+        yield byte
 
 
 def read_rect(io: BinaryIO) -> Tuple[int, int, int, int]:
