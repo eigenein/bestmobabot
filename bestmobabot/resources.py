@@ -10,6 +10,7 @@ from typing import Dict, Set
 import requests
 
 import bestmobabot.logging_
+from bestmobabot import constants
 
 
 @lru_cache(maxsize=None)
@@ -21,12 +22,11 @@ def get_resource(url: str) -> Dict:
 
 
 def get_translations() -> Dict[str, str]:
-    # FIXME: dynamically find out the latest server version. Or at least make configurable.
-    return get_resource('https://heroes.cdnvideo.ru/vk/v0401/locale/ru.json.gz')
+    return get_resource(constants.TRANSLATIONS_URL)
 
 
 def get_library() -> Dict:
-    return get_resource('https://heroes.cdnvideo.ru/vk/v0404/lib/lib.json.gz')
+    return get_resource(constants.LIBRARY_URL)
 
 
 def hero_name(hero_id: str) -> str:

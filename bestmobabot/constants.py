@@ -7,6 +7,12 @@ ANALYTICS_URL = 'https://www.google-analytics.com/collect'
 ANALYTICS_TID = 'UA-65034198-7'
 IP_URL = 'https://ipinfo.io/ip'
 
+# Resources.
+# FIXME: dynamically find out the latest server version. Or at least make configurable.
+TRANSLATIONS_URL = 'https://heroes.cdnvideo.ru/vk/v0401/locale/ru.json.gz'
+LIBRARY_URL = 'https://heroes.cdnvideo.ru/vk/v0404/lib/lib.json.gz'
+HEROES_SWF_URL = 'https://heroes.cdnvideo.ru/vk/v0402/assets/heroes.swf'
+
 # Fundamental constants.
 TEAM_SIZE = 5  # heroes
 GRAND_TEAMS = 3
