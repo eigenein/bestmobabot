@@ -152,7 +152,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         ]
         if self.settings.bot.shops:
             self.tasks.extend([
-                Task(next_run_at=Task.at(hour=11, minute=1), execute=self.shop, args=(['4', '5', '6', '8', '9', '10'],)),
+                Task(next_run_at=Task.at(hour=11, minute=0), execute=self.shop, args=(['4', '5', '6', '8', '9', '10'],)),
                 Task(next_run_at=Task.every_n_hours(8), execute=self.shop, args=(['1'],)),
             ])
         if self.settings.bot.is_trainer:
