@@ -319,6 +319,9 @@ class API(contextlib.AbstractContextManager):
     def farm_grand_coins(self) -> Reward:
         return Reward(self.call('grandFarmCoins').response['reward'] or {})
 
+    def set_grand_heroes(self, hero_ids: List[List[str]]):
+        self.call('grandSetHeroes', {'heroes': hero_ids})
+
     # Freebie.
     # ------------------------------------------------------------------------------------------------------------------
 

@@ -157,6 +157,8 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             ])
         if self.settings.bot.is_trainer:
             self.tasks.append(Task(next_run_at=Task.at(hour=22, minute=0, tz=self.user.tz), execute=self.train_arena_model))
+        if self.settings.bot.arena.randomize_grand_defenders:
+            self.tasks.append(Task(next_run_at=Task.at(hour=10, minute=30), execute=self.randomize_grand_defenders))
 
         send_event(category='bot', action='start', user_id=self.api.user_id)
 
@@ -575,3 +577,15 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
                 log_rewards(rewards)
                 self.farm_quests(quests)
                 break
+
+    def randomize_grand_defenders(self):
+        """
+        Выставляет в защиту гранд-арены топ-15 героев в случайном порядке.
+        """
+        logger.info('👊 Randomizing grand defenders…')
+        heroes = self.naive_select_attackers(self.api.get_all_heroes(), count=constants.GRAND_SIZE)
+        if len(heroes) < constants.GRAND_SIZE:
+            raise TaskNotAvailable('not enough heroes')
+        hero_ids = self.get_hero_ids(heroes)
+        shuffle(hero_ids)
+        self.api.set_grand_heroes([hero_ids[0:5], hero_ids[5:10], hero_ids[10:15]])
