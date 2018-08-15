@@ -44,11 +44,6 @@ OFFER_FARMED_TYPES = ('dailyReward',)
 # Logging.
 SPAM = 5
 
-# Arena iterations control.
-# FIXME: make configurable.
-GRAND_ARENA_N_KEEP = 200
-GRAND_ARENA_N_GENERATE = 1000
-
 # FIXME: obtain from the resources.
 COLORS: Dict[int, str] = {
     1: 'Белый',

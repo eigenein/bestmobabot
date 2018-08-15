@@ -22,6 +22,8 @@ class ArenaSettings(BaseModel):
     max_grand_pages: int = 15  # maximal number of pages during grand enemy search
     hyper_params: Optional[dict] = None  # hyper-parameters of the predictive model
     randomize_grand_defenders: bool = False
+    grand_generate_solutions: int = 1000
+    grand_keep_solutions: int = 200
 
     # noinspection PyMethodParameters
     @validator('early_stop')

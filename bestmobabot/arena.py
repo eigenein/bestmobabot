@@ -145,6 +145,8 @@ class Arena(AbstractArena[ArenaEnemy, List[Hero]]):
 class GrandArena(AbstractArena[GrandArenaEnemy, List[List[Hero]]]):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.n_generate_solutions = self.settings.bot.arena.grand_generate_solutions
+        self.n_keep_solutions = self.settings.bot.arena.grand_keep_solutions
         self.n_generations = self.settings.bot.arena.grand_generations
         logger.info(f'🎲 Generations count: {self.n_generations}.')
 
@@ -152,7 +154,7 @@ class GrandArena(AbstractArena[GrandArenaEnemy, List[List[Hero]]]):
         logger.log(SPAM, f'🎲 Generating initial solutions…')
         self.solutions: numpy.ndarray = numpy.vstack(
             numpy.random.permutation(len(self.heroes))
-            for _ in range(constants.GRAND_ARENA_N_KEEP)
+            for _ in range(self.n_keep_solutions)
         )
 
     @property
@@ -185,9 +187,9 @@ class GrandArena(AbstractArena[GrandArenaEnemy, List[List[Hero]]]):
         for n_generation in range(self.n_generations):
             # Generate new solutions.
             # Choose random solutions from the population and apply a random permutation to each of them.
-            new_permutations = swaps[numpy.random.randint(0, swaps.shape[0], constants.GRAND_ARENA_N_GENERATE)]
+            new_permutations = swaps[numpy.random.randint(0, swaps.shape[0], self.n_generate_solutions)]
             new_solutions = self.solutions[
-                numpy.random.choice(self.solutions.shape[0], constants.GRAND_ARENA_N_GENERATE).reshape(-1, 1),
+                numpy.random.choice(self.solutions.shape[0], self.n_generate_solutions).reshape(-1, 1),
                 new_permutations
             ]
 
@@ -204,7 +206,7 @@ class GrandArena(AbstractArena[GrandArenaEnemy, List[List[Hero]]]):
             probabilities = p1 * p2 * p3 + p1 * p2 * (1.0 - p3) + p2 * p3 * (1.0 - p1) + p1 * p3 * (1.0 - p2)
 
             # Select top ones.
-            top_indexes = probabilities.argpartition(-constants.GRAND_ARENA_N_KEEP)[-constants.GRAND_ARENA_N_KEEP:]
+            top_indexes = probabilities.argpartition(-self.n_keep_solutions)[-self.n_keep_solutions:]
             self.solutions = self.solutions[top_indexes, :]
             probabilities = probabilities[top_indexes]
 
