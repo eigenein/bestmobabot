@@ -296,7 +296,7 @@ class API(contextlib.AbstractContextManager):
     # ------------------------------------------------------------------------------------------------------------------
 
     def send_daily_gift(self, user_ids: Iterable[str]) -> Quests:
-        return self.call('friendsSendDailyGift', {'ids': list(user_ids)}).quests
+        return self.call('friendsSendDailyGift', {'ids': list(user_ids), 'notifiedUserIds': [ch]}).quests
 
     # Arena.
     # ------------------------------------------------------------------------------------------------------------------

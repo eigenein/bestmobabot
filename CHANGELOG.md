@@ -2,6 +2,7 @@
 
 * **Option to randomize grand arena defenders**
 * **Add `grand_generate_solutions` and `grand_keep_solutions` options**
+* Add required parameter to `friendsSendDailyGift`
 
 # `2.0`
 
