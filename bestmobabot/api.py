@@ -77,7 +77,6 @@ class API(contextlib.AbstractContextManager):
     GAME_URL = 'https://vk.com/app5327745'
     IFRAME_URL = 'https://i-heroes-vk.nextersglobal.com/iframe/vkontakte/iframe.new.php'
     API_URL = 'https://heroes-vk.nextersglobal.com/api/'
-    USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Safari/537.36'
 
     def __init__(self, db: Database, settings: Settings):
         self.db = db
@@ -160,7 +159,7 @@ class API(contextlib.AbstractContextManager):
         calls = [{'ident': name, 'name': name, 'args': arguments or {}}]
         data = json.dumps({"session": None, "calls": calls})
         headers = {
-            'User-Agent': self.USER_AGENT,
+            'User-Agent': constants.USER_AGENT,
             'X-Auth-Application-Id': '5327745',
             'X-Auth-Network-Ident': 'vkontakte',
             'X-Auth-Session-Id': self.session_id,

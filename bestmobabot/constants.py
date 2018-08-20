@@ -6,12 +6,12 @@ DATABASE_NAME = 'db.sqlite3'
 ANALYTICS_URL = 'https://www.google-analytics.com/collect'
 ANALYTICS_TID = 'UA-65034198-7'
 IP_URL = 'https://ipinfo.io/ip'
+USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36'
 
 # Resources.
 # FIXME: dynamically find out the latest server version. Or at least make configurable.
-TRANSLATIONS_URL = 'https://heroes.cdnvideo.ru/vk/v0401/locale/ru.json.gz'
-LIBRARY_URL = 'https://heroes.cdnvideo.ru/vk/v0404/lib/lib.json.gz'
-HEROES_SWF_URL = 'https://heroes.cdnvideo.ru/vk/v0402/assets/heroes.swf'
+TRANSLATIONS_URL = 'https://heroes.cdnvideo.ru/vk/v0416/locale/ru.json.gz'
+LIBRARY_URL = 'https://heroes.cdnvideo.ru/vk/v0416/lib/lib.json.gz'
 
 # Fundamental constants.
 TEAM_SIZE = 5  # heroes
