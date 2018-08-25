@@ -101,19 +101,18 @@ class Trainer:
     def parse_battles(cls, battle: Dict[str, Any]) -> Iterable[Dict[str, Any]]:
         # Yield battle itself.
         result = defaultdict(int)
-        cls.parse_heroes(battle.get('attackers') or battle['player'], True, result)
-        cls.parse_heroes(battle.get('defenders') or battle['enemies'], False, result)
+        cls.parse_heroes(battle.get('attackers') or battle['player'], +1, result)
+        cls.parse_heroes(battle.get('defenders') or battle['enemies'], -1, result)
         yield {'win': battle['win'], **result}
 
         # Yield mirrored battle.
         result = defaultdict(int)
-        cls.parse_heroes(battle.get('attackers') or battle['player'], False, result)
-        cls.parse_heroes(battle.get('defenders') or battle['enemies'], True, result)
+        cls.parse_heroes(battle.get('attackers') or battle['player'], -1, result)
+        cls.parse_heroes(battle.get('defenders') or battle['enemies'], +1, result)
         yield {'win': not battle['win'], **result}
 
     @staticmethod
-    def parse_heroes(heroes: Iterable[Dict[str, int]], is_attackers: bool, result: DefaultDict[str, int]):
-        multiplier = +1 if is_attackers else -1
+    def parse_heroes(heroes: Iterable[Dict[str, int]], multiplier: int, result: DefaultDict[str, int]):
         for hero in heroes:
             for key, value in responses.Hero(hero).feature_dict.items():
                 result[key] += multiplier * value

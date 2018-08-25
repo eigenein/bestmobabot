@@ -4,6 +4,7 @@
 * **Add `grand_generate_solutions` and `grand_keep_solutions` options**
 * Add required parameter to `friendsSendDailyGift`
 * Update `User-Agent` and resources
+* Add new features and improve prediction quality
 
 # `2.0`
 
