@@ -47,7 +47,7 @@ class Database(AbstractContextManager):
         Gets all values from the specified index.
         """
         with closing(self.connection.cursor()) as cursor:  # type: sqlite3.Cursor
-            cursor.execute('SELECT "key", value FROM "default" where "index" = ?', (index,))
+            cursor.execute('SELECT "key", value FROM "default" WHERE "index" = ?', (index,))
             return ((key, loads(value)) for key, value in cursor.fetchall())
 
     def set(self, index: str, key: str, value: T, *, dumps: Callable[[T], str] = json.dumps):

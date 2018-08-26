@@ -1,8 +1,9 @@
-import itertools
 import pickle
 from collections import defaultdict
+from datetime import datetime
+from itertools import chain, product
 from operator import itemgetter
-from typing import Any, DefaultDict, Dict, Iterable, List, NamedTuple, Optional, Set, Tuple
+from typing import Any, DefaultDict, Dict, Iterable, List, NamedTuple, Optional
 
 import numpy
 from pandas import DataFrame, Series
@@ -90,15 +91,17 @@ class Trainer:
 
     def read_battles(self) -> List[Dict[str, Any]]:
         logger.info('🤖 Reading battles…')
-        battle_set: Set[Tuple[Tuple[str, Any]]] = {
-            tuple(sorted(battle.items()))
+        return list(chain.from_iterable(
+            self.parse_battles(value)
             for _, value in self.db.get_by_index('replays')
-            for battle in self.parse_battles(value)
-        }
-        return [dict(battle) for battle in battle_set]
+        ))
 
     @classmethod
     def parse_battles(cls, battle: Dict[str, Any]) -> Iterable[Dict[str, Any]]:
+        # FIXME: backwards compatibility, eventually remove this.
+        if datetime.fromtimestamp(battle.get('start_time', 0)) < constants.MODEL_MIN_START_TIME:
+            return
+
         # Yield battle itself.
         result = defaultdict(int)
         cls.parse_heroes(battle.get('attackers') or battle['player'], +1, result)
@@ -133,7 +136,7 @@ class TTestSearchCV:
         self.best_confidence_interval_: Optional[numpy.ndarray] = None
 
     def fit(self, x, y):
-        for values in itertools.product(*self.param_grid.values()):
+        for values in product(*self.param_grid.values()):
             params = dict(zip(self.param_grid.keys(), values))
             self.estimator.set_params(**params)
             logger.log(SPAM, f'🤖 CV started: {params}')

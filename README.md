@@ -12,24 +12,30 @@ At the moment settings are described only in `settings.py`. Here is an example s
 
 ```yaml
 vk:
-  remixsid: <VK.com remixsid cookie>
+  # VK.com settings:
+  remixsid: <VK.com `remixsid` cookie>
   access_token: <VK.com API access token>
 bot:
-  no_experience: no
-  is_trainer: yes
+  # Bot settings:
+  no_experience: no  # do not farm experience quests
+  is_trainer: yes  # train arena prediction model nightly
   arena:
-    schedule_offset: 01:00:00
+    # Arena and grand arena settings:
+    schedule_offset: 01:00:00  # shift time from the default one
     teams_limit: 40000
     grand_generations: 50
   friend_ids:
+  # Send ❤️ gifts to:
   - 123456789
   - 123456790
   shops:
+  # Buy the following slots in the shop:
   - shop_id: 1
     slot_id: 4
   - shop_id: 1
     slot_id: 5
   raids:
+  # Raid mission IDs:
   - 16
   - 57
   - 100
@@ -119,7 +125,7 @@ The same database can be used by multiple bots. Actually, it is _recommended_ th
 **Warning.** The database contains user IDs and Hero Wars API authentication tokens. Make sure that you remove them manually should you share your database. You can use the following statement to delete everything except of battle results:
 
 ```sql
-delete from "default" where "index" <> 'replays';
+DELETE FROM "default" WHERE "index" <> 'replays';
 ```
 
 ## Authors
