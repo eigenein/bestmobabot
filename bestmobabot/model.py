@@ -36,16 +36,16 @@ class Trainer:
         # Read battles.
         battle_list = self.read_battles()
         if not battle_list:
-            logger.info('🤖 There are no battles. Wait until someone attacks you.')
+            logger.info('There are no battles. Wait until someone attacks you.')
             return
         battles = DataFrame(battle_list).fillna(value=0.0)
-        logger.info(f'🤖 Battles shape: {battles.shape}.')
+        logger.info(f'Battles shape: {battles.shape}.')
 
         # Split into X and y.
         x: DataFrame = battles.drop(['win'], axis=1)
         y: Series = battles['win']
         value_counts: DataFrame = y.value_counts()
-        logger.info(f'🤖 Wins: {value_counts[False]}. Losses: {value_counts[True]}.')
+        logger.info(f'Wins: {value_counts[False]}. Losses: {value_counts[True]}.')
 
         # Here's our model.
         estimator = RandomForestClassifier(class_weight='balanced', n_jobs=-1)
@@ -55,26 +55,26 @@ class Trainer:
             x, y, estimator, constants.MODEL_PARAM_GRID, StratifiedKFold(n_splits=self.n_splits, shuffle=True))
 
         # Re-train the best model on the entire data.
-        logger.info(f'🤖 Refitting with params: {params}…')
+        logger.info(f'Refitting with params: {params}…')
         estimator.set_params(**params).fit(x, y)
         if not numpy.array_equal(estimator.classes_, numpy.array([False, True])):
             raise RuntimeError(f'unexpected classes: {estimator.classes_}')
 
         # Print debugging info.
         for column, importance in sorted(zip(x.columns, estimator.feature_importances_), key=itemgetter(1), reverse=True):
-            logger.log(SPAM, f'🤖 Feature {column}: {importance:.7f}')
+            logger.log(SPAM, f'Feature {column}: {importance:.7f}')
 
-        logger.info('🤖 Saving model…')
+        logger.info('Saving model…')
         self.db.set('bot', 'model', pickle.dumps(Model(estimator, list(x.columns))), dumps=bytes.hex)
 
-        logger.info('🤖 Optimizing database…')
+        logger.info('Optimizing database…')
         self.db.vacuum()
 
-        logger.info('🤖 Finished.')
+        logger.info('Finished.')
 
     @staticmethod
     def search_hyper_parameters(x, y, estimator, param_grid, cv) -> Dict:
-        logger.info('🤖 Searching for the best hyper-parameters…')
+        logger.info('Searching for the best hyper-parameters…')
         search_cv = TTestSearchCV(
             estimator, param_grid, cv=cv, scoring=constants.MODEL_SCORING, alpha=constants.MODEL_SCORING_ALPHA)
 
@@ -84,13 +84,13 @@ class Trainer:
             pass  # allow stopping the process
 
         score_interval = search_cv.best_confidence_interval_
-        logger.info(f'🤖 Best score: {search_cv.best_score_:.4f} ({score_interval[0]:.4f} … {score_interval[1]:.4f})')
-        logger.info(f'🤖 Best params: {search_cv.best_params_}')
+        logger.info(f'Best score: {search_cv.best_score_:.4f} ({score_interval[0]:.4f} … {score_interval[1]:.4f})')
+        logger.info(f'Best params: {search_cv.best_params_}')
 
         return search_cv.best_params_
 
     def read_battles(self) -> List[Dict[str, Any]]:
-        logger.info('🤖 Reading battles…')
+        logger.info('Reading battles…')
         return list(chain.from_iterable(
             self.parse_battles(value)
             for _, value in self.db.get_by_index('replays')
@@ -139,13 +139,13 @@ class TTestSearchCV:
         for values in product(*self.param_grid.values()):
             params = dict(zip(self.param_grid.keys(), values))
             self.estimator.set_params(**params)
-            logger.log(SPAM, f'🤖 CV started: {params}')
+            logger.log(SPAM, f'CV started: {params}')
             scores: numpy.ndarray = cross_val_score(self.estimator, x, y, scoring=self.scoring, cv=self.cv)
             score: float = scores.mean()
-            logger.debug(f'🤖 Score: {score:.4f} with {params}.')
+            logger.debug(f'Score: {score:.4f} with {params}.')
             if not self.is_better_score(score, scores):
                 continue
-            logger.debug(f'🤖 Found significantly better score: {score:.4f}.')
+            logger.info(f'Found significantly better score: {score:.4f}.')
             self.best_params_ = params
             self.best_score_ = score
             self.best_scores_ = scores
@@ -157,5 +157,5 @@ class TTestSearchCV:
         if score < self.best_score_:
             return False
         _, p_value = stats.ttest_ind(self.best_scores_, scores)
-        logger.log(SPAM, f'🤖 P-value: {p_value:.4f}.')
+        logger.log(SPAM, f'P-value: {p_value:.4f}.')
         return p_value < self.p

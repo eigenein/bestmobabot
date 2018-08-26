@@ -25,7 +25,7 @@ class VK(contextlib.AbstractContextManager):
         self.session.__exit__(exc_type, exc_val, exc_tb)
 
     def find_gifts(self) -> Iterable[str]:
-        logger.info('🔔 Checking VK.com gifts…')
+        logger.info('Checking VK.com gifts…')
 
         with self.session.get(self.URL, params=self.params) as response:
             response.raise_for_status()

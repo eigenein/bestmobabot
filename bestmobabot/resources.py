@@ -15,7 +15,7 @@ from bestmobabot import constants
 
 @lru_cache(maxsize=None)
 def get_resource(url: str) -> Dict:
-    bestmobabot.logging_.logger.info(f'🌎 Loading {url}…')
+    bestmobabot.logging_.logger.info(f'Loading {url}…')
     response = requests.get(url, stream=True)
     response.raise_for_status()
     return json.load(gzip.GzipFile(fileobj=response.raw))

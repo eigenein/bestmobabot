@@ -51,7 +51,7 @@ class BotHelperMixin:
         """
         Loads a predictive model from the database.
         """
-        logger.info('🤖 Loading model…')
+        logger.info('Loading model…')
         return self.db.get_by_key('bot', 'model', loads=lambda value: pickle.loads(bytes.fromhex(value)))
 
     def check_arena(self, min_hero_count: int) -> Tuple[Model, List[Hero]]:
@@ -84,18 +84,18 @@ class BotHelperMixin:
         # First, yield heroic missions.
         raided_heroic_mission_ids = list(raids & heroic_mission_ids)
         shuffle(raided_heroic_mission_ids)  # shuffle in order to distribute stamina evenly
-        logger.info(f'👊 Raided heroic missions: {raided_heroic_mission_ids}.')
+        logger.info(f'Raided heroic missions: {raided_heroic_mission_ids}.')
         for mission_id in raided_heroic_mission_ids:
             tries_left = constants.RAID_N_HEROIC_TRIES - missions[mission_id].tries_spent
-            logger.info(f'👊 Mission #{mission_id}: {tries_left} tries left.')
+            logger.info(f'Mission #{mission_id}: {tries_left} tries left.')
             for _ in range(tries_left):
                 yield mission_id
 
         # Then, randomly choose non-heroic missions infinitely.
         non_heroic_mission_ids = list(raids - heroic_mission_ids)
-        logger.info(f'👊 Raided non-heroic missions: {non_heroic_mission_ids}.')
+        logger.info(f'Raided non-heroic missions: {non_heroic_mission_ids}.')
         if not non_heroic_mission_ids:
-            logger.info('👊 No raided non-heroic missions.')
+            logger.info('No raided non-heroic missions.')
             return
         while True:
             yield choice(non_heroic_mission_ids)
@@ -163,16 +163,16 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         send_event(category='bot', action='start', user_id=self.api.user_id)
 
     def run(self):
-        logger.info('🤖 Initialising task queue.')
+        logger.info('Initialising task queue.')
         now = self.now()
         schedule = [task.next_run_at(now).astimezone() for task in self.tasks]
 
-        logger.info('🤖 Running task queue.')
+        logger.info('Running task queue.')
         while True:
             # Find the earliest task.
             run_at, index = min((run_at, index) for index, run_at in enumerate(schedule))
             task = self.tasks[index]
-            logger.info(f'💤 Next is {task} at {run_at:%H:%M:%S}.')
+            logger.info(f'Next is {task} at {run_at:%H:%M:%S}.')
             # Sleep until the execution time.
             sleep_time = (run_at - self.now()).total_seconds()
             if sleep_time >= 0.0:
@@ -181,7 +181,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             next_run_at = self.execute(task) or task.next_run_at(max(self.now(), run_at + timedelta(seconds=1)))
             next_run_at = next_run_at.astimezone()  # keeping them in the local time zone
             # Update its execution time.
-            logger.info(f'💤 Next run at {next_run_at:%H:%M:%S}.{os.linesep}')
+            logger.info(f'Next run at {next_run_at:%H:%M:%S}.{os.linesep}')
             schedule[index] = next_run_at
             # Run experiment.
             with requests.get(constants.EXPERIMENT_URL) as response:
@@ -198,22 +198,22 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         try:
             next_run_at = task.execute(*task.args)
         except TaskNotAvailable as e:
-            logger.warning(f'😐 Task unavailable: {e}.')
+            logger.warning(f'Task unavailable: {e}.')
         except AlreadyError as e:
-            logger.error(f'🤔 Already done: {e.description}.')
+            logger.error(f'Already done: {e.description}.')
         except NotEnoughError as e:
-            logger.error(f'🤔 Not enough: {e.description}.')
+            logger.error(f'Not enough: {e.description}.')
         except OutOfRetargetDelta:
-            logger.error(f'🤔 Out of retarget delta.')
+            logger.error(f'Out of retarget delta.')
         except InvalidResponseError as e:
-            logger.error('😱 API returned something bad:')
-            logger.error(f'😱 {e}')
+            logger.error('API returned something bad:')
+            logger.error(f'{e}')
         except Exception as e:
-            logger.critical('😱 Uncaught error.', exc_info=e)
+            logger.critical('Uncaught error.', exc_info=e)
             for result in self.api.last_responses:
-                logger.critical(f'💬 API result: {result}')
+                logger.critical(f'API result: {result}')
         else:
-            logger.info(f'✅ Well done.')
+            logger.info(f'Well done.')
             return next_run_at
 
     # Tasks.
@@ -224,7 +224,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         """
         Отладочная задача.
         """
-        logger.info(f'🦆 {text}')
+        logger.info(text)
         sleep(1.0)
 
     def register(self):
@@ -239,7 +239,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         """
         Забирает ежедневный подарок.
         """
-        logger.info('💰 Farming daily bonus…')
+        logger.info('Farming daily bonus…')
         log_reward(self.api.farm_daily_bonus())
 
     def farm_expeditions(self) -> Optional[datetime]:
@@ -248,7 +248,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         """
         now = self.now()
 
-        logger.info('💰 Farming expeditions…')
+        logger.info('Farming expeditions…')
         expeditions = self.api.list_expeditions()
         for expedition in expeditions:
             if expedition.is_started and expedition.end_time < now:
@@ -257,13 +257,13 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         return self.send_expedition()  # farm expeditions once finished
 
     def send_expedition(self) -> Optional[datetime]:
-        logger.info('👊 Sending an expedition…')
+        logger.info('Sending an expedition…')
 
         # Check started expeditions.
         expeditions = self.api.list_expeditions()
         for expedition in expeditions:
             if expedition.is_started:
-                logger.info(f'✅ Started expedition ends at {expedition.end_time}.')
+                logger.info(f'Started expedition ends at {expedition.end_time}.')
                 return expedition.end_time
 
         # Choose the most powerful available heroes.
@@ -277,13 +277,13 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             if expedition.is_available and expedition.power <= team_power
         ]
         if not expeditions:
-            logger.info('✅ No expeditions available.')
+            logger.info('No expeditions available.')
             return None
         expedition = min(expeditions, key=attrgetter('duration'))  # choose the fastest expedition
 
         # Send the expedition.
         end_time, quests = self.api.send_expedition_heroes(expedition.id, self.get_hero_ids(heroes))
-        logger.info(f'⏰ The expedition ends at {end_time}.')
+        logger.info(f'The expedition ends at {end_time}.')
         self.farm_quests(quests)
         return end_time
 
@@ -291,14 +291,14 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         """
         Собирает награды из заданий.
         """
-        logger.info('💰 Farming quests if any…')
+        logger.info('Farming quests if any…')
         if quests is None:
             quests = self.api.get_all_quests()
         for quest in quests:
             if not quest.is_reward_available:
                 continue
             if self.settings.bot.no_experience and quest.reward.experience:
-                logger.warning(f'🙈 Ignoring {quest.reward.experience} experience reward for quest #{quest.id}.')
+                logger.warning(f'Ignoring {quest.reward.experience} experience reward for quest #{quest.id}.')
                 continue
             log_reward(self.api.farm_quest(quest.id))
 
@@ -306,25 +306,25 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         """
         Собирает награды из почты.
         """
-        logger.info('📩 Farming mail…')
+        logger.info('Farming mail…')
         letters = self.api.get_all_mail()
         if not letters:
             return
-        logger.info(f'📩 {len(letters)} letters.')
+        logger.info(f'{len(letters)} letters.')
         log_rewards(self.api.farm_mail(letter.id for letter in letters).values())
 
     def buy_chest(self):
         """
         Открывает ежедневный бесплатный сундук.
         """
-        logger.info('📦 Buying chest…')
+        logger.info('Buying a chest…')
         log_rewards(self.api.buy_chest())
 
     def send_daily_gift(self):
         """
         Отправляет сердечки друзьям.
         """
-        logger.info('🎁 Sending daily gift…')
+        logger.info('Sending daily gift…')
         if self.settings.bot.friend_ids:
             self.farm_quests(self.api.send_daily_gift(self.settings.bot.friend_ids))
         else:
@@ -334,14 +334,14 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         """
         Тренирует предсказательную модель для арены.
         """
-        logger.info('🤖 Running trainer…')
+        logger.info('Running trainer…')
         Trainer(self.db, n_splits=constants.MODEL_N_SPLITS).train(params=self.settings.bot.arena.hyper_params)
 
     def attack_arena(self):
         """
         Совершает бой на арене.
         """
-        logger.info('👊 Attacking arena…')
+        logger.info('Attacking arena…')
         model, heroes = self.check_arena(constants.TEAM_SIZE)
 
         # Pick an enemy and select attackers.
@@ -354,25 +354,25 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         ).select_enemy()
 
         # Debugging.
-        logger.info(f'🔰 Enemy name: "{enemy.user.name}".')
-        logger.info(f'🔰 Enemy place: {enemy.place}.')
-        logger.info(f'🎲 Probability: {100.0 * probability:.1f}%.')
-        log_heroes('👊', 'Attackers:', attackers)
-        log_heroes('🔰', f'Defenders:', enemy.heroes)
+        logger.info(f'Enemy name: "{enemy.user.name}".')
+        logger.info(f'Enemy place: {enemy.place}.')
+        logger.info(f'Probability: {100.0 * probability:.1f}%.')
+        log_heroes('Attackers:', attackers)
+        log_heroes(f'Defenders:', enemy.heroes)
 
         # Attack!
         result, quests = self.api.attack_arena(enemy.user.id, self.get_hero_ids(attackers))
 
         # Collect results.
         log_arena_result(result)
-        logger.info(f'👊 Current place: {result.arena_place}.')
+        logger.info(f'Current place: {result.arena_place}.')
         self.farm_quests(quests)
 
     def attack_grand_arena(self):
         """
         Совершает бой на гранд арене.
         """
-        logger.info('👊 Attacking grand arena…')
+        logger.info('Attacking grand arena…')
         model, heroes = self.check_arena(constants.GRAND_SIZE)
 
         # Pick an enemy and select attackers.
@@ -385,13 +385,13 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         ).select_enemy()
 
         # Debugging.
-        logger.info(f'🔰 Enemy name: "{enemy.user.name}".')
-        logger.info(f'🔰 Enemy place: {enemy.place}.')
-        logger.info(f'🎲 Probability: {100.0 * probability:.1f}%.')
+        logger.info(f'Enemy name: "{enemy.user.name}".')
+        logger.info(f'Enemy place: {enemy.place}.')
+        logger.info(f'Probability: {100.0 * probability:.1f}%.')
         for i, (attackers, defenders) in enumerate(zip(attacker_teams, enemy.heroes), start=1):
-            logger.info(f'👊 Battle #{i}.')
-            log_heroes('👊', 'Attackers:', attackers)
-            log_heroes('🔰', 'Defenders:', defenders)
+            logger.info(f'Battle #{i}.')
+            log_heroes('Attackers:', attackers)
+            log_heroes('Defenders:', defenders)
 
         # Attack!
         result, quests = self.api.attack_grand(enemy.user.id, [
@@ -401,7 +401,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
 
         # Collect results.
         log_arena_result(result)
-        logger.info(f'👊 Current place: {result.grand_place}.')
+        logger.info(f'Current place: {result.grand_place}.')
         self.farm_quests(quests)
         log_reward(self.api.farm_grand_coins())
 
@@ -409,7 +409,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         """
         Читает и сохраняет журналы арен.
         """
-        logger.info('📒 Reading arena logs…')
+        logger.info('Reading arena logs…')
         replays: List[Replay] = [
             *self.api.get_battle_by_type(BattleType.ARENA),
             *self.api.get_battle_by_type(BattleType.GRAND),
@@ -423,19 +423,19 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
                 'attackers': [hero.dump() for hero in replay.attackers],
                 'defenders': [hero.dump() for defenders in replay.defenders for hero in defenders],
             })
-            logger.info(f'📒 Saved #{replay.id}.')
+            logger.info(f'Saved #{replay.id}.')
 
     def check_freebie(self):
         """
         Собирает подарки на странице игры ВКонтакте.
         """
-        logger.info('🎁 Checking freebie…')
+        logger.info('Checking freebie…')
         should_farm_mail = False
 
         for gift_id in self.vk.find_gifts():
             if self.db.exists(f'gifts:{self.api.user_id}', gift_id):
                 continue
-            logger.info(f'🎁 Checking {gift_id}…')
+            logger.info(f'Checking {gift_id}…')
             reward = self.api.check_freebie(gift_id)
             if reward is not None:
                 log_reward(reward)
@@ -449,7 +449,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         """
         Собирает ключ у валькирии и открывает артефактные сундуки.
         """
-        logger.info('🎁 Farming zeppelin gift…')
+        logger.info('Farming zeppelin gift…')
         log_reward(self.api.farm_zeppelin_gift())
         for _ in range(constants.MAX_OPEN_ARTIFACT_CHESTS):
             try:
@@ -466,20 +466,20 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         """
         Ходит в рейды в миссиях в кампании за предметами.
         """
-        logger.info(f'👊 Raid missions…')
+        logger.info(f'Raid missions…')
         for mission_id in self.get_raid_mission_ids():
-            logger.info(f'👊 Raid mission #{mission_id} «{mission_name(mission_id)}»…')
+            logger.info(f'Raid mission #{mission_id} «{mission_name(mission_id)}»…')
             try:
                 log_rewards(self.api.raid_mission(mission_id))
             except NotEnoughError as e:
-                logger.info(f'👊 Not enough: {e.description}.')
+                logger.info(f'Not enough: {e.description}.')
                 break
 
     def shop(self, shop_ids: List[str]):
         """
         Покупает в магазине вещи.
         """
-        logger.info(f'🛒 Refreshing shops {shop_ids}…')
+        logger.info(f'Refreshing shops {shop_ids}…')
         available_slots: Set[Tuple[str, str]] = {
             (shop_id, slot.id)
             for shop_id in shop_ids
@@ -487,31 +487,31 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             if not slot.is_bought
         }
 
-        logger.info('🛒 Buying stuff…')
+        logger.info('Buying stuff…')
         for shop in self.settings.bot.shops:
             if shop.shop_id not in shop_ids:
-                logger.debug(f'🛒 Ignoring shop «{shop_name(shop.shop_id)}».')
+                logger.debug(f'Ignoring shop «{shop_name(shop.shop_id)}».')
                 continue
             if (shop.shop_id, shop.slot_id) not in available_slots:
-                logger.warning(f'🛒 Slot #{shop.slot_id} is not available in shop «{shop_name(shop.shop_id)}».')
+                logger.warning(f'Slot #{shop.slot_id} is not available in shop «{shop_name(shop.shop_id)}».')
                 continue
-            logger.info(f'🛒 Buying slot #{shop.slot_id} in shop «{shop_name(shop.shop_id)}»…')
+            logger.info(f'Buying slot #{shop.slot_id} in shop «{shop_name(shop.shop_id)}»…')
             try:
                 log_reward(self.api.shop(shop_id=shop.shop_id, slot_id=shop.slot_id))
             except NotEnoughError as e:
-                logger.warning(f'🛒 Not enough: {e.description}')
+                logger.warning(f'Not enough: {e.description}')
             except AlreadyError as e:
-                logger.warning(f'🛒 Already: {e.description}')
+                logger.warning(f'Already: {e.description}')
 
     def skip_tower(self):
         """
         Зачистка башни.
         """
-        logger.info('🗼 Skipping the tower…')
+        logger.info('Skipping the tower…')
         tower = self.api.get_tower_info()
 
         while tower.floor_number <= tower.may_skip_floor or not tower.is_battle:
-            logger.info(f'🗼 Floor #{tower.floor_number}: {tower.floor_type}.')
+            logger.info(f'Floor #{tower.floor_number}: {tower.floor_type}.')
             if tower.is_battle:
                 tower, reward = self.api.skip_tower_floor()
                 log_reward(reward)
@@ -526,24 +526,24 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
                         try:
                             self.api.buy_tower_buff(buff_id)
                         except NotEnoughError:
-                            logger.info(f'🗼 Not enough resources for buff #{buff_id}.')
+                            logger.info(f'Not enough resources for buff #{buff_id}.')
                         except AlreadyError:
-                            logger.info(f'🗼 Already bought buff #{buff_id}.')
+                            logger.info(f'Already bought buff #{buff_id}.')
                         except NotFoundError as e:
-                            logger.warning(f'🗼 Not found for buff #{buff_id}: {e.description}.')
+                            logger.warning(f'Not found for buff #{buff_id}: {e.description}.')
                     else:
-                        logger.debug(f'🗼 Skip buff #{buff_id}.')
+                        logger.debug(f'Skip buff #{buff_id}.')
                 tower = self.api.next_tower_floor()
             else:
-                logger.error('🗼 Unknown floor type.')
+                logger.error('Unknown floor type.')
 
     def farm_offers(self):
         """
         Фармит предложения (камни обликов).
         """
-        logger.info('🎁 Farming offers…')
+        logger.info('Farming offers…')
         for offer in self.api.get_all_offers():
-            logger.debug(f'🎁 #{offer.id}: {offer.offer_type}.')
+            logger.debug(f'#{offer.id}: {offer.offer_type}.')
             if offer.offer_type in constants.OFFER_FARMED_TYPES and not offer.is_free_reward_obtained:
                 log_reward(self.api.farm_offer_reward(offer.id))
 
@@ -551,28 +551,28 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         """
         Рейдит боссов Запределья.
         """
-        logger.info('👊 Raid bosses…')
+        logger.info('Raid bosses…')
         for boss in self.api.get_all_bosses():
             if boss.may_raid:
-                logger.info(f'👊 Raid boss #{boss.id}…')
+                logger.info(f'Raid boss #{boss.id}…')
                 every_win_reward = self.api.raid_boss(boss.id)
                 log_reward(every_win_reward)
                 rewards, quests = self.api.open_boss_chest(boss.id)
                 log_rewards(rewards)
                 self.farm_quests(quests)
             else:
-                logger.info(f'🤔 May not raid boss #{boss.id}.')
+                logger.info(f'May not raid boss #{boss.id}.')
 
     def open_titan_artifact_chest(self):
         """
         Открывает сферы артефактов титанов.
         """
-        logger.info('🎁 Opening titan artifact chests…')
+        logger.info('Opening titan artifact chests…')
         for amount in [10, 1]:
             try:
                 rewards, quests = self.api.open_titan_artifact_chest(amount)
             except NotEnoughError:
-                logger.info(f'💬 Not enough resources to open {amount} chests.')
+                logger.info(f'Not enough resources to open {amount} chests.')
             else:
                 log_rewards(rewards)
                 self.farm_quests(quests)
@@ -582,7 +582,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         """
         Выставляет в защиту гранд-арены топ-15 героев в случайном порядке.
         """
-        logger.info('👊 Randomizing grand defenders…')
+        logger.info('Randomizing grand defenders…')
         heroes = self.naive_select_attackers(self.api.get_all_heroes(), count=constants.GRAND_SIZE)
         if len(heroes) < constants.GRAND_SIZE:
             raise TaskNotAvailable('not enough heroes')

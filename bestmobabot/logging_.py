@@ -17,13 +17,20 @@ logging.addLevelName(SPAM, 'SPAM')
 
 def install_logging(verbosity: int, stream: TextIO):
     level = get_logging_level(verbosity)
-    coloredlogs.install(level, fmt='%(asctime)s %(levelname)s %(message)s', logger=logger, stream=stream)
+    coloredlogs.install(
+        level,
+        fmt='%(asctime)s [%(levelname).1s] %(message)s',
+        logger=logger,
+        stream=stream,
+        field_styles={**coloredlogs.DEFAULT_FIELD_STYLES, 'asctime': {'color': 'green', 'faint': True}},
+        datefmt='%b %d %H:%M:%S',
+    )
 
 
-def log_heroes(emoji: str, message: str, heroes: Iterable['bestmobabot.responses.Hero']):
-    logger.info(f'{emoji} {message}')
+def log_heroes(message: str, heroes: Iterable['bestmobabot.responses.Hero']):
+    logger.info(message)
     for hero in sorted(heroes, reverse=True, key=bestmobabot.responses.Hero.order):
-        logger.info(f'{emoji} {hero}')
+        logger.info(f'{hero}')
 
 
 def log_reward(reward: 'bestmobabot.responses.Reward'):

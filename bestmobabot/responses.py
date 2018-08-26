@@ -100,29 +100,29 @@ class Reward(BaseResponse):
 
     def log(self, logger: logging.Logger):
         if self.stamina:
-            logger.info(f'🔋 {self.stamina} × stamina.')
+            logger.info(f'{self.stamina} × stamina.')
         if self.gold:
-            logger.info(f'💰 {self.gold} × gold.')
+            logger.info(f'{self.gold} × gold.')
         if self.experience:
-            logger.info(f'📈 {self.experience} × experience.')
+            logger.info(f'{self.experience} × experience.')
         for consumable_id, value in self.consumable.items():
-            logger.info(f'🍔 {value} × «{consumable_name(consumable_id)}» consumable.')
+            logger.info(f'{value} × «{consumable_name(consumable_id)}» consumable.')
         if self.star_money:
-            logger.info(f'✨ {self.star_money} × star money.')
+            logger.info(f'{self.star_money} × star money.')
         for coin_id, value in self.coin.items():
-            logger.info(f'💟️ {value} × «{coin_name(coin_id)}» coin.')
+            logger.info(f'{value} × «{coin_name(coin_id)}» coin.')
         for hero_id, value in self.hero_fragment.items():
-            logger.info(f'🔮 {value} × «{hero_name(hero_id)}» hero fragment.')
+            logger.info(f'{value} × «{hero_name(hero_id)}» hero fragment.')
         for artifact_id, value in self.artifact_fragment.items():
-            logger.info(f'👕 {value} × «{artifact_name(artifact_id)}» artifact fragment.')
+            logger.info(f'{value} × «{artifact_name(artifact_id)}» artifact fragment.')
         for gear_id, value in self.gear_fragment.items():
-            logger.info(f'👕 {value} × «{gear_name(gear_id)}» gear fragment.')
+            logger.info(f'{value} × «{gear_name(gear_id)}» gear fragment.')
         for gear_id, value in self.gear.items():
-            logger.info(f'👕 {value} × «{gear_name(gear_id)}» gear.')
+            logger.info(f'{value} × «{gear_name(gear_id)}» gear.')
         for scroll_id, value in self.scroll_fragment.items():
-            logger.info(f'👕 {value} × «{scroll_name(scroll_id)}» scroll fragment.')
+            logger.info(f'{value} × «{scroll_name(scroll_id)}» scroll fragment.')
         for artifact_id, value in self.titan_artifact_fragment.items():
-            logger.info(f'👕 {value} × «{titan_artifact_name(artifact_id)}» titan artifact fragment.')
+            logger.info(f'{value} × «{titan_artifact_name(artifact_id)}» titan artifact fragment.')
 
 
 class Quest(BaseResponse):

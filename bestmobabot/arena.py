@@ -71,19 +71,19 @@ class AbstractArena(ABC, Generic[TEnemy, TAttackers]):
         for enemy in enemies:
             if enemy.user is None:
                 # Some enemies don't have user assigned. Filter them out.
-                logger.debug(f'🎲 Empty user enemy is skipped.')
+                logger.debug(f'Empty user enemy is skipped.')
                 continue
             if self.user_clan_id and enemy.user.is_from_clans((self.user_clan_id,)):
-                logger.debug(f'🎲 Same clan enemy is skipped: "{enemy.user.name}".')
+                logger.debug(f'Same clan enemy is skipped: "{enemy.user.name}".')
                 continue
             if enemy.user.is_from_clans(self.settings.bot.arena.skip_clans):
-                logger.debug(f'🎲 Configured clan enemy is skipped: #{enemy.user.clan_id} ("{enemy.user.clan_title}").')
+                logger.debug(f'Configured clan enemy is skipped: #{enemy.user.clan_id} ("{enemy.user.clan_title}").')
                 continue
 
             # It appears that often enemies are repeated during the search. So don't repeat computations.
             if enemy.user.id in self.cache:
                 attackers, probability = self.cache[enemy.user.id]
-                logger.info(f'🎲 Cached entry found: {100.0 * probability:.1f}% ("{enemy.user.name}").')
+                logger.info(f'Cached entry found: {100.0 * probability:.1f}% ("{enemy.user.name}").')
             else:
                 attackers, probability = self.select_attackers(enemy)  # type: TAttackers, float
                 self.cache[enemy.user.id] = attackers, probability
@@ -109,7 +109,7 @@ class Arena(AbstractArena[ArenaEnemy, List[Hero]]):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.n_teams_limit = self.settings.bot.arena.teams_limit
-        logger.info(f'🎲 Teams count limit: {self.n_teams_limit}.')
+        logger.info(f'Teams count limit: {self.n_teams_limit}.')
 
     @property
     def max_iterations(self):
@@ -138,7 +138,7 @@ class Arena(AbstractArena[ArenaEnemy, List[Hero]]):
         # Select top combination by win probability.
         y: numpy.ndarray = self.model.estimator.predict_proba(x)[:, 1]
         index: int = y.argmax()
-        logger.info(f'🎲 Win probability: {100.0 * y[index]:.1f}% ("{enemy.user.name}").')
+        logger.info(f'Win probability: {100.0 * y[index]:.1f}% ("{enemy.user.name}").')
         return [self.heroes[i] for i in hero_combinations_[index]], y[index]
 
 
@@ -148,10 +148,10 @@ class GrandArena(AbstractArena[GrandArenaEnemy, List[List[Hero]]]):
         self.n_generate_solutions = self.settings.bot.arena.grand_generate_solutions
         self.n_keep_solutions = self.settings.bot.arena.grand_keep_solutions
         self.n_generations = self.settings.bot.arena.grand_generations
-        logger.info(f'🎲 Generations count: {self.n_generations}.')
+        logger.info(f'Generations count: {self.n_generations}.')
 
         # We keep solutions in an attribute because we want to retry the best solutions across different enemies.
-        logger.log(SPAM, f'🎲 Generating initial solutions…')
+        logger.log(SPAM, f'Generating initial solutions…')
         self.solutions: numpy.ndarray = numpy.vstack(
             numpy.random.permutation(len(self.heroes))
             for _ in range(self.n_keep_solutions)
@@ -162,7 +162,7 @@ class GrandArena(AbstractArena[GrandArenaEnemy, List[List[Hero]]]):
         return self.settings.bot.arena.max_grand_pages
 
     def select_attackers(self, enemy: GrandArenaEnemy) -> Tuple[List[List[Hero]], float]:
-        logger.log(SPAM, f'🎲 Selecting attackers ({enemy.user.name})…')
+        logger.log(SPAM, f'Selecting attackers ({enemy.user.name})…')
 
         n_heroes = len(self.heroes)
         hero_features = self.make_features(self.heroes)
@@ -213,10 +213,10 @@ class GrandArena(AbstractArena[GrandArenaEnemy, List[List[Hero]]]):
             # Select the best one.
             max_index = probabilities.argmax()
             max_probability = probabilities[max_index]
-            logger.log(SPAM, f'🎲 Generation #{n_generation}: {max_probability:.4f}.')
+            logger.log(SPAM, f'Generation #{n_generation}: {max_probability:.4f}.')
 
         logger.info(
-            '🎲 Win probability:'
+            'Win probability:'
             f' {100.0 * max_probability:.2f}%'
             f' ({100 * p1[max_index]:.1f}% {100 * p2[max_index]:.1f}% {100 * p3[max_index]:.1f}%)'
             f' ("{enemy.user.name}")'

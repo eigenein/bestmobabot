@@ -97,14 +97,14 @@ class API(contextlib.AbstractContextManager):
     def start(self, invalidate_session: bool = False):
         state: Dict[str, Any] = self.db.get_by_key(f'api:{self.remixsid}', 'state')
         if not invalidate_session and state:
-            logger.info('🔑 Using saved credentials.')
+            logger.info('Using saved credentials.')
             self.user_id = state['user_id']
             self.auth_token = state['auth_token']
             self.session_id = state['session_id']
             self.request_id = self.db.get_by_key(f'api:{self.remixsid}', 'request_id', default=0)
             return
 
-        logger.info('🔑 Authenticating…')
+        logger.info('Authenticating…')
         with requests.Session() as session:
             logger.debug('🌎 Loading game page on VK.com…')
             with session.get(API.GAME_URL, cookies={'remixsid': self.remixsid}) as response:
@@ -117,7 +117,7 @@ class API(contextlib.AbstractContextManager):
             params = json.loads(match.group(1))
 
             # Load the proxy page and look for Hero Wars authentication token.
-            logger.debug('🌎 Authenticating in Hero Wars…')
+            logger.debug('Authenticating in Hero Wars…')
             with session.get(API.IFRAME_URL, params=params) as response:
                 response.raise_for_status()
                 iframe_new = response.text
@@ -125,7 +125,7 @@ class API(contextlib.AbstractContextManager):
             assert match, f'authentication key is not found: {iframe_new}'
             self.auth_token = match.group(1)
 
-        logger.info(f'🔑 Authentication token: {self.auth_token}')
+        logger.info(f'Authentication token: {self.auth_token}')
         self.user_id = str(params['viewer_id'])
         self.session_id = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(14))
         self.request_id = 0
@@ -140,9 +140,9 @@ class API(contextlib.AbstractContextManager):
         try:
             return self._call(name, arguments=arguments, random_sleep=random_sleep)
         except (InvalidSessionError, InvalidSignatureError) as e:
-            logger.warning('😱 Invalid session: %s.', e)
+            logger.warning('Invalid session: %s.', e)
             self.start(invalidate_session=True)
-            logger.info('🔔 Retrying the call…')
+            logger.info('Retrying the call…')
             return self._call(name, arguments=arguments, random_sleep=random_sleep)
 
     def _call(self, name: str, *, arguments: Optional[Dict[str, Any]] = None, random_sleep=True) -> Result:
@@ -151,7 +151,7 @@ class API(contextlib.AbstractContextManager):
 
         # Emulate human behavior a little bit.
         sleep_time = random.uniform(5.0, 10.0) if random_sleep and self.request_id != 1 else 0.0
-        logger.info(f'🔔 #{self.request_id} {name}({arguments or {}}) in {sleep_time:.1f} seconds…')
+        logger.info(f'#{self.request_id} {name}({arguments or {}}) in {sleep_time:.1f} seconds…')
         sleep(sleep_time)
 
         send_event(category='api', action=name, user_id=self.user_id)
