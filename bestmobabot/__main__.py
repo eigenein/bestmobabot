@@ -29,7 +29,7 @@ def main(settings: Settings, log_file: TextIO, verbosity: int):
     Hero Wars bot.
     """
     install_logging(verbosity, log_file)
-    logger.info(f'🤖 Bot is starting. Version: {get_version()}.')
+    logger.info(f'Bot is starting. Version: {get_version()}.')
 
     # Prefetch game resources.
     get_library()
@@ -38,8 +38,8 @@ def main(settings: Settings, log_file: TextIO, verbosity: int):
     with Database(constants.DATABASE_NAME) as db, API(db, settings) as api, Bot(db, api, VK(settings), settings) as bot:
         api.start()
         bot.start()
-        logger.info(f'👋 Welcome {bot.user.name}! Your game time is {datetime.now(bot.user.tz):%H:%M:%S}.')
-        logger.info('👋 Next day starts at %s.', bot.user.next_day)
+        logger.info(f'Welcome {bot.user.name}! Your game time is {datetime.now(bot.user.tz):%H:%M:%S}.')
+        logger.info('Next day starts at %s.', bot.user.next_day)
         bot.run()
 
 
