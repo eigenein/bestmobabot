@@ -43,9 +43,9 @@ def log_rewards(rewards: Iterable['bestmobabot.responses.Reward']):
 
 
 def log_arena_result(result: 'bestmobabot.responses.ArenaResult'):
-    logger.info('👍 You won!' if result.win else '👎 You lose.')
+    logger.info('You won!' if result.win else 'You lose.')
     for i, battle in enumerate(result.battles, start=1):
-        logger.info(f'👊 Battle #{i}: {"⭐" * battle.stars if battle.win else "lose."}')
+        logger.info(f'Battle #{i}: {"⭐" * battle.stars if battle.win else "lose."}')
     log_reward(result.reward)
 
 
