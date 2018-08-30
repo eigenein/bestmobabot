@@ -261,7 +261,7 @@ def secretary_max(items: Iterable[T1], n: int, key: Optional[Callable[[T1], T2]]
         if i == n:
             return item, item_key
         # Otherwise, check if the item is better than previous ones.
-        if max_key is None or item_key > max_key:
+        if max_key is None or item_key >= max_key:
             if i >= r:
                 # Better than (r - 1) previous ones, return it.
                 return item, item_key

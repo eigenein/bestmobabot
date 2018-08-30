@@ -7,6 +7,8 @@
 * Add new features and improve prediction quality
 * Remove de-duplication of battles (not needed anymore), filter out battles without hero powers
 * Change logging format, remove emoji's
+* Change `open_titan_artifact_chest` time
+* Make `secretary_max` choose better _or equal_
 
 # `2.0`
 
