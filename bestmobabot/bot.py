@@ -138,12 +138,12 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             Task(next_run_at=Task.every_n_hours(4), execute=self.raid_missions),
 
             # One time a day.
-            Task(next_run_at=Task.at(hour=5, minute=30), execute=self.open_titan_artifact_chest),
             Task(next_run_at=Task.at(hour=6, minute=0), execute=self.skip_tower),
             Task(next_run_at=Task.at(hour=7, minute=30), execute=self.raid_bosses),
             Task(next_run_at=Task.at(hour=8, minute=0), execute=self.farm_daily_bonus),
             Task(next_run_at=Task.at(hour=8, minute=30), execute=self.buy_chest),
             Task(next_run_at=Task.at(hour=9, minute=0), execute=self.send_daily_gift),
+            Task(next_run_at=Task.at(hour=9, minute=15), execute=self.open_titan_artifact_chest),
             Task(next_run_at=Task.at(hour=9, minute=30), execute=self.farm_offers),
             Task(next_run_at=Task.at(hour=10, minute=0), execute=self.farm_zeppelin_gift),
 
