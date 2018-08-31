@@ -106,7 +106,7 @@ class API(contextlib.AbstractContextManager):
 
         logger.info('Authenticating…')
         with requests.Session() as session:
-            logger.debug('🌎 Loading game page on VK.com…')
+            logger.debug('Loading game page on VK.com…')
             with session.get(API.GAME_URL, cookies={'remixsid': self.remixsid}) as response:
                 response.raise_for_status()
                 app_page = response.text
