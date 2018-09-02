@@ -1,4 +1,4 @@
-# `latest`
+# `2.1`
 
 * **Option to randomize grand arena defenders**
 * **Add `grand_generate_solutions` and `grand_keep_solutions` options**
