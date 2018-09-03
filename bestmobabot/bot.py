@@ -460,7 +460,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             else:
                 log_rewards(rewards)
         else:
-            logger.warning('💬 Maximum number of chests opened.')
+            logger.warning('Maximum number of chests opened.')
 
     def raid_missions(self):
         """
