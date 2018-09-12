@@ -455,7 +455,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             try:
                 rewards = self.api.open_artifact_chest()
             except NotEnoughError:
-                logger.info('💬 All keys are spent.')
+                logger.info('All keys are spent.')
                 break
             else:
                 log_rewards(rewards)
