@@ -9,12 +9,11 @@ from datetime import datetime, timedelta
 from operator import attrgetter
 from random import choice, shuffle
 from time import sleep
-from typing import Dict, Iterable, List, Optional, Set, Tuple
+from typing import Dict, Iterable, List, Optional, Tuple
 
 import requests
 
 from bestmobabot import arena, constants
-from bestmobabot.tracking import send_event
 from bestmobabot.api import API, AlreadyError, InvalidResponseError, NotEnoughError, NotFoundError, OutOfRetargetDelta
 from bestmobabot.database import Database
 from bestmobabot.enums import *
@@ -24,6 +23,7 @@ from bestmobabot.resources import get_heroic_mission_ids, mission_name, shop_nam
 from bestmobabot.responses import *
 from bestmobabot.settings import Settings
 from bestmobabot.task import Task, TaskNotAvailable
+from bestmobabot.tracking import send_event
 from bestmobabot.trainer import Trainer
 from bestmobabot.vk import VK
 
@@ -148,13 +148,10 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             Task(next_run_at=Task.at(hour=10, minute=0), execute=self.farm_zeppelin_gift),
 
             # Debug tasks. Uncomment when needed.
-            # Task(next_run_at=Task.asap(), execute=self.open_titan_artifact_chest),
+            Task(next_run_at=Task.asap(), execute=self.shop),
         ]
         if self.settings.bot.shops:
-            self.tasks.extend([
-                Task(next_run_at=Task.at(hour=11, minute=0), execute=self.shop, args=(['4', '5', '6', '8', '9', '10'],)),
-                Task(next_run_at=Task.every_n_hours(8), execute=self.shop, args=(['1'],)),
-            ])
+            self.tasks.append(Task(next_run_at=Task.every_n_hours(8), execute=self.shop))
         if self.settings.bot.is_trainer:
             self.tasks.append(Task(next_run_at=Task.at(hour=22, minute=0, tz=self.user.tz), execute=self.train_arena_model))
         if self.settings.bot.arena.randomize_grand_defenders:
@@ -475,33 +472,33 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
                 logger.info(f'Not enough: {e.description}.')
                 break
 
-    def shop(self, shop_ids: List[str]):
+    def shop(self):
         """
         Покупает в магазине вещи.
         """
-        logger.info(f'Refreshing shops {shop_ids}…')
-        available_slots: Set[Tuple[str, str]] = {
-            (shop_id, slot.id)
-            for shop_id in shop_ids
+        logger.info(f'Refreshing shops…')
+        available_slots: List[Tuple[str, str, str]] = [
+            (name, shop_id, slot.id)
+            for shop_id in constants.SHOP_IDS
             for slot in self.api.get_shop(shop_id)
+            for name in slot.names
             if not slot.is_bought
-        }
+        ]
 
         logger.info('Buying stuff…')
-        for shop in self.settings.bot.shops:
-            if shop.shop_id not in shop_ids:
-                logger.debug(f'Ignoring shop «{shop_name(shop.shop_id)}».')
-                continue
-            if (shop.shop_id, shop.slot_id) not in available_slots:
-                logger.warning(f'Slot #{shop.slot_id} is not available in shop «{shop_name(shop.shop_id)}».')
-                continue
-            logger.info(f'Buying slot #{shop.slot_id} in shop «{shop_name(shop.shop_id)}»…')
-            try:
-                log_reward(self.api.shop(shop_id=shop.shop_id, slot_id=shop.slot_id))
-            except NotEnoughError as e:
-                logger.warning(f'Not enough: {e.description}')
-            except AlreadyError as e:
-                logger.warning(f'Already: {e.description}')
+        for thing_name in self.settings.bot.shops:
+            thing_name = thing_name.lower()
+            logger.info(f'Looking for «{thing_name}»…')
+            for slot_name, shop_id, slot_id in available_slots:
+                if thing_name not in slot_name:
+                    continue
+                logger.info(f'Buying slot #{slot_id} in shop «{shop_name(shop_id)}»…')
+                try:
+                    log_reward(self.api.shop(shop_id=shop_id, slot_id=slot_id))
+                except NotEnoughError as e:
+                    logger.warning(f'Not enough: {e.description}')
+                except AlreadyError as e:
+                    logger.warning(f'Already: {e.description}')
 
     def skip_tower(self):
         """

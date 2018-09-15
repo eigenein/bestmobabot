@@ -43,6 +43,9 @@ RAID_N_STARS = 3
 # Offers.
 OFFER_FARMED_TYPES = ('dailyReward',)
 
+# Shops.
+SHOP_IDS = ('1', '4', '5', '6', '8', '9', '10')
+
 # Logging.
 SPAM = 5
 

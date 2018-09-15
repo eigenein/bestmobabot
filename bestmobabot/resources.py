@@ -5,28 +5,74 @@ Loads and extracts useful constants from the game resources.
 import gzip
 import json
 from functools import lru_cache
-from typing import Dict, Set
+from typing import Dict, List, Set
 
 import requests
+from pydantic import BaseModel
 
 import bestmobabot.logging_
 from bestmobabot import constants
 
 
+class MissionReward(BaseModel):
+    gear: Dict[str, int] = {}
+    consumable: Dict[str, int] = {}
+    fragment_hero: Dict[str, int] = {}
+
+    class Config:
+        fields = {'fragment_hero': 'fragmentHero'}
+
+
+class MissionEnemyDrop(BaseModel):
+    reward: MissionReward
+
+
+class MissionEnemy(BaseModel):
+    drops: List[MissionEnemyDrop] = []
+
+    class Config:
+        fields = {'drops': 'drop'}
+
+
+class MissionWave(BaseModel):
+    enemies: List[MissionEnemy]
+
+
+class MissionMode(BaseModel):
+    waves: List[MissionWave]
+
+
+class Mission(BaseModel):
+    id: str
+    is_heroic: bool
+    normal_mode: MissionMode
+
+    class Config:
+        fields = {'is_heroic': 'isHeroic', 'normal_mode': 'normalMode'}
+
+
+class Library(BaseModel):
+    missions: Dict[str, Mission]
+
+    class Config:
+        fields = {'missions': 'mission'}
+
+
 @lru_cache(maxsize=None)
-def get_resource(url: str) -> Dict:
+def get_resource(url: str) -> str:
     bestmobabot.logging_.logger.info(f'Loading {url}…')
-    response = requests.get(url, stream=True)
-    response.raise_for_status()
-    return json.load(gzip.GzipFile(fileobj=response.raw))
+    with requests.get(url) as response:
+        response.raise_for_status()
+        return gzip.decompress(response.content).decode()
 
 
 def get_translations() -> Dict[str, str]:
-    return get_resource(constants.TRANSLATIONS_URL)
+    return json.loads(get_resource(constants.TRANSLATIONS_URL))
 
 
-def get_library() -> Dict:
-    return get_resource(constants.LIBRARY_URL)
+@lru_cache(maxsize=None)
+def get_library() -> Library:
+    return Library.parse_raw(get_resource(constants.LIBRARY_URL))
 
 
 def hero_name(hero_id: str) -> str:
@@ -67,5 +113,8 @@ def titan_artifact_name(artifact_id: str) -> str:
 
 @lru_cache(maxsize=None)
 def get_heroic_mission_ids() -> Set[str]:
-    missions: Dict[str, Dict] = get_library()['mission']
-    return {mission_id for mission_id, mission in missions.items() if mission['isHeroic']}
+    return {
+        mission_id
+        for mission_id, mission in get_library().missions.items()
+        if mission.is_heroic
+    }

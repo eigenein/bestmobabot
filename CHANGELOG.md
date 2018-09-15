@@ -1,5 +1,6 @@
 # `latest`
 
+* **Buying things by their names**
 * Switch back to plain old `requirements.txt`
 * Fix `--help`
 

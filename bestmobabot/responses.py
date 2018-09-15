@@ -9,16 +9,7 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, TypeVar
 
 import numpy
 
-from bestmobabot import constants
-from bestmobabot.resources import (
-    artifact_name,
-    coin_name,
-    consumable_name,
-    gear_name,
-    hero_name,
-    scroll_name,
-    titan_artifact_name,
-)
+from bestmobabot import constants, resources
 
 T1 = TypeVar('T1')
 T2 = TypeVar('T2')
@@ -82,6 +73,8 @@ class Expedition(BaseResponse):
 
 
 class Reward(BaseResponse):
+    # FIXME: should be de-duplicated with `MissionReward`.
+
     def __init__(self, raw: Dict):
         super().__init__(raw)
         self.stamina: int = int(raw.get('stamina', 0))
@@ -106,23 +99,23 @@ class Reward(BaseResponse):
         if self.experience:
             logger.info(f'{self.experience} × experience.')
         for consumable_id, value in self.consumable.items():
-            logger.info(f'{value} × «{consumable_name(consumable_id)}» consumable.')
+            logger.info(f'{value} × «{resources.consumable_name(consumable_id)}» consumable.')
         if self.star_money:
             logger.info(f'{self.star_money} × star money.')
         for coin_id, value in self.coin.items():
-            logger.info(f'{value} × «{coin_name(coin_id)}» coin.')
+            logger.info(f'{value} × «{resources.coin_name(coin_id)}» coin.')
         for hero_id, value in self.hero_fragment.items():
-            logger.info(f'{value} × «{hero_name(hero_id)}» hero fragment.')
+            logger.info(f'{value} × «{resources.hero_name(hero_id)}» hero fragment.')
         for artifact_id, value in self.artifact_fragment.items():
-            logger.info(f'{value} × «{artifact_name(artifact_id)}» artifact fragment.')
+            logger.info(f'{value} × «{resources.artifact_name(artifact_id)}» artifact fragment.')
         for gear_id, value in self.gear_fragment.items():
-            logger.info(f'{value} × «{gear_name(gear_id)}» gear fragment.')
+            logger.info(f'{value} × «{resources.gear_name(gear_id)}» gear fragment.')
         for gear_id, value in self.gear.items():
-            logger.info(f'{value} × «{gear_name(gear_id)}» gear.')
+            logger.info(f'{value} × «{resources.gear_name(gear_id)}» gear.')
         for scroll_id, value in self.scroll_fragment.items():
-            logger.info(f'{value} × «{scroll_name(scroll_id)}» scroll fragment.')
+            logger.info(f'{value} × «{resources.scroll_name(scroll_id)}» scroll fragment.')
         for artifact_id, value in self.titan_artifact_fragment.items():
-            logger.info(f'{value} × «{titan_artifact_name(artifact_id)}» titan artifact fragment.')
+            logger.info(f'{value} × «{resources.titan_artifact_name(artifact_id)}» titan artifact fragment.')
 
 
 class Quest(BaseResponse):
@@ -180,6 +173,7 @@ class Hero(BaseResponse):
         """
         Construct hero features for prediction model.
         """
+        # noinspection PyUnresolvedReferences
         return numpy.fromiter((self.feature_dict.get(name, 0.0) for name in model.feature_names), numpy.float)
 
     def dump(self) -> dict:
@@ -192,7 +186,7 @@ class Hero(BaseResponse):
         return self.star, self.color, self.level
 
     def __str__(self):
-        return f'{"⭐" * self.star} {hero_name(self.id)} ({self.level}) {constants.COLORS.get(self.color, self.color)}'
+        return f'{"⭐" * self.star} {resources.hero_name(self.id)} ({self.level}) {constants.COLORS.get(self.color, self.color)}'
 
 
 class BaseArenaEnemy(BaseResponse, metaclass=ABCMeta):
@@ -267,6 +261,15 @@ class ShopSlot(BaseResponse):
         self.id: str = str(raw['id'])
         self.is_bought: bool = bool(raw['bought'])
         self.reward: Reward = Reward(raw['reward'])
+
+    @property
+    def names(self) -> Iterable[str]:
+        for consumable_id in self.reward.consumable:
+            yield resources.consumable_name(consumable_id).lower()
+        for hero_id in self.reward.hero_fragment:
+            yield resources.hero_name(hero_id).lower()
+        for gear_id in self.reward.gear:
+            yield resources.gear_name(gear_id).lower()
 
 
 class Tower(BaseResponse):

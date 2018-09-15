@@ -33,16 +33,11 @@ class ArenaSettings(BaseModel):
         return value
 
 
-class ShopSettings(BaseModel):
-    shop_id: str  # shop ID
-    slot_id: str  # slot ID
-
-
 class BotSettings(BaseModel):
     no_experience: bool = False  # don't farm experience quests
     is_trainer: bool = False  # train the model
     raids: Set[str] = []  # mission IDs to raid
-    shops: List[ShopSettings] = []  # bought items
+    shops: List[str] = []  # bought items
     friend_ids: List[str] = []  # friend IDs for gifts
     arena: ArenaSettings
 
@@ -69,6 +64,6 @@ class SettingsFileParamType(click.ParamType):
             self.fail(f'{os.linesep}{e}', param, ctx)
         try:
             # noinspection PyCallingNonCallable
-            return self.model_class(**(raw if isinstance(raw, dict) else {}))
+            return self.model_class.parse_obj(raw)
         except ValidationError as e:
             self.fail(str(e), param, ctx)
