@@ -36,8 +36,8 @@ class ArenaSettings(BaseModel):
 class BotSettings(BaseModel):
     no_experience: bool = False  # don't farm experience quests
     is_trainer: bool = False  # train the model
-    raids: Set[str] = []  # mission IDs to raid
-    shops: List[str] = []  # bought items
+    raids: Set[str] = []  # item names to raid
+    shops: List[str] = []  # bought item names
     friend_ids: List[str] = []  # friend IDs for gifts
     arena: ArenaSettings
 

@@ -19,7 +19,7 @@ from bestmobabot.database import Database
 from bestmobabot.enums import *
 from bestmobabot.logging_ import log_arena_result, log_heroes, log_reward, log_rewards, logger
 from bestmobabot.model import Model
-from bestmobabot.resources import get_heroic_mission_ids, mission_name, shop_name
+from bestmobabot.resources import get_heroic_mission_ids, mission_name, shop_name, get_library
 from bestmobabot.responses import *
 from bestmobabot.settings import Settings
 from bestmobabot.task import Task, TaskNotAvailable
@@ -69,20 +69,21 @@ class BotHelperMixin:
         return model, heroes
 
     def get_raid_mission_ids(self) -> Iterable[str]:
-        # Get all missions that could be raided by the player.
+        mission_library = get_library().missions
+
+        # Get all missions that could be raided by the player and have the requested items as reward.
         missions: Dict[str, Mission] = {
             mission.id: mission
             for mission in self.api.get_all_missions()
-            if mission.stars == constants.RAID_N_STARS
+            if mission.can_be_raided and
+            any(mission_library[mission.id].has_reward(name) for name in self.settings.bot.raids)
         }
-        # Get all mission IDs that are configured and could be raided.
-        raids = self.settings.bot.raids & missions.keys()
 
         # Get heroic mission IDs.
         heroic_mission_ids = get_heroic_mission_ids()
 
         # First, yield heroic missions.
-        raided_heroic_mission_ids = list(raids & heroic_mission_ids)
+        raided_heroic_mission_ids = list(missions.keys() & heroic_mission_ids)
         shuffle(raided_heroic_mission_ids)  # shuffle in order to distribute stamina evenly
         logger.info(f'Raided heroic missions: {raided_heroic_mission_ids}.')
         for mission_id in raided_heroic_mission_ids:
@@ -92,7 +93,7 @@ class BotHelperMixin:
                 yield mission_id
 
         # Then, randomly choose non-heroic missions infinitely.
-        non_heroic_mission_ids = list(raids - heroic_mission_ids)
+        non_heroic_mission_ids = list(missions.keys() - heroic_mission_ids)
         logger.info(f'Raided non-heroic missions: {non_heroic_mission_ids}.')
         if not non_heroic_mission_ids:
             logger.info('No raided non-heroic missions.')
@@ -477,28 +478,24 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         Покупает в магазине вещи.
         """
         logger.info(f'Refreshing shops…')
-        available_slots: List[Tuple[str, str, str]] = [
-            (name, shop_id, slot.id)
+        available_slots: List[Tuple[str, str]] = [
+            (shop_id, slot.id)
             for shop_id in constants.SHOP_IDS
             for slot in self.api.get_shop(shop_id)
-            for name in slot.names
-            if not slot.is_bought
+            if not slot.is_bought and
+            not slot.costs_star_money and
+            any(slot.reward.contains(name) for name in self.settings.bot.shops)
         ]
 
         logger.info('Buying stuff…')
-        for thing_name in self.settings.bot.shops:
-            thing_name = thing_name.lower()
-            logger.info(f'Looking for «{thing_name}»…')
-            for slot_name, shop_id, slot_id in available_slots:
-                if thing_name not in slot_name:
-                    continue
-                logger.info(f'Buying slot #{slot_id} in shop «{shop_name(shop_id)}»…')
-                try:
-                    log_reward(self.api.shop(shop_id=shop_id, slot_id=slot_id))
-                except NotEnoughError as e:
-                    logger.warning(f'Not enough: {e.description}')
-                except AlreadyError as e:
-                    logger.warning(f'Already: {e.description}')
+        for shop_id, slot_id in available_slots:
+            logger.info(f'Buying slot #{slot_id} in shop «{shop_name(shop_id)}»…')
+            try:
+                log_reward(self.api.shop(shop_id=shop_id, slot_id=slot_id))
+            except NotEnoughError as e:
+                logger.warning(f'Not enough: {e.description}')
+            except AlreadyError as e:
+                logger.warning(f'Already: {e.description}')
 
     def skip_tower(self):
         """

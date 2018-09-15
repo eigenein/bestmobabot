@@ -73,7 +73,7 @@ class Expedition(BaseResponse):
 
 
 class Reward(BaseResponse):
-    # FIXME: should be de-duplicated with `MissionReward`.
+    # FIXME: should be replaced with `MissionReward`.
 
     def __init__(self, raw: Dict):
         super().__init__(raw)
@@ -90,6 +90,22 @@ class Reward(BaseResponse):
         self.scroll_fragment: Dict[str, str] = raw.get('fragmentScroll', {})
         self.tower_point = int(raw.get('towerPoint', 0))
         self.titan_artifact_fragment: Dict[str, int] = raw.get('fragmentTitanArtifact', {})
+
+    @property
+    def names(self) -> Iterable[str]:
+        for consumable_id in self.consumable:
+            yield resources.consumable_name(consumable_id).lower()
+        for hero_id in self.hero_fragment:
+            yield resources.hero_name(hero_id).lower()
+        for gear_id in self.gear:
+            yield resources.gear_name(gear_id).lower()
+        for scroll_id in self.scroll_fragment:
+            yield resources.scroll_name(scroll_id).lower()
+        for gear_id in self.gear_fragment:
+            yield resources.gear_name(gear_id).lower()
+
+    def contains(self, name: str) -> bool:
+        return any(name.lower() in reward_name for reward_name in self.names)
 
     def log(self, logger: logging.Logger):
         if self.stamina:
@@ -261,15 +277,7 @@ class ShopSlot(BaseResponse):
         self.id: str = str(raw['id'])
         self.is_bought: bool = bool(raw['bought'])
         self.reward: Reward = Reward(raw['reward'])
-
-    @property
-    def names(self) -> Iterable[str]:
-        for consumable_id in self.reward.consumable:
-            yield resources.consumable_name(consumable_id).lower()
-        for hero_id in self.reward.hero_fragment:
-            yield resources.hero_name(hero_id).lower()
-        for gear_id in self.reward.gear:
-            yield resources.gear_name(gear_id).lower()
+        self.costs_star_money: bool = bool(raw['cost'].get('starmoney', 0))
 
 
 class Tower(BaseResponse):
@@ -300,6 +308,10 @@ class Mission(BaseResponse):
         self.id = str(raw['id'])
         self.tries_spent = int(raw['triesSpent'])
         self.stars = int(raw['stars'])
+
+    @property
+    def can_be_raided(self) -> bool:
+        return self.stars == constants.RAID_N_STARS
 
 
 class Offer(BaseResponse):
