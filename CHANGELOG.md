@@ -1,3 +1,8 @@
+# `latest`
+
+* Switch back to plain old `requirements.txt`
+* Fix `--help`
+
 # `2.1`
 
 * **Option to randomize grand arena defenders**

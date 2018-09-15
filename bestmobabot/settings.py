@@ -53,6 +53,8 @@ class Settings(BaseModel):
 
 
 class SettingsFileParamType(click.ParamType):
+    name = 'filename'
+
     TModel = TypeVar('TModel', bound=BaseModel)
 
     def __init__(self, model: Type[TModel]):

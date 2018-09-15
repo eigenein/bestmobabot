@@ -11,8 +11,8 @@ USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36
 
 # Resources.
 # FIXME: dynamically find out the latest server version. Or at least make configurable.
-TRANSLATIONS_URL = 'https://heroes.cdnvideo.ru/vk/v0416/locale/ru.json.gz'
-LIBRARY_URL = 'https://heroes.cdnvideo.ru/vk/v0416/lib/lib.json.gz'
+TRANSLATIONS_URL = 'https://heroes.cdnvideo.ru/vk/v0433/locale/ru.json.gz'
+LIBRARY_URL = 'https://heroes.cdnvideo.ru/vk/v0433/lib/lib.json.gz'
 
 # Fundamental constants.
 TEAM_SIZE = 5  # heroes
