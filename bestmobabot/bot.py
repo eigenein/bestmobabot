@@ -148,7 +148,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             Task(next_run_at=Task.at(hour=10, minute=0), execute=self.farm_zeppelin_gift),
 
             # Debug tasks. Uncomment when needed.
-            Task(next_run_at=Task.asap(), execute=self.shop),
+            # Task(next_run_at=Task.asap(), execute=self.shop),
         ]
         if self.settings.bot.shops:
             self.tasks.append(Task(next_run_at=Task.every_n_hours(8), execute=self.shop))
