@@ -6,6 +6,7 @@
 * Fix `--help`
 * Use `pydantic` for response classes
 * Make tasks parameterless
+* Add shop #11
 
 # `2.1`
 
