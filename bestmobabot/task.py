@@ -3,19 +3,17 @@ Represents a scheduled bot task.
 """
 
 from datetime import datetime, timedelta, tzinfo
-from typing import Callable, NamedTuple, Optional, Tuple
-
+from typing import Callable, NamedTuple, Optional
 
 NextRunAtCallable = Callable[[datetime], datetime]
 
 
 class Task(NamedTuple):
     next_run_at: NextRunAtCallable
-    execute: Callable[..., Optional[datetime]]
-    args: Tuple = ()
+    execute: Callable[[], Optional[datetime]]
 
     def __str__(self):
-        return f'{self.execute.__name__}{self.args}'
+        return f'{self.execute.__name__}'
 
     @staticmethod
     def at(*, hour: int, minute: int, tz: Optional[tzinfo] = None) -> NextRunAtCallable:

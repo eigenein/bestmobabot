@@ -4,7 +4,7 @@ from typing import List, Optional, Set, Type, TypeVar
 
 import click
 import yaml
-from pydantic import BaseModel, ValidationError, confloat, conint
+from pydantic import BaseModel, ValidationError, confloat, conint, validator
 
 
 class VKSettings(BaseModel):
@@ -26,13 +26,22 @@ class ArenaSettings(BaseModel):
     grand_keep_solutions: conint(ge=1) = 200
 
 
+# noinspection PyMethodParameters
 class BotSettings(BaseModel):
     no_experience: bool = False  # don't farm experience quests
     is_trainer: bool = False  # train the model
     raids: Set[str] = []  # item names to raid
-    shops: List[str] = []  # bought item names
+    shops: Set[str] = []  # bought item names
     friend_ids: List[str] = []  # friend IDs for gifts
     arena: ArenaSettings
+
+    @validator('raids')
+    def lower_raids(cls, value: str) -> str:
+        return value.lower()
+
+    @validator('shops')
+    def lower_shops(cls, value: str) -> str:
+        return value.lower()
 
 
 class Settings(BaseModel):

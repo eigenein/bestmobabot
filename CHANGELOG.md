@@ -4,6 +4,8 @@
 * **Raid things by their names**
 * Switch back to plain old `requirements.txt`
 * Fix `--help`
+* Use `pydantic` for response classes
+* Make tasks parameterless
 
 # `2.1`
 

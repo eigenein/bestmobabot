@@ -250,7 +250,7 @@ class API(contextlib.AbstractContextManager):
     # ------------------------------------------------------------------------------------------------------------------
 
     def farm_daily_bonus(self) -> Reward:
-        return Reward(self.call('dailyBonusFarm', {'vip': 0}).response)
+        return Reward.parse_obj(self.call('dailyBonusFarm', {'vip': 0}).response)
 
     # Expeditions.
     # ------------------------------------------------------------------------------------------------------------------
@@ -259,7 +259,7 @@ class API(contextlib.AbstractContextManager):
         return list_of(Expedition, self.call('expeditionGet').response)
 
     def farm_expedition(self, expedition_id: str) -> Reward:
-        return Reward(self.call('expeditionFarm', {'expeditionId': expedition_id}).response)
+        return Reward.parse_obj(self.call('expeditionFarm', {'expeditionId': expedition_id}).response)
 
     def send_expedition_heroes(self, expedition_id: str, hero_ids: List[str]) -> Tuple[datetime, Quests]:
         response = self.call('expeditionSendHeroes', {'expeditionId': expedition_id, 'heroes': hero_ids})
@@ -272,7 +272,7 @@ class API(contextlib.AbstractContextManager):
         return list_of(Quest, self.call('questGetAll').response)
 
     def farm_quest(self, quest_id: str) -> Reward:
-        return Reward(self.call('questFarm', {'questId': quest_id}).response)
+        return Reward.parse_obj(self.call('questFarm', {'questId': quest_id}).response)
 
     # Mail.
     # ------------------------------------------------------------------------------------------------------------------
@@ -282,7 +282,7 @@ class API(contextlib.AbstractContextManager):
 
     def farm_mail(self, letter_ids: Iterable[str]) -> Dict[str, Reward]:
         result = self.call('mailFarm', {'letterIds': list(letter_ids)})
-        return {letter_id: Reward(item or {}) for letter_id, item in result.response.items()}
+        return {letter_id: Reward.parse_obj(item or {}) for letter_id, item in result.response.items()}
 
     # Chests.
     # ------------------------------------------------------------------------------------------------------------------
@@ -316,7 +316,7 @@ class API(contextlib.AbstractContextManager):
         return ArenaResult(result.response), result.quests
 
     def farm_grand_coins(self) -> Reward:
-        return Reward(self.call('grandFarmCoins').response['reward'] or {})
+        return Reward.parse_obj(self.call('grandFarmCoins').response['reward'] or {})
 
     def set_grand_heroes(self, hero_ids: List[List[str]]):
         self.call('grandSetHeroes', {'heroes': hero_ids})
@@ -326,13 +326,13 @@ class API(contextlib.AbstractContextManager):
 
     def check_freebie(self, gift_id: str) -> Optional[Reward]:
         response = self.call('freebieCheck', {'giftId': gift_id}).response
-        return Reward(response) if response else None
+        return Reward.parse_obj(response) if response else None
 
     # Zeppelin gift.
     # ------------------------------------------------------------------------------------------------------------------
 
     def farm_zeppelin_gift(self) -> Reward:
-        return Reward(self.call('zeppelinGiftFarm').response)
+        return Reward.parse_obj(self.call('zeppelinGiftFarm').response)
 
     # Artifact chests.
     # ------------------------------------------------------------------------------------------------------------------
@@ -367,7 +367,7 @@ class API(contextlib.AbstractContextManager):
         return list_of(Boss, self.call('bossGetAll').response)
 
     def raid_boss(self, boss_id: str) -> Reward:
-        return Reward(self.call('bossRaid', {'bossId': boss_id}).response['everyWinReward'])
+        return Reward.parse_obj(self.call('bossRaid', {'bossId': boss_id}).response['everyWinReward'])
 
     def open_boss_chest(self, boss_id: str) -> Tuple[List[Reward], Quests]:
         result = self.call('bossOpenChest', {'bossId': boss_id, 'starmoney': 0, 'amount': 1})
@@ -381,7 +381,7 @@ class API(contextlib.AbstractContextManager):
         return list_of(ShopSlot, response['slots'])
 
     def shop(self, *, slot_id: str, shop_id: str) -> Reward:
-        return Reward(self.call('shopBuy', {'slot': slot_id, 'shopId': shop_id}).response)
+        return Reward.parse_obj(self.call('shopBuy', {'slot': slot_id, 'shopId': shop_id}).response)
 
     # Tower.
     # ------------------------------------------------------------------------------------------------------------------
@@ -391,7 +391,7 @@ class API(contextlib.AbstractContextManager):
 
     def skip_tower_floor(self) -> Tuple[Tower, Reward]:
         response = self.call('towerSkipFloor').response
-        return Tower(response['tower']), Reward(response['reward'])
+        return Tower(response['tower']), Reward.parse_obj(response['reward'])
 
     def buy_tower_buff(self, buff_id: int) -> Tower:
         return Tower(self.call('towerBuyBuff', {'buffId': buff_id}).response)
@@ -399,7 +399,7 @@ class API(contextlib.AbstractContextManager):
     def open_tower_chest(self, number: int) -> Tuple[Reward, Quests]:
         assert number in (0, 1, 2)
         result = self.call('towerOpenChest', {'num': number})
-        return Reward(result.response['reward']), result.quests
+        return Reward.parse_obj(result.response['reward']), result.quests
 
     def next_tower_floor(self) -> Tower:
         return Tower(self.call('towerNextFloor').response)
@@ -411,7 +411,7 @@ class API(contextlib.AbstractContextManager):
         return list_of(Offer, self.call('offerGetAll').response)
 
     def farm_offer_reward(self, offer_id: str) -> Reward:
-        return Reward(self.call('offerFarmReward', {'offerId': offer_id}).response)
+        return Reward.parse_obj(self.call('offerFarmReward', {'offerId': offer_id}).response)
 
     # Titans.
     # ------------------------------------------------------------------------------------------------------------------

@@ -75,8 +75,8 @@ class BotHelperMixin:
         missions: Dict[str, Mission] = {
             mission.id: mission
             for mission in self.api.get_all_missions()
-            if mission.can_be_raided and
-            any(mission_library[mission.id].has_reward(name) for name in self.settings.bot.raids)
+            if mission.is_raid_available and
+            mission_library[mission.id].reward_keywords & self.settings.bot.raids
         }
 
         # Get heroic mission IDs.
@@ -149,7 +149,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             Task(next_run_at=Task.at(hour=10, minute=0), execute=self.farm_zeppelin_gift),
 
             # Debug tasks. Uncomment when needed.
-            # Task(next_run_at=Task.asap(), execute=self.shop),
+            # Task(next_run_at=Task.asap(), execute=self.raid_missions),
         ]
         if self.settings.bot.shops:
             self.tasks.append(Task(next_run_at=Task.every_n_hours(8), execute=self.shop))
@@ -194,7 +194,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         send_event(category='bot', action=task.execute.__name__, user_id=self.api.user_id)
         self.api.last_responses.clear()
         try:
-            next_run_at = task.execute(*task.args)
+            next_run_at = task.execute()
         except TaskNotAvailable as e:
             logger.warning(f'Task unavailable: {e}.')
         except AlreadyError as e:
@@ -477,18 +477,17 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         """
         Покупает в магазине вещи.
         """
-        logger.info(f'Refreshing shops…')
-        available_slots: List[Tuple[str, str]] = [
+        logger.info(f'Requesting shops…')
+        slots: List[Tuple[str, str]] = [
             (shop_id, slot.id)
             for shop_id in constants.SHOP_IDS
             for slot in self.api.get_shop(shop_id)
-            if not slot.is_bought and
-            not slot.costs_star_money and
-            any(slot.reward.contains(name) for name in self.settings.bot.shops)
+            if (not slot.is_bought) and (not slot.costs_star_money) and (slot.reward.keywords & self.settings.bot.shops)
         ]
 
-        logger.info('Buying stuff…')
-        for shop_id, slot_id in available_slots:
+        logger.info(f'Going to buy {len(slots)} slots.')
+        logger.debug(f'Slots: {slots}.')
+        for shop_id, slot_id in slots:
             logger.info(f'Buying slot #{slot_id} in shop «{shop_name(shop_id)}»…')
             try:
                 log_reward(self.api.shop(shop_id=shop_id, slot_id=slot_id))

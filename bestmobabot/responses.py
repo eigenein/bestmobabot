@@ -2,7 +2,6 @@
 Game API response wrappers.
 """
 
-import logging
 from abc import ABC, ABCMeta
 from datetime import datetime, timedelta, timezone, tzinfo
 from typing import Any, Callable, Dict, Iterable, List, Optional, TypeVar
@@ -10,6 +9,7 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, TypeVar
 import numpy
 
 from bestmobabot import constants, resources
+from bestmobabot.dataclasses_ import Reward
 
 T1 = TypeVar('T1')
 T2 = TypeVar('T2')
@@ -72,75 +72,13 @@ class Expedition(BaseResponse):
         return self.status == 2
 
 
-class Reward(BaseResponse):
-    # FIXME: should be replaced with `MissionReward`.
-
-    def __init__(self, raw: Dict):
-        super().__init__(raw)
-        self.stamina: int = int(raw.get('stamina', 0))
-        self.gold: int = int(raw.get('gold', 0))
-        self.experience: int = int(raw.get('experience', 0))
-        self.consumable: Dict[str, int] = raw.get('consumable', {})
-        self.star_money: int = int(raw.get('starmoney', 0))
-        self.coin: Dict[str, str] = raw.get('coin', {})
-        self.hero_fragment: Dict[str, int] = raw.get('fragmentHero', {})
-        self.artifact_fragment: Dict[str, int] = raw.get('fragmentArtifact', {})
-        self.gear_fragment: Dict[str, int] = raw.get('fragmentGear', {})
-        self.gear: Dict[str, str] = raw.get('gear', {})
-        self.scroll_fragment: Dict[str, str] = raw.get('fragmentScroll', {})
-        self.tower_point = int(raw.get('towerPoint', 0))
-        self.titan_artifact_fragment: Dict[str, int] = raw.get('fragmentTitanArtifact', {})
-
-    @property
-    def names(self) -> Iterable[str]:
-        for consumable_id in self.consumable:
-            yield resources.consumable_name(consumable_id).lower()
-        for hero_id in self.hero_fragment:
-            yield resources.hero_name(hero_id).lower()
-        for gear_id in self.gear:
-            yield resources.gear_name(gear_id).lower()
-        for scroll_id in self.scroll_fragment:
-            yield resources.scroll_name(scroll_id).lower()
-        for gear_id in self.gear_fragment:
-            yield resources.gear_name(gear_id).lower()
-
-    def contains(self, name: str) -> bool:
-        return any(name.lower() in reward_name for reward_name in self.names)
-
-    def log(self, logger: logging.Logger):
-        if self.stamina:
-            logger.info(f'{self.stamina} × stamina.')
-        if self.gold:
-            logger.info(f'{self.gold} × gold.')
-        if self.experience:
-            logger.info(f'{self.experience} × experience.')
-        for consumable_id, value in self.consumable.items():
-            logger.info(f'{value} × «{resources.consumable_name(consumable_id)}» consumable.')
-        if self.star_money:
-            logger.info(f'{self.star_money} × star money.')
-        for coin_id, value in self.coin.items():
-            logger.info(f'{value} × «{resources.coin_name(coin_id)}» coin.')
-        for hero_id, value in self.hero_fragment.items():
-            logger.info(f'{value} × «{resources.hero_name(hero_id)}» hero fragment.')
-        for artifact_id, value in self.artifact_fragment.items():
-            logger.info(f'{value} × «{resources.artifact_name(artifact_id)}» artifact fragment.')
-        for gear_id, value in self.gear_fragment.items():
-            logger.info(f'{value} × «{resources.gear_name(gear_id)}» gear fragment.')
-        for gear_id, value in self.gear.items():
-            logger.info(f'{value} × «{resources.gear_name(gear_id)}» gear.')
-        for scroll_id, value in self.scroll_fragment.items():
-            logger.info(f'{value} × «{resources.scroll_name(scroll_id)}» scroll fragment.')
-        for artifact_id, value in self.titan_artifact_fragment.items():
-            logger.info(f'{value} × «{resources.titan_artifact_name(artifact_id)}» titan artifact fragment.')
-
-
 class Quest(BaseResponse):
     def __init__(self, raw: Dict):
         super().__init__(raw)
         self.id: str = str(raw['id'])
         self.state: int = int(raw['state'])
         self.progress: int = int(raw['progress'])
-        self.reward: Reward = Reward(raw['reward'])
+        self.reward: Reward = Reward.parse_obj(raw['reward'])
 
     @property
     def is_reward_available(self) -> bool:
@@ -237,7 +175,7 @@ class ArenaResult(BaseResponse):
         self.arena_place: Optional[str] = cast_optional(raw['state'].get('arenaPlace'), str)
         self.grand_place: Optional[str] = cast_optional(raw['state'].get('grandPlace'), str)
         self.battles: List['BattleResult'] = [BattleResult(result) for result in raw['battles']]
-        self.reward: Reward = Reward(raw['reward'] or {})
+        self.reward: Reward = Reward.parse_obj(raw['reward'] or {})
 
 
 class BattleResult(BaseResponse):
@@ -276,7 +214,7 @@ class ShopSlot(BaseResponse):
         super().__init__(raw)
         self.id: str = str(raw['id'])
         self.is_bought: bool = bool(raw['bought'])
-        self.reward: Reward = Reward(raw['reward'])
+        self.reward: Reward = Reward.parse_obj(raw['reward'])
         self.costs_star_money: bool = bool(raw['cost'].get('starmoney', 0))
 
 
@@ -310,7 +248,7 @@ class Mission(BaseResponse):
         self.stars = int(raw['stars'])
 
     @property
-    def can_be_raided(self) -> bool:
+    def is_raid_available(self) -> bool:
         return self.stars == constants.RAID_N_STARS
 
 

@@ -5,88 +5,12 @@ Loads and extracts useful constants from the game resources.
 import gzip
 import json
 from functools import lru_cache
-from typing import Dict, List, Set, Iterable
+from typing import Dict, Set
 
 import requests
-from pydantic import BaseModel
 
 import bestmobabot.logging_
-from bestmobabot import constants
-
-
-class MissionReward(BaseModel):
-    # FIXME: should be moved to `responses`.
-
-    gear: Dict[str, int] = {}
-    consumable: Dict[str, int] = {}
-    hero_fragment: Dict[str, int] = {}
-    gear_fragment: Dict[str, int] = {}
-    scroll_fragment: Dict[str, int] = {}
-
-    class Config:
-        fields = {
-            'hero_fragment': 'fragmentHero',
-            'gear_fragment': 'fragmentGear',
-            'scroll_fragment': 'fragmentScroll',
-        }
-
-    @property
-    def names(self) -> Iterable[str]:
-        for consumable_id in self.consumable:
-            yield consumable_name(consumable_id).lower()
-        for hero_id in self.hero_fragment:
-            yield hero_name(hero_id).lower()
-        for gear_id in self.gear:
-            yield gear_name(gear_id).lower()
-        for scroll_id in self.scroll_fragment:
-            yield scroll_name(scroll_id).lower()
-        for gear_id in self.gear_fragment:
-            yield gear_name(gear_id).lower()
-
-
-class MissionEnemyDrop(BaseModel):
-    reward: MissionReward
-
-
-class MissionEnemy(BaseModel):
-    drops: List[MissionEnemyDrop] = []
-
-    class Config:
-        fields = {'drops': 'drop'}
-
-
-class MissionWave(BaseModel):
-    enemies: List[MissionEnemy]
-
-
-class MissionMode(BaseModel):
-    waves: List[MissionWave]
-
-
-class Mission(BaseModel):
-    id: str
-    is_heroic: bool
-    normal_mode: MissionMode
-
-    @property
-    def reward_names(self) -> Iterable[str]:
-        for wave in self.normal_mode.waves:
-            for enemy in wave.enemies:
-                for drop in enemy.drops:
-                    yield from drop.reward.names
-
-    def has_reward(self, name: str) -> bool:
-        return any(name.lower() in reward_name for reward_name in self.reward_names)
-
-    class Config:
-        fields = {'is_heroic': 'isHeroic', 'normal_mode': 'normalMode'}
-
-
-class Library(BaseModel):
-    missions: Dict[str, Mission]
-
-    class Config:
-        fields = {'missions': 'mission'}
+from bestmobabot import constants, dataclasses_
 
 
 @lru_cache(maxsize=None)
@@ -102,8 +26,8 @@ def get_translations() -> Dict[str, str]:
 
 
 @lru_cache(maxsize=None)
-def get_library() -> Library:
-    return Library.parse_raw(get_resource(constants.LIBRARY_URL))
+def get_library() -> dataclasses_.Library:
+    return dataclasses_.Library.parse_raw(get_resource(constants.LIBRARY_URL))
 
 
 def hero_name(hero_id: str) -> str:
