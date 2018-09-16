@@ -4,7 +4,7 @@ from typing import List, Optional, Set, Type, TypeVar
 
 import click
 import yaml
-from pydantic import BaseModel, ValidationError, validator
+from pydantic import BaseModel, ValidationError, confloat, conint
 
 
 class VKSettings(BaseModel):
@@ -14,23 +14,16 @@ class VKSettings(BaseModel):
 
 class ArenaSettings(BaseModel):
     skip_clans: Set[str] = []  # names or clan IDs which must be skipped during enemy search
-    early_stop: float = 0.95  # minimal win probability to stop enemy search
+    early_stop: confloat(ge=0.0, le=1.0) = 0.95  # minimal win probability to stop enemy search
     schedule_offset: timedelta = timedelta()  # arena task schedule offset
-    teams_limit: int = 20000  # number of the most powerful teams tested
-    grand_generations: int = 25  # number of grand arena GA iterations
-    max_pages: int = 15  # maximal number of pages during enemy search
-    max_grand_pages: int = 15  # maximal number of pages during grand enemy search
+    teams_limit: conint(ge=1) = 20000  # number of the most powerful teams tested
+    grand_generations: conint(ge=1) = 25  # number of grand arena GA iterations
+    max_pages: conint(ge=1) = 15  # maximal number of pages during enemy search
+    max_grand_pages: conint(ge=1) = 15  # maximal number of pages during grand enemy search
     hyper_params: Optional[dict] = None  # hyper-parameters of the predictive model
     randomize_grand_defenders: bool = False
-    grand_generate_solutions: int = 1000
-    grand_keep_solutions: int = 200
-
-    # noinspection PyMethodParameters
-    @validator('early_stop')
-    def validate_early_stop(cls, value: float):
-        if not 0.0 <= value <= 1.0:
-            raise ValueError('incorrect probability, must be between 0 and 1')
-        return value
+    grand_generate_solutions: conint(ge=1) = 1000
+    grand_keep_solutions: conint(ge=1) = 200
 
 
 class BotSettings(BaseModel):
