@@ -289,7 +289,7 @@ class API(contextlib.AbstractContextManager):
 
     def buy_chest(self, is_free=True, chest='town', is_pack=False) -> List[Reward]:
         result = self.call('chestBuy', {'free': is_free, 'chest': chest, 'pack': is_pack})
-        return list_of(Reward, result.response['rewards'])
+        return list_of(Reward.parse_obj, result.response['rewards'])
 
     # Daily gift.
     # ------------------------------------------------------------------------------------------------------------------
@@ -339,7 +339,7 @@ class API(contextlib.AbstractContextManager):
 
     def open_artifact_chest(self, amount=1, is_free=True) -> List[Reward]:
         response = self.call('artifactChestOpen', {'amount': amount, 'free': is_free}).response
-        return list_of(Reward, response['chestReward'])
+        return list_of(Reward.parse_obj, response['chestReward'])
 
     # Battles.
     # ------------------------------------------------------------------------------------------------------------------
@@ -354,7 +354,7 @@ class API(contextlib.AbstractContextManager):
 
     def raid_mission(self, mission_id: str, times=1) -> List[Reward]:
         response = self.call('missionRaid', {'times': times, 'id': mission_id}).response
-        return list_of(Reward, response)
+        return list_of(Reward.parse_obj, response)
 
     def get_all_missions(self) -> List[Mission]:
         return list_of(Mission, self.call('missionGetAll').response)
@@ -371,7 +371,7 @@ class API(contextlib.AbstractContextManager):
 
     def open_boss_chest(self, boss_id: str) -> Tuple[List[Reward], Quests]:
         result = self.call('bossOpenChest', {'bossId': boss_id, 'starmoney': 0, 'amount': 1})
-        return list_of(Reward, result.response['rewards']['free']), result.quests
+        return list_of(Reward.parse_obj, result.response['rewards']['free']), result.quests
 
     # Shop.
     # ------------------------------------------------------------------------------------------------------------------
@@ -418,7 +418,7 @@ class API(contextlib.AbstractContextManager):
 
     def open_titan_artifact_chest(self, amount: int, free: bool = True) -> Tuple[List[Reward], Quests]:
         result = self.call('titanArtifactChestOpen', {'amount': amount, 'free': free})
-        return list_of(Reward, result.response['reward']), result.quests
+        return list_of(Reward.parse_obj, result.response['reward']), result.quests
 
 
 def list_of(constructor: Callable[[Any], T], items: Iterable) -> List[T]:

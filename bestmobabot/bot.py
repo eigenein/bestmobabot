@@ -486,7 +486,6 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         ]
 
         logger.info(f'Going to buy {len(slots)} slots.')
-        logger.debug(f'Slots: {slots}.')
         for shop_id, slot_id in slots:
             logger.info(f'Buying slot #{slot_id} in shop «{shop_name(shop_id)}»…')
             try:
