@@ -111,7 +111,6 @@ class Hero(BaseResponse):
             f'color_level_{self.id}': float(self.color) * float(self.level),
             f'color_star_{self.id}': float(self.color) * float(self.star),
             f'level_star_{self.id}': float(self.level) * float(self.star),
-            f'power_{self.id}': self.power or 0.0,
             'total_color_level_star': float(self.color) * float(self.level) * float(self.star),
             'total_color_level': float(self.color) * float(self.level),
             'total_color_star': float(self.color) * float(self.star),
@@ -120,7 +119,6 @@ class Hero(BaseResponse):
             'total_levels': float(self.level),
             'total_stars': float(self.star),
             'total_heroes': 1.0,
-            'total_power': self.power or 0.0,
         }
 
     def get_features(self, model) -> numpy.ndarray:

@@ -1,6 +1,5 @@
 import pickle
 from collections import defaultdict
-from datetime import datetime
 from itertools import chain, product
 from operator import itemgetter
 from typing import Any, DefaultDict, Dict, Iterable, List, NamedTuple, Optional
@@ -35,7 +34,7 @@ class Trainer:
         numpy.random.seed(42)
 
         # Read battles.
-        battle_list = self.read_battles()
+        battle_list = self.deduplicate_battles(self.read_battles())
         if not battle_list:
             logger.info('There are no battles. Wait until someone attacks you.')
             return
@@ -90,19 +89,19 @@ class Trainer:
 
         return search_cv.best_params_
 
-    def read_battles(self) -> List[Dict[str, Any]]:
+    def read_battles(self) -> Iterable[Dict[str, Any]]:
         logger.info('Reading battles…')
         return list(chain.from_iterable(
             self.parse_battles(value)
             for _, value in self.db.get_by_index('replays')
         ))
 
+    @staticmethod
+    def deduplicate_battles(battles: Iterable[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        return list(dict(items) for items in {tuple(sorted(battle.items())) for battle in battles})
+
     @classmethod
     def parse_battles(cls, battle: Dict[str, Any]) -> Iterable[Dict[str, Any]]:
-        # FIXME: backwards compatibility, eventually remove this.
-        if datetime.fromtimestamp(battle.get('start_time', 0)) < constants.MODEL_MIN_START_TIME:
-            return
-
         # Yield battle itself.
         result = defaultdict(int)
         cls.parse_heroes(battle.get('attackers') or battle['player'], +1, result)

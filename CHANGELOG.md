@@ -7,6 +7,7 @@
 * Use `pydantic` for response classes
 * Make tasks parameterless
 * Add shop #11
+* Revert model without power features
 
 # `2.1`
 
