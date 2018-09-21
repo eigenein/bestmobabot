@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import TextIO
 
+import IPython
 from click import File, command, get_text_stream, option
 
 from bestmobabot import constants
@@ -24,7 +25,8 @@ from bestmobabot.vk import VK
 )
 @option('-l', '--log-file', help=f'Log file.', envvar='LOGFILE', type=File('at'), default=get_text_stream('stderr'))
 @option('verbosity', '-v', '--verbose', help='Increase verbosity.', envvar='VERBOSITY', count=True)
-def main(settings: Settings, log_file: TextIO, verbosity: int):
+@option('--shell', is_flag=True, help='Start interactive shell after initialization instead of normal run.')
+def main(settings: Settings, log_file: TextIO, verbosity: int, shell: bool):
     """
     Hero Wars bot.
     """
@@ -40,7 +42,10 @@ def main(settings: Settings, log_file: TextIO, verbosity: int):
         bot.start()
         logger.info(f'Welcome {bot.user.name}! Your game time is {datetime.now(bot.user.tz):%H:%M:%S}.')
         logger.info('Next day starts at %s.', bot.user.next_day)
-        bot.run()
+        if not shell:
+            bot.run()
+        else:
+            IPython.embed()
 
 
 if __name__ == '__main__':
