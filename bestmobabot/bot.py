@@ -32,6 +32,7 @@ class BotHelperMixin:
     """
     Helper methods.
     """
+    user: User
     db: Database
     api: API
     settings: Settings
@@ -66,6 +67,7 @@ class BotHelperMixin:
         if len(heroes) < min_hero_count:
             raise TaskNotAvailable('not enough heroes')
 
+        self.user = self.api.get_user_info()  # refresh clan ID
         return model, heroes
 
     def get_raid_mission_ids(self) -> Iterable[str]:

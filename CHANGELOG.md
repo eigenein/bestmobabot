@@ -9,6 +9,7 @@
 * Make tasks parameterless
 * Add shop #11
 * Revert model without power features
+* Refresh clan ID before running arena
 
 # `2.1`
 
