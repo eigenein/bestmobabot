@@ -10,6 +10,7 @@
 * Add shop #11
 * Revert model without power features
 * Refresh clan ID before running arena
+* Improve arena logging
 
 # `2.1`
 
