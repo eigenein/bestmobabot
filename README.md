@@ -1,11 +1,5 @@
 Bot playing a MOBA-like game on [VK.com](https://vk.com). The bot uses pure reverse-engineered Hero Wars JSON API. No Flash-emulator is used. No browser is needed.
 
-## Running with [Pipenv](https://docs.pipenv.org/)
-
-```bash
-pipenv run python -m bestmobabot --settings settings.yaml
-```
-
 ### Settings
 
 At the moment settings are described only in `settings.py`. Here is an example settings file:
