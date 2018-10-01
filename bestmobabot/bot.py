@@ -19,7 +19,7 @@ from bestmobabot.database import Database
 from bestmobabot.enums import *
 from bestmobabot.logging_ import log_arena_result, log_heroes, log_reward, log_rewards, logger
 from bestmobabot.model import Model
-from bestmobabot.resources import get_heroic_mission_ids, mission_name, shop_name, get_library
+from bestmobabot.resources import get_heroic_mission_ids, mission_name, shop_name
 from bestmobabot.responses import *
 from bestmobabot.settings import Settings
 from bestmobabot.task import Task, TaskNotAvailable
@@ -71,14 +71,10 @@ class BotHelperMixin:
         return model, heroes
 
     def get_raid_mission_ids(self) -> Iterable[str]:
-        mission_library = get_library().missions
-
-        # Get all missions that could be raided by the player and have the requested items as reward.
         missions: Dict[str, Mission] = {
             mission.id: mission
             for mission in self.api.get_all_missions()
-            if mission.is_raid_available and
-            mission_library[mission.id].reward_keywords & self.settings.bot.raids
+            if mission.is_raid_available and mission_name(mission.id).lower() in self.settings.bot.raid_missions
         }
 
         # Get heroic mission IDs.
@@ -149,9 +145,6 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             Task(next_run_at=Task.at(hour=9, minute=15), execute=self.open_titan_artifact_chest),
             Task(next_run_at=Task.at(hour=9, minute=30), execute=self.farm_offers),
             Task(next_run_at=Task.at(hour=10, minute=0), execute=self.farm_zeppelin_gift),
-
-            # Debug tasks. Uncomment when needed.
-            # Task(next_run_at=Task.asap(), execute=self.raid_missions),
         ]
         if self.settings.bot.shops:
             self.tasks.append(Task(next_run_at=Task.every_n_hours(8), execute=self.shop))

@@ -30,11 +30,8 @@ bot:
   - Драконий щит - рецепт
   - Рука славы
   - Изначальное слово - рецепт
-  raids:
-  - Пеппи
-  - Гелиос
-  - Криста
-  - Ларс
+  raid_missions:
+  - Чащоба Каданг
 ```
 
 ## Running with [Docker Compose](https://docs.docker.com/compose/)

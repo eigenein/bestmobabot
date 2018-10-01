@@ -93,16 +93,6 @@ class Mission(BaseModel):
     is_heroic: bool
     normal_mode: MissionMode
 
-    @property
-    def reward_keywords(self) -> Set[str]:
-        return {
-            keyword
-            for wave in self.normal_mode.waves
-            for enemy in wave.enemies
-            for drop in enemy.drops
-            for keyword in drop.reward.keywords
-        }
-
     class Config:
         fields = {'is_heroic': 'isHeroic', 'normal_mode': 'normalMode'}
 

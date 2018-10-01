@@ -30,12 +30,12 @@ class ArenaSettings(BaseModel):
 class BotSettings(BaseModel):
     no_experience: bool = False  # don't farm experience quests
     is_trainer: bool = False  # train the model
-    raids: Set[str] = []  # item names to raid
+    raid_missions: Set[str] = []  # mission names to raid
     shops: Set[str] = []  # bought item names
     friend_ids: List[str] = []  # friend IDs for gifts
     arena: ArenaSettings
 
-    @validator('raids')
+    @validator('raid_missions')
     def lower_raids(cls, value: str) -> str:
         return value.lower()
 

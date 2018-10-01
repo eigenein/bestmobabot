@@ -1,7 +1,7 @@
 # `latest`
 
 * **Buy things by their names**
-* **Raid things by their names**
+* **Raid missions by their names**
 * Embed IPython
 * Switch back to plain old `requirements.txt`
 * Fix `--help`
