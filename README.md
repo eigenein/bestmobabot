@@ -29,16 +29,18 @@ bot:
   - 123456789
   - 123456790
   shops:
-  # Buy the following slots in the shop:
-  - shop_id: 1
-    slot_id: 4
-  - shop_id: 1
-    slot_id: 5
+  - Печать пастыря
+  - Орион
+  - Йорген
+  - Зелье титана
+  - Драконий щит - рецепт
+  - Рука славы
+  - Изначальное слово - рецепт
   raids:
-  # Raid mission IDs:
-  - 16
-  - 57
-  - 100
+  - Пеппи
+  - Гелиос
+  - Криста
+  - Ларс
 ```
 
 ## Running with [Docker Compose](https://docs.docker.com/compose/)
