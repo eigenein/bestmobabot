@@ -17,7 +17,6 @@ bot:
     # Arena and grand arena settings:
     schedule_offset: 01:00:00  # shift time from the default one
     teams_limit: 40000
-    grand_generations: 50
   friend_ids:
   # Send ❤️ gifts to:
   - 123456789
