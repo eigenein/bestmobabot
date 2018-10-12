@@ -2,6 +2,7 @@
 
 * **Buy things by their names**
 * **Raid missions by their names**
+* **`grand_generations_cool_down` setting instead of `grand_generations`**
 * Embed IPython
 * Switch back to plain old `requirements.txt`
 * Fix `--help`

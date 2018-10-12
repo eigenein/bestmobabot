@@ -17,13 +17,13 @@ class ArenaSettings(BaseModel):
     early_stop: confloat(ge=0.0, le=1.0) = 0.95  # minimal win probability to stop enemy search
     schedule_offset: timedelta = timedelta()  # arena task schedule offset
     teams_limit: conint(ge=1) = 20000  # number of the most powerful teams tested
-    grand_generations: conint(ge=1) = 25  # number of grand arena GA iterations
+    grand_generations_cool_down: conint(ge=1) = 25  # maximum number of GA iterations without any improvement
     max_pages: conint(ge=1) = 15  # maximal number of pages during enemy search
     max_grand_pages: conint(ge=1) = 15  # maximal number of pages during grand enemy search
     hyper_params: Optional[dict] = None  # hyper-parameters of the predictive model
     randomize_grand_defenders: bool = False
-    grand_generate_solutions: conint(ge=1) = 1000
-    grand_keep_solutions: conint(ge=1) = 200
+    grand_generate_solutions: conint(ge=1) = 1250
+    grand_keep_solutions: conint(ge=1) = 250
 
 
 # noinspection PyMethodParameters

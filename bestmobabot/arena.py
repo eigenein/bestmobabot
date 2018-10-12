@@ -5,7 +5,7 @@ Arena hero selection logic.
 import math
 from abc import ABC, abstractmethod
 from functools import lru_cache
-from itertools import chain, combinations, product
+from itertools import chain, combinations, product, count
 from operator import itemgetter
 from typing import Callable, Dict, Generic, Iterable, List, Optional, Tuple, TypeVar
 
@@ -13,6 +13,7 @@ import numpy
 
 from bestmobabot import constants
 from bestmobabot.constants import SPAM
+from bestmobabot.itertools_ import CoolDown
 from bestmobabot.logging_ import logger
 from bestmobabot.model import Model
 from bestmobabot.responses import ArenaEnemy, GrandArenaEnemy, Hero
@@ -147,8 +148,6 @@ class GrandArena(AbstractArena[GrandArenaEnemy, List[List[Hero]]]):
         super().__init__(**kwargs)
         self.n_generate_solutions = self.settings.bot.arena.grand_generate_solutions
         self.n_keep_solutions = self.settings.bot.arena.grand_keep_solutions
-        self.n_generations = self.settings.bot.arena.grand_generations
-        logger.info(f'Generations count: {self.n_generations}.')
 
         # We keep solutions in an attribute because we want to retry the best solutions across different enemies.
         logger.log(SPAM, f'Generating initial solutions…')
@@ -162,7 +161,7 @@ class GrandArena(AbstractArena[GrandArenaEnemy, List[List[Hero]]]):
         return self.settings.bot.arena.max_grand_pages
 
     def select_attackers(self, enemy: GrandArenaEnemy) -> Tuple[List[List[Hero]], float]:
-        logger.log(SPAM, f'Selecting attackers ({enemy.user.name})…')
+        logger.log(SPAM, f'Selecting attackers for «{enemy.user.name}»…')
 
         n_heroes = len(self.heroes)
         hero_features = self.make_features(self.heroes)
@@ -183,8 +182,9 @@ class GrandArena(AbstractArena[GrandArenaEnemy, List[List[Hero]]]):
         # Let's evolve.
         max_index: int = None
         max_probability = 0.0
+        cool_down = CoolDown(count(1), self.settings.bot.arena.grand_generations_cool_down)
 
-        for n_generation in range(self.n_generations):
+        for n_generation in cool_down:
             # Generate new solutions.
             # Choose random solutions from the population and apply a random permutation to each of them.
             new_permutations = swaps[numpy.random.randint(0, swaps.shape[0], self.n_generate_solutions)]
@@ -212,8 +212,15 @@ class GrandArena(AbstractArena[GrandArenaEnemy, List[List[Hero]]]):
 
             # Select the best one.
             max_index = probabilities.argmax()
+            if probabilities[max_index] - max_probability > 0.00001:
+                # Improved solution. Give the optimizer another chance to beat the best solution.
+                cool_down.reset()
             max_probability = probabilities[max_index]
-            logger.log(SPAM, f'Generation #{n_generation}: {max_probability:.4f}.')
+            logger.log(SPAM, f'Generation {n_generation:2}: {100.0 * max_probability:.2f}%{" +" if cool_down.is_fresh else ""}')
+
+            # I'm feeling lucky!
+            if max_probability > 0.99999:
+                break
 
         logger.info(
             f'«{enemy.user.name}» at «{enemy.user.clan_title}»:'
