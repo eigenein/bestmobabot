@@ -205,10 +205,12 @@ class GrandArena(AbstractArena[GrandArenaEnemy, List[List[Hero]]]):
             p1, p2, p3 = numpy.split(self.model.estimator.predict_proba(x)[:, 1], 3)
             probabilities = p1 * p2 * p3 + p1 * p2 * (1.0 - p3) + p2 * p3 * (1.0 - p1) + p1 * p3 * (1.0 - p2)
 
-            # Select top ones.
+            # Select top ones for the next iteration.
+            # See also: https://stackoverflow.com/a/23734295/359730
             top_indexes = probabilities.argpartition(-self.n_keep_solutions)[-self.n_keep_solutions:]
             self.solutions = self.solutions[top_indexes, :]
             probabilities = probabilities[top_indexes]
+            p1, p2, p3 = p1[top_indexes], p2[top_indexes], p3[top_indexes]
 
             # Select the best one.
             max_index = probabilities.argmax()

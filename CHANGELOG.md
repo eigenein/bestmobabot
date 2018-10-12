@@ -1,3 +1,7 @@
+# `latest`
+
+* Fix possible bug with grand arena enemy selection and/or logging
+
 # `2.2`
 
 * **Buy things by their names**
