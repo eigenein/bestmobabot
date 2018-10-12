@@ -1,4 +1,4 @@
-# `latest`
+# `2.2`
 
 * **Buy things by their names**
 * **Raid missions by their names**
