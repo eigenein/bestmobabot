@@ -22,11 +22,12 @@ class Model(NamedTuple):
 
 
 class Trainer:
-    def __init__(self, db: Database, *, n_splits: int):
+    def __init__(self, db: Database, *, n_splits: int, n_last_battles: int):
         self.db = db
         self.n_splits = n_splits
+        self.n_last_battles = n_last_battles
 
-    def train(self, params: Optional[Dict] = None):
+    def train(self):
         """
         Train the model. If `params` is not set, hyper-parameters search will be performed.
         """
@@ -51,7 +52,7 @@ class Trainer:
         estimator = RandomForestClassifier(class_weight='balanced', n_jobs=-1)
 
         # Search for hyper-parameters if not explicitly set.
-        params = params or self.search_hyper_parameters(
+        params = self.search_hyper_parameters(
             x, y, estimator, constants.MODEL_PARAM_GRID, StratifiedKFold(n_splits=self.n_splits, shuffle=True))
 
         # Re-train the best model on the entire data.
@@ -90,11 +91,11 @@ class Trainer:
         return search_cv.best_params_
 
     def read_battles(self) -> Iterable[Dict[str, Any]]:
-        logger.info('Reading battles…')
-        return list(chain.from_iterable(
-            self.parse_battles(value)
-            for _, value in self.db.get_by_index('replays')
-        ))
+        logger.info('Reading, sorting and selecting battles…')
+        values = [value for _, value in self.db.get_by_index('replays')]
+        values.sort(key=lambda value: value.get('start_time', 0.0))
+        values = values[-self.n_last_battles:]
+        return list(chain.from_iterable(self.parse_battles(value) for value in values))
 
     @staticmethod
     def deduplicate_battles(battles: Iterable[Dict[str, Any]]) -> List[Dict[str, Any]]:

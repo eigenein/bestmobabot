@@ -1,10 +1,12 @@
 import os
 from datetime import timedelta
-from typing import List, Optional, Set, Type, TypeVar
+from typing import List, Set, Type, TypeVar
 
 import click
 import yaml
 from pydantic import BaseModel, ValidationError, confloat, conint, validator
+
+from bestmobabot import constants
 
 
 class VKSettings(BaseModel):
@@ -20,10 +22,10 @@ class ArenaSettings(BaseModel):
     grand_generations_cool_down: conint(ge=1) = 25  # maximum number of GA iterations without any improvement
     max_pages: conint(ge=1) = 15  # maximal number of pages during enemy search
     max_grand_pages: conint(ge=1) = 15  # maximal number of pages during grand enemy search
-    hyper_params: Optional[dict] = None  # hyper-parameters of the predictive model
     randomize_grand_defenders: bool = False
     grand_generate_solutions: conint(ge=1) = 1250
     grand_keep_solutions: conint(ge=1) = 250
+    last_battles: conint(ge=1) = constants.MODEL_N_LAST_BATTLES  # use last N battles for training
 
 
 # noinspection PyMethodParameters

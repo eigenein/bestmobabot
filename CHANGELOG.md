@@ -1,6 +1,7 @@
 # `latest`
 
 * Fix possible bug with grand arena enemy selection and/or logging
+* Use last `N` battles for training
 
 # `2.2`
 

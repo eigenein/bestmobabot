@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Dict
 
 # General.
@@ -26,7 +25,6 @@ MAX_OPEN_ARTIFACT_CHESTS = 10
 TOWER_IGNORED_BUFF_IDS = {13, 14, 17, 18, 19}  # These buffs require a hero ID.
 
 # Arena model training control.
-MODEL_MIN_START_TIME = datetime(year=2018, month=4, day=25)  # since when hero powers are stored in replays
 MODEL_SCORING = 'accuracy'
 MODEL_SCORING_ALPHA = 0.95
 MODEL_N_SPLITS = 5
@@ -35,6 +33,7 @@ MODEL_PARAM_GRID = {
     'n_estimators': MODEL_N_ESTIMATORS_CHOICES,
     'criterion': ['entropy', 'gini'],
 }
+MODEL_N_LAST_BATTLES = 20000
 
 # Raids.
 RAID_N_HEROIC_TRIES = 3
