@@ -3,6 +3,7 @@
 * Fix possible bug with grand arena enemy selection and/or logging
 * Use last `N` battles for training
 * Update `User-Agent`
+* Upgrade `click` package
 
 # `2.2`
 
