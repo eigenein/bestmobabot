@@ -4,7 +4,6 @@ Game API wrapper.
 
 import contextlib
 import hashlib
-import json
 import random
 import re
 import string
@@ -13,6 +12,7 @@ from time import sleep
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, TypeVar
 
 import requests
+import ujson as json
 from requests.adapters import HTTPAdapter
 
 from bestmobabot import constants

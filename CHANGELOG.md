@@ -1,3 +1,8 @@
+# `latest`
+
+* Use `ujson` instead of `json`
+* Update resources
+
 # `2.3`
 
 * Fix possible bug with grand arena enemy selection and/or logging

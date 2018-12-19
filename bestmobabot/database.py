@@ -2,10 +2,11 @@
 Database wrapper.
 """
 
-import json
 import sqlite3
 from contextlib import AbstractContextManager, closing
 from typing import Callable, Iterable, Optional, Tuple, TypeVar
+
+import ujson as json
 
 T = TypeVar('T')
 

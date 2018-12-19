@@ -3,11 +3,11 @@ Loads and extracts useful constants from the game resources.
 """
 
 import gzip
-import json
 from functools import lru_cache
 from typing import Dict, Set
 
 import requests
+import ujson as json
 
 import bestmobabot.logging_
 from bestmobabot import constants, dataclasses_
