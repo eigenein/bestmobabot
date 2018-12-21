@@ -31,7 +31,7 @@ publish/tag : tag
 docker :
 	@docker build -t eigenein/bestmobabot .
 
-publish/docker :
+publish/docker : docker
 	@$(eval VERSION = $(shell $(PYTHON) setup.py --version))
 	@docker tag 'eigenein/bestmobabot:latest' 'eigenein/bestmobabot:$(VERSION)'
 	@docker push 'eigenein/bestmobabot:latest'
