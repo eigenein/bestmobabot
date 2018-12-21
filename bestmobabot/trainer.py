@@ -28,7 +28,7 @@ def main(verbosity: int, n_splits: int, n_last_battles: int):
     """
     Train and generate arena prediction model.
     """
-    bestmobabot.logging_.install_logging(verbosity, sys.stderr)
+    bestmobabot.logging_.install_logging(verbosity)
     if not sys.warnoptions:
         warnings.simplefilter('ignore')
 

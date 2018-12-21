@@ -1,27 +1,17 @@
 FROM python:3.7
 MAINTAINER Pavel Perestoronin <eigenein@gmail.com>
 
-ENV LC_ALL=C.UTF-8
-ENV LANG=C.UTF-8
-ENV APPLICATION_PATH=/opt/bestmobabot
-ENV WORKING_PATH=/srv/bestmobabot
-ENV PYTHONPATH=$APPLICATION_PATH:$PYTHONPATH
-ENV PIP_NO_CACHE_DIR=off
+ENV LC_ALL=C.UTF-8 LANG=C.UTF-8 PYTHONIOENCODING=utf-8
 
-# Create directory for logs and state.
-RUN mkdir -p $WORKING_PATH
-VOLUME $WORKING_PATH
-WORKDIR $WORKING_PATH
+COPY requirements.txt /tmp/bestmobabot/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/bestmobabot/requirements.txt
+COPY . /tmp/bestmobabot
+RUN pip install --no-cache-dir --no-deps /tmp/bestmobabot && rm -r /tmp/bestmobabot
 
-# Install dependencies.
-RUN apt-get update -qqy && apt-get install -qqy libopenblas-dev gfortran
-COPY requirements.txt $APPLICATION_PATH/
-RUN pip install -r $APPLICATION_PATH/requirements.txt
+RUN mkdir /app && touch /app/db.sqlite3 && chown -R nobody:nogroup /app
+WORKDIR /app
 
-# Copy the sources.
-COPY . $APPLICATION_PATH
-
-# Start.
+USER nobody:nogroup
 STOPSIGNAL SIGINT
-ENTRYPOINT ["python", "-m", "bestmobabot"]
+ENTRYPOINT ["bestmobabot"]
 CMD ["-v"]

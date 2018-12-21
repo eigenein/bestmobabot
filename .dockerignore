@@ -1,4 +1,6 @@
 .git
+.sqlite3
+Makefile
 
 # Created by https://www.gitignore.io/api/git,macos,python,jetbrains,virtualenv
 

@@ -1,8 +1,7 @@
 from datetime import datetime
-from typing import TextIO
 
 import IPython
-from click import File, command, get_text_stream, option
+from click import command, option
 
 from bestmobabot import constants
 from bestmobabot.api import API
@@ -23,14 +22,13 @@ from bestmobabot.vk import VK
     type=SettingsFileParamType(Settings),
     required=True,
 )
-@option('-l', '--log-file', help=f'Log file.', envvar='LOGFILE', type=File('at'), default=get_text_stream('stderr'))
 @option('verbosity', '-v', '--verbose', help='Increase verbosity.', envvar='VERBOSITY', count=True)
 @option('--shell', is_flag=True, help='Start interactive shell after initialization instead of normal run.')
-def main(settings: Settings, log_file: TextIO, verbosity: int, shell: bool):
+def main(settings: Settings, verbosity: int, shell: bool):
     """
     Hero Wars bot.
     """
-    install_logging(verbosity, log_file)
+    install_logging(verbosity)
     logger.info(f'Bot is starting. Version: {get_version()}.')
 
     # Prefetch game resources.

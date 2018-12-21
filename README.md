@@ -2,7 +2,7 @@ Bot playing a MOBA-like game on [VK.com](https://vk.com). The bot uses pure reve
 
 ### Settings
 
-At the moment settings are described only in `settings.py`. Here is an example settings file:
+At the moment settings are described only in `settings.py`. Here is an example of `settings.yaml`:
 
 ```yaml
 vk:
@@ -33,44 +33,19 @@ bot:
   - Чащоба Каданг
 ```
 
-## Running with [Docker Compose](https://docs.docker.com/compose/)
+## Running with Docker
 
 ```bash
-mkdir -p /srv/bestmobabot
-docker-compose up -d
+docker volume create bestmobabot
+sudo nano /var/lib/docker/volumes/bestmobabot/_data/settings.yaml
+docker run \
+    --detach \
+    --restart always \
+    --name bestmobabot \
+    -v bestmobabot:/app \
+    -e TZ=Europe/Amsterdam
+    eigenein/bestmobabot -v --settings settings.yaml
 ```
-
-### `docker-compose.yml`
-
-```yaml
-version: "3.3"
-services:
-  bestmobabot-user-1:
-    image: eigenein/bestmobabot
-    restart: always
-    environment:
-      - LOGFILE=/srv/bestmobabot/user-1.log
-      - SETTINGS=/srv/bestmobabot/user-1.yaml
-    volumes:
-      - /srv/bestmobabot:/srv/bestmobabot
-      - /etc/timezone:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
-  bestmobabot-user-2:
-    image: eigenein/bestmobabot
-    restart: always
-    environment:
-      - LOGFILE=/srv/bestmobabot/user-2.log
-      - SETTINGS=/srv/bestmobabot/user-2.yaml
-      - VERBOSITY=1
-    volumes:
-      - /srv/bestmobabot:/srv/bestmobabot
-      - /etc/timezone:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
-```
-
-### Running with Docker
-
-Of course, the bot could be run just with Docker. Run `docker run eigenein/bestmobabot --help` to see the possible options.
 
 ## Tasks
 
