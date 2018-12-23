@@ -39,7 +39,7 @@ def main(settings: Settings, verbosity: int, shell: bool):
         api.start()
         bot.start()
         logger.info(f'Welcome {bot.user.name}! Your game time is {datetime.now(bot.user.tz):%H:%M:%S}.')
-        logger.info('Next day starts at %s.', bot.user.next_day)
+        logger.info('Next day starts at {:%H:%M:%S}.', bot.user.next_day)
         if not shell:
             bot.run()
         else:
