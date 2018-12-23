@@ -1,5 +1,6 @@
-.git
-.sqlite3
+.git/
+*.sqlite3
+.travis.yml
 Makefile
 
 # Created by https://www.gitignore.io/api/git,macos,python,jetbrains,virtualenv
