@@ -7,10 +7,9 @@ from functools import lru_cache
 from typing import Dict, Set
 
 import requests
-import ujson as json
-
 from loguru import logger
 
+import ujson as json
 from bestmobabot import constants, dataclasses_
 
 
