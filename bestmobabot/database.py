@@ -34,7 +34,14 @@ class Database(AbstractContextManager):
             cursor.execute('SELECT exists(SELECT 1 FROM "default" WHERE "index" = ? AND "key" = ?)', (index, key))
             return bool(cursor.fetchone()[0])
 
-    def get_by_key(self, index: str, key: str, *, default: Optional[T] = None, loads: Callable[[str], T] = json.loads) -> Optional[T]:
+    def get_by_key(
+        self,
+        index: str,
+        key: str,
+        *,
+        default: Optional[T] = None,
+        loads: Callable[[str], T] = json.loads,
+    ) -> Optional[T]:
         """
         Gets single value by the specified index and key.
         """

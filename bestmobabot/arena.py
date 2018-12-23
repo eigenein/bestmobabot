@@ -5,16 +5,15 @@ Arena hero selection logic.
 import math
 from abc import ABC, abstractmethod
 from functools import lru_cache
-from itertools import chain, combinations, product, count
+from itertools import chain, combinations, count, product
 from operator import itemgetter
 from typing import Callable, Dict, Generic, Iterable, List, Optional, Tuple, TypeVar
 
 import numpy
+from loguru import logger
 
 from bestmobabot import constants
-from bestmobabot.constants import SPAM
 from bestmobabot.itertools_ import CoolDown
-from bestmobabot.logging_ import logger
 from bestmobabot.model import Model
 from bestmobabot.responses import ArenaEnemy, GrandArenaEnemy, Hero
 from bestmobabot.settings import Settings
@@ -150,7 +149,7 @@ class GrandArena(AbstractArena[GrandArenaEnemy, List[List[Hero]]]):
         self.n_keep_solutions = self.settings.bot.arena.grand_keep_solutions
 
         # We keep solutions in an attribute because we want to retry the best solutions across different enemies.
-        logger.log(SPAM, f'Generating initial solutions…')
+        logger.trace('Generating initial solutions…')
         self.solutions: numpy.ndarray = numpy.vstack(
             numpy.random.permutation(len(self.heroes))
             for _ in range(self.n_keep_solutions)
@@ -161,7 +160,7 @@ class GrandArena(AbstractArena[GrandArenaEnemy, List[List[Hero]]]):
         return self.settings.bot.arena.max_grand_pages
 
     def select_attackers(self, enemy: GrandArenaEnemy) -> Tuple[List[List[Hero]], float]:
-        logger.log(SPAM, f'Selecting attackers for «{enemy.user.name}»…')
+        logger.trace(f'Selecting attackers for «{enemy.user.name}»…')
 
         n_heroes = len(self.heroes)
         hero_features = self.make_features(self.heroes)
@@ -218,19 +217,23 @@ class GrandArena(AbstractArena[GrandArenaEnemy, List[List[Hero]]]):
                 # Improved solution. Give the optimizer another chance to beat the best solution.
                 cool_down.reset()
             max_probability = probabilities[max_index]
-            logger.log(SPAM, f'Generation {n_generation:2}: {100.0 * max_probability:.2f}%{" +" if cool_down.is_fresh else ""}')
+            logger.trace(f'Generation {n_generation:2}: {100.0 * max_probability:.2f}%{" +" if cool_down.is_fresh else ""}')  # noqa
 
             # I'm feeling lucky!
             if max_probability > 0.99999:
                 break
 
+        # noinspection PyUnboundLocalVariable
         logger.info(
             f'«{enemy.user.name}» at «{enemy.user.clan_title}»:'
             f' {100.0 * max_probability:.2f}%'
             f' ({100 * p1[max_index]:.1f}% {100 * p2[max_index]:.1f}% {100 * p3[max_index]:.1f}%)'
         )
 
-        return [[self.heroes[i] for i in self.solutions[max_index, selector]] for selector in team_selectors], max_probability
+        return [
+            [self.heroes[i] for i in self.solutions[max_index, selector]]
+            for selector in team_selectors
+        ], max_probability
 
 
 # Utilities.
@@ -242,7 +245,7 @@ def hero_combinations(hero_count: int) -> numpy.ndarray:
     Used to generate indexes of possible heroes in a team.
     It it cached because hero count rarely changes.
     """
-    return numpy.fromiter(chain.from_iterable(combinations(range(hero_count), constants.TEAM_SIZE)), dtype=int).reshape(-1, constants.TEAM_SIZE)
+    return numpy.fromiter(chain.from_iterable(combinations(range(hero_count), constants.TEAM_SIZE)), dtype=int).reshape(-1, constants.TEAM_SIZE)  # noqa
 
 
 def swap_permutation(size: int, index_1: int, index_2: int) -> numpy.ndarray:
@@ -251,7 +254,12 @@ def swap_permutation(size: int, index_1: int, index_2: int) -> numpy.ndarray:
     return permutation
 
 
-def secretary_max(items: Iterable[T1], n: int, key: Optional[Callable[[T1], T2]] = None, early_stop: T2 = None) -> Tuple[T1, T2]:
+def secretary_max(
+    items: Iterable[T1],
+    n: int,
+    key: Optional[Callable[[T1], T2]] = None,
+    early_stop: T2 = None,
+) -> Tuple[T1, T2]:
     """
     Select best item while lazily iterating over the items.
     https://en.wikipedia.org/wiki/Secretary_problem#Deriving_the_optimal_policy

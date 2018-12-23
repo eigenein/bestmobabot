@@ -4,10 +4,17 @@
 #
 #    pip-compile --no-index --no-emit-trusted-host --generate-hashes --output-file requirements.txt setup.py
 #
+ansimarkup==1.4.0 \
+    --hash=sha256:06365e3ef89a12734fc408b2449cb4642d5fe2e603e95e7296eff9e98a0fe0b4 \
+    --hash=sha256:174d920481416cec8d5a707af542d6fba25a1df1c21d8996479c32ba453649a4 \
+    # via better-exceptions-fork, loguru
 backcall==0.1.0 \
     --hash=sha256:38ecd85be2c1e78f77fd91700c76e14667dc21e2713b63876c0eb901196e01e4 \
     --hash=sha256:bbbf4b1e5cd2bdb08f915895b51081c041bac22394fdfcfdfbe9f14b77c08bf2 \
     # via ipython
+better-exceptions-fork==0.2.1.post6 \
+    --hash=sha256:5f0983da51e956dbdaf8b9a3d10e2774b382ce6c6ff2e54685c33e2dbe8f1472 \
+    # via loguru
 certifi==2018.11.29 \
     --hash=sha256:47f9c83ef4c0c621eaef743f133f09fa8a74a9b75f037e8624f83bd1b6626cb7 \
     --hash=sha256:993f830721089fef441cdfeb4b2c8c9df86f0c63239f06bd025a76a7daddb033 \
@@ -19,17 +26,14 @@ chardet==3.0.4 \
 click==7.0 \
     --hash=sha256:2335065e6395b9e67ca716de5f7526736bfa6ceead690adf616d925bdc622b13 \
     --hash=sha256:5b94b49521f6456670fdb30cd82a4eca9412788a93fa6dd6df72c94d5a8ff2d7
-coloredlogs==10.0 \
-    --hash=sha256:34fad2e342d5a559c31b6c889e8d14f97cb62c47d9a2ae7b5ed14ea10a79eff8 \
-    --hash=sha256:b869a2dda3fa88154b9dd850e27828d8755bfab5a838a1c97fbc850c6e377c36
+colorama==0.4.1 \
+    --hash=sha256:05eed71e2e327246ad6b38c540c4a3117230b19679b875190486ddd2d721422d \
+    --hash=sha256:f8ac84de7840f5b9c4e3347b3c1eaa50f7e49c2b07596221daec5edaabbd7c48 \
+    # via ansimarkup, loguru
 decorator==4.3.0 \
     --hash=sha256:2c51dff8ef3c447388fe5e4453d24a2bf128d3a4c32af3fabef1f01c6851ab82 \
     --hash=sha256:c39efa13fbdeb4506c476c9b3babf6a718da943dab7811c206005a4a956c080c \
     # via ipython, traitlets
-humanfriendly==4.17 \
-    --hash=sha256:1d3a1c157602801c62dfdb321760229df2e0d4f14412a0f41b13ad3f930a936a \
-    --hash=sha256:42d0aa829f59c710db20ec42eed24a8b7a27688d477da61b5aebd604d0bb2402 \
-    # via coloredlogs
 idna==2.8 \
     --hash=sha256:c357b3f628cf53ae2c4c05627ecc484553142ca23264e593d327bcde5e9c3407 \
     --hash=sha256:ea8b7f6188e6fa117537c3df7da9fc686d485087abf6ac197f9c46432f7e4a3c \
@@ -45,6 +49,9 @@ jedi==0.13.2 \
     --hash=sha256:571702b5bd167911fe9036e5039ba67f820d6502832285cde8c881ab2b2149fd \
     --hash=sha256:c8481b5e59d34a5c7c42e98f6625e633f6ef59353abea6437472c7ec2093f191 \
     # via ipython
+loguru==0.2.3 \
+    --hash=sha256:f30d70d64a44d28322f630ea59fe27c4adfc33ce1c22fc7564dfe811f9669397 \
+    --hash=sha256:fc0ea6e626a84825ed7c7d58a395042f8ff53030d8a4b866f47cab3b19b4d944
 numpy==1.15.4 \
     --hash=sha256:0df89ca13c25eaa1621a3f09af4c8ba20da849692dcae184cb55e80952c453fb \
     --hash=sha256:154c35f195fd3e1fad2569930ca51907057ae35e03938f89a8aedae91dd1b7c7 \
@@ -122,7 +129,7 @@ pydantic==0.16.1 \
 pygments==2.3.1 \
     --hash=sha256:5ffada19f6203563680669ee7f53b64dabbeb100eb51b61996085e99c03b284a \
     --hash=sha256:e8218dd399a61674745138520d0d4cf2621d7e032439341bc3f647bff125818d \
-    # via ipython
+    # via better-exceptions-fork, ipython
 python-dateutil==2.7.5 \
     --hash=sha256:063df5763652e21de43de7d9e00ccf239f953a832941e37be541614732cdfc93 \
     --hash=sha256:88f9287c0174266bb0d8cedd395cfba9c58e87e5ad86b2ce58859bc11be3cf02 \

@@ -9,14 +9,16 @@ from typing import Dict, Set
 import requests
 import ujson as json
 
-import bestmobabot.logging_
+from loguru import logger
+
 from bestmobabot import constants, dataclasses_
 
 
 @lru_cache(maxsize=None)
 def get_resource(url: str) -> str:
-    bestmobabot.logging_.logger.info(f'Loading {url}…')
+    logger.info('Loading {}…', url)
     with requests.get(url) as response:
+        logger.trace('Status: {}.', response.status_code)
         response.raise_for_status()
         return gzip.decompress(response.content).decode()
 

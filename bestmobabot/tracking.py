@@ -4,10 +4,10 @@ from hashlib import sha1
 from pathlib import Path
 
 import requests
+from loguru import logger
 
 import bestmobabot
 from bestmobabot import constants
-from bestmobabot.logging_ import logger
 
 session = requests.Session()
 

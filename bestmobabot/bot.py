@@ -16,11 +16,11 @@ import requests
 from bestmobabot import arena, constants
 from bestmobabot.api import API, AlreadyError, InvalidResponseError, NotEnoughError, NotFoundError, OutOfRetargetDelta
 from bestmobabot.database import Database
-from bestmobabot.enums import *
-from bestmobabot.logging_ import log_arena_result, log_heroes, log_reward, log_rewards, logger
+from bestmobabot.enums import BattleType
+from bestmobabot.logging_ import log_heroes, log_rewards, logger
 from bestmobabot.model import Model
 from bestmobabot.resources import get_heroic_mission_ids, mission_name, shop_name
-from bestmobabot.responses import *
+from bestmobabot.responses import Hero, Mission, Quests, Replay, User
 from bestmobabot.settings import Settings
 from bestmobabot.task import Task, TaskNotAvailable
 from bestmobabot.tracking import send_event
@@ -128,8 +128,8 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             Task(next_run_at=Task.at(hour=21, minute=30, tz=self.user.tz), execute=self.farm_quests),
 
             # Recurring tasks.
-            Task(next_run_at=Task.every_n_minutes(24 * 60 // 5, self.settings.bot.arena.schedule_offset), execute=self.attack_arena),
-            Task(next_run_at=Task.every_n_minutes(24 * 60 // 5, self.settings.bot.arena.schedule_offset), execute=self.attack_grand_arena),
+            Task(next_run_at=Task.every_n_minutes(24 * 60 // 5, self.settings.bot.arena.schedule_offset), execute=self.attack_arena),  # noqa
+            Task(next_run_at=Task.every_n_minutes(24 * 60 // 5, self.settings.bot.arena.schedule_offset), execute=self.attack_grand_arena),  # noqa
             Task(next_run_at=Task.every_n_hours(6), execute=self.farm_mail),
             Task(next_run_at=Task.every_n_hours(6), execute=self.check_freebie),
             Task(next_run_at=Task.every_n_hours(4), execute=self.farm_expeditions),
@@ -149,7 +149,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         if self.settings.bot.shops:
             self.tasks.append(Task(next_run_at=Task.every_n_hours(8), execute=self.shop))
         if self.settings.bot.is_trainer:
-            self.tasks.append(Task(next_run_at=Task.at(hour=22, minute=0, tz=self.user.tz), execute=self.train_arena_model))
+            self.tasks.append(Task(next_run_at=Task.at(hour=22, minute=0, tz=self.user.tz), execute=self.train_arena_model))  # noqa
         if self.settings.bot.arena.randomize_grand_defenders:
             self.tasks.append(Task(next_run_at=Task.at(hour=10, minute=30), execute=self.randomize_grand_defenders))
 
@@ -199,14 +199,13 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         except OutOfRetargetDelta:
             logger.error(f'Out of retarget delta.')
         except InvalidResponseError as e:
-            logger.error('API returned something bad:')
-            logger.error(f'{e}')
+            logger.opt(exception=e).error('API returned something bad.')
         except Exception as e:
-            logger.critical('Uncaught error.', exc_info=e)
+            logger.opt(exception=e).critical('Uncaught error.')
             for result in self.api.last_responses:
-                logger.critical(f'API result: {result}')
+                logger.critical('API result: {}', result)
         else:
-            logger.info(f'Well done.')
+            logger.info('Well done.')
             return next_run_at
 
     # Tasks.
@@ -233,7 +232,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         Забирает ежедневный подарок.
         """
         logger.info('Farming daily bonus…')
-        log_reward(self.api.farm_daily_bonus())
+        self.api.farm_daily_bonus().log()
 
     def farm_expeditions(self) -> Optional[datetime]:
         """
@@ -245,7 +244,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         expeditions = self.api.list_expeditions()
         for expedition in expeditions:
             if expedition.is_started and expedition.end_time < now:
-                log_reward(self.api.farm_expedition(expedition.id))
+                self.api.farm_expedition(expedition.id).log()
 
         return self.send_expedition()  # farm expeditions once finished
 
@@ -293,7 +292,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             if self.settings.bot.no_experience and quest.reward.experience:
                 logger.warning(f'Ignoring {quest.reward.experience} experience reward for quest #{quest.id}.')
                 continue
-            log_reward(self.api.farm_quest(quest.id))
+            self.api.farm_quest(quest.id).log()
 
     def farm_mail(self):
         """
@@ -361,7 +360,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         result, quests = self.api.attack_arena(enemy.user.id, self.get_hero_ids(attackers))
 
         # Collect results.
-        log_arena_result(result)
+        result.log()
         logger.info(f'Current place: {result.arena_place}.')
         self.farm_quests(quests)
 
@@ -397,10 +396,10 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         ])
 
         # Collect results.
-        log_arena_result(result)
+        result.log()
         logger.info(f'Current place: {result.grand_place}.')
         self.farm_quests(quests)
-        log_reward(self.api.farm_grand_coins())
+        self.api.farm_grand_coins().log()
 
     def get_arena_replays(self):
         """
@@ -435,7 +434,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             logger.info(f'Checking {gift_id}…')
             reward = self.api.check_freebie(gift_id)
             if reward is not None:
-                log_reward(reward)
+                reward.log()
                 should_farm_mail = True
             self.db.set(f'gifts:{self.api.user_id}', gift_id, True)
 
@@ -447,7 +446,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         Собирает ключ у валькирии и открывает артефактные сундуки.
         """
         logger.info('Farming zeppelin gift…')
-        log_reward(self.api.farm_zeppelin_gift())
+        self.api.farm_zeppelin_gift().log()
         for _ in range(constants.MAX_OPEN_ARTIFACT_CHESTS):
             try:
                 rewards = self.api.open_artifact_chest()
@@ -488,7 +487,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         for shop_id, slot_id in slots:
             logger.info(f'Buying slot #{slot_id} in shop «{shop_name(shop_id)}»…')
             try:
-                log_reward(self.api.shop(shop_id=shop_id, slot_id=slot_id))
+                self.api.shop(shop_id=shop_id, slot_id=slot_id).log()
             except NotEnoughError as e:
                 logger.warning(f'Not enough: {e.description}')
             except AlreadyError as e:
@@ -505,10 +504,10 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             logger.info(f'Floor #{tower.floor_number}: {tower.floor_type}.')
             if tower.is_battle:
                 tower, reward = self.api.skip_tower_floor()
-                log_reward(reward)
+                reward.log()
             elif tower.is_chest:
                 reward, _ = self.api.open_tower_chest(choice([0, 1, 2]))
-                log_reward(reward)
+                reward.log()
                 tower = self.api.next_tower_floor()
             elif tower.is_buff:
                 # Buffs go from the cheapest to the most expensive.
@@ -536,7 +535,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         for offer in self.api.get_all_offers():
             logger.debug(f'#{offer.id}: {offer.offer_type}.')
             if offer.offer_type in constants.OFFER_FARMED_TYPES and not offer.is_free_reward_obtained:
-                log_reward(self.api.farm_offer_reward(offer.id))
+                self.api.farm_offer_reward(offer.id).log()
 
     def raid_bosses(self):
         """
@@ -546,8 +545,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         for boss in self.api.get_all_bosses():
             if boss.may_raid:
                 logger.info(f'Raid boss #{boss.id}…')
-                every_win_reward = self.api.raid_boss(boss.id)
-                log_reward(every_win_reward)
+                self.api.raid_boss(boss.id).log()
                 rewards, quests = self.api.open_boss_chest(boss.id)
                 log_rewards(rewards)
                 self.farm_quests(quests)

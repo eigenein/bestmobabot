@@ -3,6 +3,7 @@
 * Improve packaging, remove `--log-file` option and improve Docker integration
 * Use `ujson` instead of `json`
 * Update resources
+* Use `loguru` for logging and improve testing
 
 # `2.3`
 

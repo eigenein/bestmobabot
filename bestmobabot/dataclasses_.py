@@ -1,6 +1,6 @@
-import logging
 from typing import Dict, List, Set
 
+from loguru import logger
 from pydantic import BaseModel
 
 from bestmobabot import resources
@@ -42,7 +42,7 @@ class Reward(BaseModel):
             *(resources.scroll_name(scroll_id).lower() for scroll_id in self.scroll_fragment),
         }
 
-    def log(self, logger: logging.Logger):
+    def log(self):
         if self.stamina:
             logger.info(f'{self.stamina} × stamina.')
         if self.gold:

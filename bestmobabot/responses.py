@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, timezone, tzinfo
 from typing import Any, Callable, Dict, Iterable, List, Optional, TypeVar
 
 import numpy
+from loguru import logger
 
 from bestmobabot import constants, resources
 from bestmobabot.dataclasses_ import Reward
@@ -58,7 +59,7 @@ class Expedition(BaseResponse):
         super().__init__(raw)
         self.id: str = str(raw['id'])
         self.status: int = int(raw['status'])
-        self.end_time: Optional[datetime] = datetime.fromtimestamp(raw['endTime']).astimezone() if raw.get('endTime') else None
+        self.end_time: Optional[datetime] = datetime.fromtimestamp(raw['endTime']).astimezone() if raw.get('endTime') else None  # noqa
         self.power: int = int(raw['power'])
         self.duration: timedelta = timedelta(seconds=raw['duration'])
         self.hero_ids: List[str] = [str(hero_id) for hero_id in raw.get('heroes', [])]
@@ -138,7 +139,7 @@ class Hero(BaseResponse):
         return self.star, self.color, self.level
 
     def __str__(self):
-        return f'{"⭐" * self.star} {resources.hero_name(self.id)} ({self.level}) {constants.COLORS.get(self.color, self.color)}'
+        return f'{"⭐" * self.star} {resources.hero_name(self.id)} ({self.level}) {constants.COLORS.get(self.color, self.color)}'  # noqa
 
 
 class BaseArenaEnemy(BaseResponse, metaclass=ABCMeta):
@@ -175,6 +176,12 @@ class ArenaResult(BaseResponse):
         self.battles: List['BattleResult'] = [BattleResult(result) for result in raw['battles']]
         self.reward: Reward = Reward.parse_obj(raw['reward'] or {})
 
+    def log(self):
+        logger.info('You won!' if self.win else 'You lose.')
+        for i, battle in enumerate(self.battles, start=1):
+            logger.info(f'Battle #{i}: {"⭐" * battle.stars if battle.win else "lose."}')
+        self.reward.log()
+
 
 class BattleResult(BaseResponse):
     def __init__(self, raw: Dict):
@@ -204,7 +211,10 @@ class Replay(BaseResponse):
         self.win: bool = raw['result']['win']
         self.stars: int = int(raw['result']['stars'])
         self.attackers: List[Hero] = [Hero(hero) for hero in raw['attackers'].values()]
-        self.defenders: List[List[Hero]] = [[Hero(hero) for hero in defenders.values()] for defenders in raw['defenders']]
+        self.defenders: List[List[Hero]] = [
+            [Hero(hero) for hero in defenders.values()]
+            for defenders in raw['defenders']
+        ]
 
 
 class ShopSlot(BaseResponse):
@@ -260,28 +270,3 @@ class Offer(BaseResponse):
 
 def cast_optional(value: Optional[T1], cast: Callable[[T1], T2]) -> Optional[T2]:
     return cast(value) if value is not None else None
-
-
-__all__ = [
-    'BaseResponse',
-    'Result',
-    'User',
-    'Expedition',
-    'Reward',
-    'Quest',
-    'Quests',
-    'Letter',
-    'Hero',
-    'BaseArenaEnemy',
-    'ArenaEnemy',
-    'GrandArenaEnemy',
-    'ArenaResult',
-    'BattleResult',
-    'Boss',
-    'Battle',
-    'Replay',
-    'ShopSlot',
-    'Tower',
-    'Mission',
-    'Offer',
-]

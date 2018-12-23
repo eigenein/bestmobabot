@@ -12,16 +12,34 @@ from time import sleep
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, TypeVar
 
 import requests
-import ujson as json
+from loguru import logger
 from requests.adapters import HTTPAdapter
 
+import ujson as json
 from bestmobabot import constants
-from bestmobabot.tracking import send_event
 from bestmobabot.database import Database
-from bestmobabot.enums import *
-from bestmobabot.logging_ import logger
-from bestmobabot.responses import *
+from bestmobabot.enums import BattleType
+from bestmobabot.responses import (
+    ArenaEnemy,
+    ArenaResult,
+    Boss,
+    Expedition,
+    GrandArenaEnemy,
+    Hero,
+    Letter,
+    Mission,
+    Offer,
+    Quest,
+    Quests,
+    Replay,
+    Result,
+    Reward,
+    ShopSlot,
+    Tower,
+    User,
+)
 from bestmobabot.settings import Settings
+from bestmobabot.tracking import send_event
 
 T = TypeVar('T')
 
@@ -115,6 +133,7 @@ class API(contextlib.AbstractContextManager):
             match = re.search(r'var params\s?=\s?({[^\}]+\})', app_page)
             assert match, 'params not found'
             params = json.loads(match.group(1))
+            logger.trace('params: {}', params)
 
             # Load the proxy page and look for Hero Wars authentication token.
             logger.debug('Authenticating in Hero Wars…')
@@ -140,7 +159,7 @@ class API(contextlib.AbstractContextManager):
         try:
             return self._call(name, arguments=arguments, random_sleep=random_sleep)
         except (InvalidSessionError, InvalidSignatureError) as e:
-            logger.warning('Invalid session: %s.', e)
+            logger.warning('Invalid session: {}.', e)
             self.start(invalidate_session=True)
             logger.info('Retrying the call…')
             return self._call(name, arguments=arguments, random_sleep=random_sleep)

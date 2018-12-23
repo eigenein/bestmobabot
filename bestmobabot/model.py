@@ -5,15 +5,14 @@ from operator import itemgetter
 from typing import Any, DefaultDict, Dict, Iterable, List, NamedTuple, Optional
 
 import numpy
+from loguru import logger
 from pandas import DataFrame, Series
 from scipy import stats
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 
 from bestmobabot import constants, responses
-from bestmobabot.constants import SPAM
 from bestmobabot.database import Database
-from bestmobabot.logging_ import logger
 
 
 class Model(NamedTuple):
@@ -62,8 +61,8 @@ class Trainer:
             raise RuntimeError(f'unexpected classes: {estimator.classes_}')
 
         # Print debugging info.
-        for column, importance in sorted(zip(x.columns, estimator.feature_importances_), key=itemgetter(1), reverse=True):
-            logger.log(SPAM, f'Feature {column}: {importance:.7f}')
+        for column, importance in sorted(zip(x.columns, estimator.feature_importances_), key=itemgetter(1), reverse=True):  # noqa
+            logger.trace(f'Feature {column}: {importance:.7f}')
 
         logger.info('Saving model…')
         self.db.set('bot', 'model', pickle.dumps(Model(estimator, list(x.columns))), dumps=bytes.hex)
@@ -140,7 +139,7 @@ class TTestSearchCV:
         for values in product(*self.param_grid.values()):
             params = dict(zip(self.param_grid.keys(), values))
             self.estimator.set_params(**params)
-            logger.log(SPAM, f'CV started: {params}')
+            logger.trace(f'CV started: {params}')
             scores: numpy.ndarray = cross_val_score(self.estimator, x, y, scoring=self.scoring, cv=self.cv)
             score: float = scores.mean()
             logger.debug(f'Score: {score:.4f} with {params}.')
@@ -150,7 +149,12 @@ class TTestSearchCV:
             self.best_params_ = params
             self.best_score_ = score
             self.best_scores_ = scores
-            self.best_confidence_interval_ = stats.t.interval(self.alpha, len(scores) - 1, loc=scores.mean(), scale=stats.sem(scores))
+            self.best_confidence_interval_ = stats.t.interval(
+                self.alpha,
+                len(scores) - 1,
+                loc=scores.mean(),
+                scale=stats.sem(scores),
+            )
 
     def is_better_score(self, score: float, scores: numpy.ndarray) -> bool:
         if self.best_params_ is None:
@@ -158,5 +162,5 @@ class TTestSearchCV:
         if score < self.best_score_:
             return False
         _, p_value = stats.ttest_ind(self.best_scores_, scores)
-        logger.log(SPAM, f'P-value: {p_value:.4f}.')
+        logger.trace(f'P-value: {p_value:.4f}.')
         return p_value < self.p

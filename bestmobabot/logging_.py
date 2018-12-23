@@ -4,29 +4,18 @@ Logger initialisation.
 
 from __future__ import annotations
 
-import logging
 import sys
 from typing import Iterable
 
-import coloredlogs
+from loguru import logger
 
 import bestmobabot.responses
-from bestmobabot.constants import SPAM
-
-logger = logging.getLogger('bestmobabot')
-logging.addLevelName(SPAM, 'SPAM')
+from bestmobabot.constants import LOGURU_FORMAT, VERBOSITY_LEVELS
 
 
 def install_logging(verbosity: int):
-    level = get_logging_level(verbosity)
-    coloredlogs.install(
-        level,
-        fmt='%(asctime)s [%(levelname).1s] %(message)s',
-        logger=logger,
-        stream=sys.stderr,
-        field_styles={**coloredlogs.DEFAULT_FIELD_STYLES, 'asctime': {'color': 'green', 'faint': True}},
-        datefmt='%b %d %H:%M:%S',
-    )
+    logger.stop()
+    logger.add(sys.stderr, format=LOGURU_FORMAT, level=VERBOSITY_LEVELS.get(verbosity, 'TRACE'))
 
 
 def log_heroes(message: str, heroes: Iterable[bestmobabot.responses.Hero]):
@@ -35,25 +24,6 @@ def log_heroes(message: str, heroes: Iterable[bestmobabot.responses.Hero]):
         logger.info(f'{hero}')
 
 
-def log_reward(reward: bestmobabot.responses.Reward):
-    reward.log(logger)
-
-
 def log_rewards(rewards: Iterable[bestmobabot.responses.Reward]):
     for reward in rewards:
-        log_reward(reward)
-
-
-def log_arena_result(result: bestmobabot.responses.ArenaResult):
-    logger.info('You won!' if result.win else 'You lose.')
-    for i, battle in enumerate(result.battles, start=1):
-        logger.info(f'Battle #{i}: {"⭐" * battle.stars if battle.win else "lose."}')
-    log_reward(result.reward)
-
-
-def get_logging_level(verbosity: int) -> int:
-    if verbosity == 0:
-        return logging.INFO
-    if verbosity == 1:
-        return logging.DEBUG
-    return SPAM
+        reward.log()

@@ -6,7 +6,7 @@ DATABASE_NAME = 'db.sqlite3'
 ANALYTICS_URL = 'https://www.google-analytics.com/collect'
 ANALYTICS_TID = 'UA-65034198-7'
 IP_URL = 'https://ipinfo.io/ip'
-USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'
+USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'  # noqa
 
 # Resources.
 # FIXME: dynamically find out the latest server version. Or at least make configurable.
@@ -46,7 +46,16 @@ OFFER_FARMED_TYPES = ('dailyReward',)
 SHOP_IDS = ('1', '4', '5', '6', '8', '9', '10', '11')
 
 # Logging.
-SPAM = 5
+LOGURU_FORMAT = ' '.join((
+    '<green>{time:MMM DD HH:mm:ss}</green>',
+    '<cyan>({name}:{line})</cyan>',
+    '<level>[{level:.1}]</level>',
+    '<level>{message}</level>',
+))
+VERBOSITY_LEVELS = {
+    0: 'INFO',
+    1: 'DEBUG',
+}
 
 # FIXME: obtain from the resources.
 COLORS: Dict[int, str] = {

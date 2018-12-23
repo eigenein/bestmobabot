@@ -18,7 +18,6 @@ setuptools.setup(
     python_requires='>=3.7',
     install_requires=[
         'click',
-        'coloredlogs',
         'numpy',
         'pandas',
         'pydantic',
@@ -28,6 +27,7 @@ setuptools.setup(
         'scipy',
         'ipython',
         'ujson',
+        'loguru',
     ],
     extras_require={},
     entry_points={
