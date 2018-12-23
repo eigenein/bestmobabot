@@ -300,10 +300,9 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         """
         logger.info('Farming mail…')
         letters = self.api.get_all_mail()
-        if not letters:
-            return
-        logger.info(f'{len(letters)} letters.')
-        log_rewards(self.api.farm_mail(letter.id for letter in letters).values())
+        if letters:
+            logger.info(f'{len(letters)} letters.')
+            log_rewards(self.api.farm_mail(letter.id for letter in letters).values())
 
     def buy_chest(self):
         """

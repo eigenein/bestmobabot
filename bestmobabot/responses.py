@@ -89,11 +89,6 @@ class Quest(BaseResponse):
 Quests = List[Quest]
 
 
-class Letter:
-    def __init__(self, item: Dict):
-        self.id: str = str(item['id'])
-
-
 class Hero(BaseResponse):
     def __init__(self, raw: Dict):
         super().__init__(raw)

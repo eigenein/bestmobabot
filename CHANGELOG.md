@@ -4,6 +4,7 @@
 * Use `ujson` instead of `json`
 * Update resources
 * Use `loguru` for logging and improve testing
+* Move `class Letter` to `dataclasses_`
 
 # `2.3`
 

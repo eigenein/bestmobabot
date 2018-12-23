@@ -102,3 +102,7 @@ class Library(BaseModel):
 
     class Config:
         fields = {'missions': 'mission'}
+
+
+class Letter(BaseModel):
+    id: str

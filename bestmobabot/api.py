@@ -18,6 +18,7 @@ from requests.adapters import HTTPAdapter
 import ujson as json
 from bestmobabot import constants
 from bestmobabot.database import Database
+from bestmobabot.dataclasses_ import Letter
 from bestmobabot.enums import BattleType
 from bestmobabot.responses import (
     ArenaEnemy,
@@ -26,7 +27,6 @@ from bestmobabot.responses import (
     Expedition,
     GrandArenaEnemy,
     Hero,
-    Letter,
     Mission,
     Offer,
     Quest,
@@ -297,7 +297,7 @@ class API(contextlib.AbstractContextManager):
     # ------------------------------------------------------------------------------------------------------------------
 
     def get_all_mail(self) -> List[Letter]:
-        return list_of(Letter, self.call('mailGetAll').response['letters'])
+        return list_of(Letter.parse_obj, self.call('mailGetAll').response['letters'])
 
     def farm_mail(self, letter_ids: Iterable[str]) -> Dict[str, Reward]:
         result = self.call('mailFarm', {'letterIds': list(letter_ids)})
