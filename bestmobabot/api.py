@@ -144,7 +144,7 @@ class API(contextlib.AbstractContextManager):
             assert match, f'authentication key is not found: {iframe_new}'
             self.auth_token = match.group(1)
 
-        logger.info(f'Authentication token: {self.auth_token}')
+        logger.debug('Authentication token: {}', self.auth_token)
         self.user_id = str(params['viewer_id'])
         self.session_id = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(14))
         self.request_id = 0

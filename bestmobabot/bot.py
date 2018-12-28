@@ -205,7 +205,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             for result in self.api.last_responses:
                 logger.critical('API result: {}', result)
         else:
-            logger.info('Well done.')
+            logger.success('Well done.')
             return next_run_at
 
     # Tasks.
