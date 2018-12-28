@@ -6,8 +6,9 @@ from click import command, option
 from bestmobabot import constants
 from bestmobabot.api import API
 from bestmobabot.bot import Bot
+from bestmobabot.constants import LOGURU_TELEGRAM_FORMAT
 from bestmobabot.database import Database
-from bestmobabot.logging_ import install_logging, logger
+from bestmobabot.logging_ import TelegramHandler, install_logging, logger
 from bestmobabot.resources import get_library, get_translations
 from bestmobabot.settings import Settings, SettingsFileParamType
 from bestmobabot.tracking import get_version
@@ -38,6 +39,9 @@ def main(settings: Settings, verbosity: int, shell: bool):
     with Database(constants.DATABASE_NAME) as db, API(db, settings) as api, Bot(db, api, VK(settings), settings) as bot:
         api.start()
         bot.start()
+        if settings.telegram and settings.telegram.token and settings.telegram.chat_id:
+            logger.info('Adding Telegram logging handler.')
+            logger.add(TelegramHandler(settings.telegram, bot.user.name), level='INFO', format=LOGURU_TELEGRAM_FORMAT)
         logger.info(f'Welcome {bot.user.name}! Your game time is {datetime.now(bot.user.tz):%H:%M:%S}.')
         logger.info('Next day starts at {:%H:%M:%S}.', bot.user.next_day)
         if not shell:

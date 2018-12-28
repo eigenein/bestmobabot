@@ -52,6 +52,7 @@ LOGURU_FORMAT = ' '.join((
     '<level>[{level:.1}]</level>',
     '<level>{message}</level>',
 ))
+LOGURU_TELEGRAM_FORMAT = '{message}'
 VERBOSITY_LEVELS = {
     0: 'INFO',
     1: 'DEBUG',

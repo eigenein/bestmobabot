@@ -5,6 +5,7 @@
 * Update resources
 * Use `loguru` for logging and improve testing
 * Move `class Letter` to `dataclasses_`
+* Send logging messages to Telegram (experimental)
 
 # `2.3`
 

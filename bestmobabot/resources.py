@@ -2,6 +2,8 @@
 Loads and extracts useful constants from the game resources.
 """
 
+from __future__ import annotations
+
 import gzip
 from functools import lru_cache
 from typing import Dict, Set

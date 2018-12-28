@@ -1,6 +1,6 @@
 import os
 from datetime import timedelta
-from typing import List, Set, Type, TypeVar
+from typing import List, Optional, Set, Type, TypeVar
 
 import click
 import yaml
@@ -12,6 +12,11 @@ from bestmobabot import constants
 class VKSettings(BaseModel):
     remixsid: str  # VK.com remixsid cookie
     access_token: str  # VK.com API access token
+
+
+class TelegramSettings(BaseModel):
+    token: str  # Telegram bot authentication token
+    chat_id: str  # Telegram chat ID
 
 
 class ArenaSettings(BaseModel):
@@ -49,6 +54,7 @@ class BotSettings(BaseModel):
 class Settings(BaseModel):
     vk: VKSettings
     bot: BotSettings
+    telegram: Optional[TelegramSettings]
 
 
 class SettingsFileParamType(click.ParamType):

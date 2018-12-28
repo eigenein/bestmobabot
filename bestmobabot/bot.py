@@ -165,7 +165,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             # Find the earliest task.
             run_at, index = min((run_at, index) for index, run_at in enumerate(schedule))
             task = self.tasks[index]
-            logger.info(f'Next is {task} at {run_at:%H:%M:%S}.')
+            logger.info(f'Next is {task} at {run_at:%H:%M:%S}.{os.linesep}')
             # Sleep until the execution time.
             sleep_time = (run_at - self.now()).total_seconds()
             if sleep_time >= 0.0:
