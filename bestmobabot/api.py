@@ -12,10 +12,10 @@ from time import sleep
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, TypeVar
 
 import requests
+import ujson as json
 from loguru import logger
 from requests.adapters import HTTPAdapter
 
-import ujson as json
 from bestmobabot import constants
 from bestmobabot.database import Database
 from bestmobabot.dataclasses_ import Letter
