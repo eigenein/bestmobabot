@@ -499,11 +499,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         logger.info('Skipping the tower…')
         tower = self.api.get_tower_info()
 
-        while (
-            (tower.may_full_skip and tower.floor_number < 50)  # FIXME: unsure how to test for the last floor.
-            or tower.floor_number <= tower.may_skip_floor
-            or not tower.is_battle
-        ):
+        while tower.may_full_skip or tower.floor_number <= tower.may_skip_floor or not tower.is_battle:
             logger.info(f'Floor #{tower.floor_number}: {tower.floor_type}.')
             if tower.is_battle:
                 if tower.may_full_skip:
@@ -514,6 +510,8 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             elif tower.is_chest:
                 reward, _ = self.api.open_tower_chest(choice([0, 1, 2]))
                 reward.log()
+                if tower.floor_number >= 50:  # FIXME: correct way to test for the last floor?
+                    break
                 if tower.may_full_skip:
                     tower = self.api.next_tower_chest()
                 else:
