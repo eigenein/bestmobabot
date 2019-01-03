@@ -1,7 +1,7 @@
 FROM python:3.7
 MAINTAINER Pavel Perestoronin <eigenein@gmail.com>
 
-ENV LC_ALL=C.UTF-8 LANG=C.UTF-8 PYTHONIOENCODING=utf-8
+ENV LC_ALL=en_GB.UTF-8 LANG=en_GB.UTF-8 PYTHONIOENCODING=utf-8
 
 COPY requirements.txt /tmp/bestmobabot/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/bestmobabot/requirements.txt
