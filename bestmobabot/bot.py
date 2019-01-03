@@ -499,15 +499,25 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         logger.info('Skipping the tower…')
         tower = self.api.get_tower_info()
 
-        while tower.floor_number <= tower.may_skip_floor or not tower.is_battle:
+        while (
+            (tower.may_full_skip and tower.floor_number < 50)  # FIXME: unsure how to test for the last floor.
+            or tower.floor_number <= tower.may_skip_floor
+            or not tower.is_battle
+        ):
             logger.info(f'Floor #{tower.floor_number}: {tower.floor_type}.')
             if tower.is_battle:
-                tower, reward = self.api.skip_tower_floor()
-                reward.log()
+                if tower.may_full_skip:
+                    tower = self.api.next_tower_chest()
+                else:
+                    tower, reward = self.api.skip_tower_floor()
+                    reward.log()
             elif tower.is_chest:
                 reward, _ = self.api.open_tower_chest(choice([0, 1, 2]))
                 reward.log()
-                tower = self.api.next_tower_floor()
+                if tower.may_full_skip:
+                    tower = self.api.next_tower_chest()
+                else:
+                    tower = self.api.next_tower_floor()
             elif tower.is_buff:
                 # Buffs go from the cheapest to the most expensive.
                 for buff_id in reversed(tower.buff_ids):
@@ -525,6 +535,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
                 tower = self.api.next_tower_floor()
             else:
                 logger.error('Unknown floor type.')
+                break
 
     def farm_offers(self):
         """

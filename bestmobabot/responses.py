@@ -226,6 +226,7 @@ class Tower(BaseResponse):
         super().__init__(raw)
         self.floor_number = int(raw['floorNumber'])
         self.may_skip_floor = int(raw['maySkipFloor'])
+        self.may_full_skip = int(raw['mayFullSkip'])
         self.floor_type = raw['floorType'].lower()
         # This is only available on a buff floor.
         self.buff_ids: List[int] = [int(buff['id']) for buff in raw['floor']] if self.is_buff else []

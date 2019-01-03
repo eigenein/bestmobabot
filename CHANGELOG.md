@@ -1,11 +1,12 @@
 # `latest`
 
+* **Send logging messages to Telegram (experimental)**
+* **Support tower full skip for the 130th level**
 * Improve packaging, remove `--log-file` option and improve Docker integration
 * Use `ujson` instead of `json`
 * Update resources
 * Use `loguru` for logging and improve testing
 * Move `class Letter` to `dataclasses_`
-* Send logging messages to Telegram (experimental)
 
 # `2.3`
 

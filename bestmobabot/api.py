@@ -423,6 +423,9 @@ class API(contextlib.AbstractContextManager):
     def next_tower_floor(self) -> Tower:
         return Tower(self.call('towerNextFloor').response)
 
+    def next_tower_chest(self) -> Tower:
+        return Tower(self.call('towerNextChest').response)
+
     # Offers.
     # ------------------------------------------------------------------------------------------------------------------
 

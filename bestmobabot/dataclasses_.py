@@ -44,29 +44,29 @@ class Reward(BaseModel):
 
     def log(self):
         if self.stamina:
-            logger.info(f'{self.stamina} × stamina.')
+            logger.success(f'{self.stamina} × stamina.')
         if self.gold:
-            logger.info(f'{self.gold} × gold.')
+            logger.success(f'{self.gold} × gold.')
         if self.experience:
-            logger.info(f'{self.experience} × experience.')
+            logger.success(f'{self.experience} × experience.')
         for consumable_id, value in self.consumable.items():
-            logger.info(f'{value} × «{resources.consumable_name(consumable_id)}» consumable.')
+            logger.success(f'{value} × «{resources.consumable_name(consumable_id)}» consumable.')
         if self.star_money:
-            logger.info(f'{self.star_money} × star money.')
+            logger.success(f'{self.star_money} × star money.')
         for coin_id, value in self.coin.items():
-            logger.info(f'{value} × «{resources.coin_name(coin_id)}» coin.')
+            logger.success(f'{value} × «{resources.coin_name(coin_id)}» coin.')
         for hero_id, value in self.hero_fragment.items():
-            logger.info(f'{value} × «{resources.hero_name(hero_id)}» hero fragment.')
+            logger.success(f'{value} × «{resources.hero_name(hero_id)}» hero fragment.')
         for artifact_id, value in self.artifact_fragment.items():
-            logger.info(f'{value} × «{resources.artifact_name(artifact_id)}» artifact fragment.')
+            logger.success(f'{value} × «{resources.artifact_name(artifact_id)}» artifact fragment.')
         for gear_id, value in self.gear_fragment.items():
-            logger.info(f'{value} × «{resources.gear_name(gear_id)}» gear fragment.')
+            logger.success(f'{value} × «{resources.gear_name(gear_id)}» gear fragment.')
         for gear_id, value in self.gear.items():
-            logger.info(f'{value} × «{resources.gear_name(gear_id)}» gear.')
+            logger.success(f'{value} × «{resources.gear_name(gear_id)}» gear.')
         for scroll_id, value in self.scroll_fragment.items():
-            logger.info(f'{value} × «{resources.scroll_name(scroll_id)}» scroll fragment.')
+            logger.success(f'{value} × «{resources.scroll_name(scroll_id)}» scroll fragment.')
         for artifact_id, value in self.titan_artifact_fragment.items():
-            logger.info(f'{value} × «{resources.titan_artifact_name(artifact_id)}» titan artifact fragment.')
+            logger.success(f'{value} × «{resources.titan_artifact_name(artifact_id)}» titan artifact fragment.')
 
 
 class MissionEnemyDrop(BaseModel):
