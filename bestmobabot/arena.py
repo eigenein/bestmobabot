@@ -13,9 +13,9 @@ import numpy
 from loguru import logger
 
 from bestmobabot import constants
+from bestmobabot.dataclasses_ import ArenaEnemy, GrandArenaEnemy, Hero
 from bestmobabot.itertools_ import CoolDown
 from bestmobabot.model import Model
-from bestmobabot.responses import ArenaEnemy, GrandArenaEnemy, Hero
 from bestmobabot.settings import Settings
 
 T = TypeVar('T')
@@ -89,11 +89,17 @@ class AbstractArena(ABC, Generic[TEnemy, TAttackers]):
                 self.cache[enemy.user.id] = attackers, probability
             yield (enemy, attackers, probability)
 
-    def make_features(self, heroes: Iterable[Hero]) -> numpy.ndarray:
+    def make_hero_features(self, hero: Hero) -> numpy.ndarray:
         """
-        Make hero features array. Shape is number of heroes × number of features.
+        Make hero features 1D-array.
         """
-        return numpy.vstack(hero.get_features(self.model) for hero in heroes)
+        return numpy.fromiter((hero.features.get(name, 0.0) for name in self.model.feature_names), numpy.float)
+
+    def make_team_features(self, heroes: Iterable[Hero]) -> numpy.ndarray:
+        """
+        Make team features 2D-array. Shape is number of heroes × number of features.
+        """
+        return numpy.vstack(self.make_hero_features(hero) for hero in heroes)
 
     @abstractmethod
     def select_attackers(self, enemy: TEnemy) -> Tuple[TAttackers, float]:
@@ -131,8 +137,8 @@ class Arena(AbstractArena[ArenaEnemy, List[Hero]]):
 
         # Construct features.
         x: numpy.ndarray = (
-            self.make_features(self.heroes)[hero_combinations_].sum(axis=1)
-            - self.make_features(enemy.heroes).sum(axis=0)
+            self.make_team_features(self.heroes)[hero_combinations_].sum(axis=1)
+            - self.make_team_features(enemy.heroes).sum(axis=0)
         )
 
         # Select top combination by win probability.
@@ -163,8 +169,8 @@ class GrandArena(AbstractArena[GrandArenaEnemy, List[List[Hero]]]):
         logger.trace(f'Selecting attackers for «{enemy.user.name}»…')
 
         n_heroes = len(self.heroes)
-        hero_features = self.make_features(self.heroes)
-        defenders_features = [self.make_features(heroes).sum(axis=0) for heroes in enemy.heroes]
+        hero_features = self.make_team_features(self.heroes)
+        defenders_features = [self.make_team_features(heroes).sum(axis=0) for heroes in enemy.heroes]
 
         # Used to select separate teams from the population array.
         team_selectors = (slice(0, 5), slice(5, 10), slice(10, 15))

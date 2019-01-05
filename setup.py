@@ -20,7 +20,7 @@ setuptools.setup(
         'click',
         'numpy',
         'pandas',
-        'pydantic',
+        'pydantic[ujson]',
         'pyyaml',
         'requests',
         'scikit-learn',

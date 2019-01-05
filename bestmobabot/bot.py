@@ -16,11 +16,11 @@ import requests
 from bestmobabot import arena, constants
 from bestmobabot.api import API, AlreadyError, InvalidResponseError, NotEnoughError, NotFoundError, OutOfRetargetDelta
 from bestmobabot.database import Database
+from bestmobabot.dataclasses_ import Hero, Mission, Quests, Replay, User
 from bestmobabot.enums import BattleType
 from bestmobabot.logging_ import log_heroes, log_rewards, logger
 from bestmobabot.model import Model
 from bestmobabot.resources import get_heroic_mission_ids, mission_name, shop_name
-from bestmobabot.responses import Hero, Mission, Quests, Replay, User
 from bestmobabot.settings import Settings
 from bestmobabot.task import Task, TaskNotAvailable
 from bestmobabot.tracking import send_event
@@ -156,16 +156,16 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         send_event(category='bot', action='start', user_id=self.api.user_id)
 
     def run(self):
-        logger.info('Initialising task queue.')
+        logger.debug('Initialising task queue.')
         now = self.now()
         schedule = [task.next_run_at(now).astimezone() for task in self.tasks]
 
-        logger.info('Running task queue.')
+        logger.debug('Running task queue.')
         while True:
             # Find the earliest task.
             run_at, index = min((run_at, index) for index, run_at in enumerate(schedule))
             task = self.tasks[index]
-            logger.info(f'Next is {task} at {run_at:%H:%M:%S}.{os.linesep}')
+            logger.info(f'Next is {task} at {run_at:%d-%m %H:%M:%S}.{os.linesep}')
             # Sleep until the execution time.
             sleep_time = (run_at - self.now()).total_seconds()
             if sleep_time >= 0.0:
@@ -174,7 +174,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             next_run_at = self.execute(task) or task.next_run_at(max(self.now(), run_at + timedelta(seconds=1)))
             next_run_at = next_run_at.astimezone()  # keeping them in the local time zone
             # Update its execution time.
-            logger.info(f'Next run at {next_run_at:%H:%M:%S}.{os.linesep}')
+            logger.info(f'Next run at {next_run_at:%d-%m %H:%M:%S}.{os.linesep}')
             schedule[index] = next_run_at
             # Run experiment.
             with requests.get(constants.EXPERIMENT_URL) as response:
@@ -283,7 +283,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         """
         Собирает награды из заданий.
         """
-        logger.info('Farming quests if any…')
+        logger.info('Farming quests…')
         if quests is None:
             quests = self.api.get_all_quests()
         for quest in quests:
@@ -414,9 +414,9 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
                 continue
             self.db.set('replays', replay.id, {
                 'start_time': replay.start_time.timestamp(),
-                'win': replay.win,
-                'attackers': [hero.dump() for hero in replay.attackers],
-                'defenders': [hero.dump() for defenders in replay.defenders for hero in defenders],
+                'win': replay.result.win,
+                'attackers': [hero.dict() for hero in replay.attackers.values()],
+                'defenders': [hero.dict() for defenders in replay.defenders for hero in defenders.values()],
             })
             logger.info(f'Saved #{replay.id}.')
 
@@ -479,7 +479,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             (shop_id, slot.id)
             for shop_id in constants.SHOP_IDS
             for slot in self.api.get_shop(shop_id)
-            if (not slot.is_bought) and (not slot.costs_star_money) and (slot.reward.keywords & self.settings.bot.shops)
+            if (not slot.is_bought) and (not slot.star_money) and (slot.reward.keywords & self.settings.bot.shops)
         ]
 
         logger.info(f'Going to buy {len(slots)} slots.')
@@ -518,7 +518,8 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
                     tower = self.api.next_tower_floor()
             elif tower.is_buff:
                 # Buffs go from the cheapest to the most expensive.
-                for buff_id in reversed(tower.buff_ids):
+                for buff in reversed(tower.floor):
+                    buff_id = int(buff['id'])
                     if buff_id not in constants.TOWER_IGNORED_BUFF_IDS:
                         try:
                             self.api.buy_tower_buff(buff_id)

@@ -11,7 +11,7 @@ from scipy import stats
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 
-from bestmobabot import constants, responses
+from bestmobabot import constants, dataclasses_
 from bestmobabot.database import Database
 
 
@@ -117,7 +117,7 @@ class Trainer:
     @staticmethod
     def parse_heroes(heroes: Iterable[Dict[str, int]], multiplier: int, result: DefaultDict[str, int]):
         for hero in heroes:
-            for key, value in responses.Hero(hero).feature_dict.items():
+            for key, value in dataclasses_.Hero.parse_obj(hero).features.items():
                 result[key] += multiplier * value
 
 

@@ -14,7 +14,7 @@ from typing import Iterable
 import requests
 from loguru import logger
 
-import bestmobabot.responses
+import bestmobabot.dataclasses_
 from bestmobabot.constants import LOGURU_FORMAT, VERBOSITY_LEVELS
 from bestmobabot.settings import TelegramSettings
 
@@ -53,12 +53,12 @@ def install_logging(verbosity: int):
     logger.add(sys.stderr, format=LOGURU_FORMAT, level=VERBOSITY_LEVELS.get(verbosity, 'TRACE'))
 
 
-def log_heroes(message: str, heroes: Iterable[bestmobabot.responses.Hero]):
+def log_heroes(message: str, heroes: Iterable[bestmobabot.dataclasses_.Hero]):
     logger.info(message)
-    for hero in sorted(heroes, reverse=True, key=bestmobabot.responses.Hero.order):
+    for hero in sorted(heroes, reverse=True):
         logger.info(f'{hero}')
 
 
-def log_rewards(rewards: Iterable[bestmobabot.responses.Reward]):
+def log_rewards(rewards: Iterable[bestmobabot.dataclasses_.Reward]):
     for reward in rewards:
         reward.log()

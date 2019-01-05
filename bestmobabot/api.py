@@ -18,15 +18,14 @@ from requests.adapters import HTTPAdapter
 
 from bestmobabot import constants
 from bestmobabot.database import Database
-from bestmobabot.dataclasses_ import Letter
-from bestmobabot.enums import BattleType
-from bestmobabot.responses import (
+from bestmobabot.dataclasses_ import (
     ArenaEnemy,
     ArenaResult,
     Boss,
     Expedition,
     GrandArenaEnemy,
     Hero,
+    Letter,
     Mission,
     Offer,
     Quest,
@@ -38,6 +37,7 @@ from bestmobabot.responses import (
     Tower,
     User,
 )
+from bestmobabot.enums import BattleType
 from bestmobabot.settings import Settings
 from bestmobabot.tracking import send_event
 
@@ -195,6 +195,9 @@ class API(contextlib.AbstractContextManager):
             headers['X-Auth-Session-Init'] = '1'
         headers["X-Auth-Signature"] = self.sign_request(data, headers)
 
+        # API developers are very funny people…
+        # They return errors in a bunch of different ways. 🤦
+
         with self.session.post(self.API_URL, data=data, headers=headers, timeout=constants.API_TIMEOUT) as response:
             self.last_responses.append(response.text.strip())
             response.raise_for_status()
@@ -203,16 +206,13 @@ class API(contextlib.AbstractContextManager):
             except ValueError:
                 if response.text == 'Invalid signature':
                     raise InvalidSignatureError(response.text)
-                else:
-                    raise InvalidResponseError(response.text)
+                raise InvalidResponseError(response.text)
 
-        # API developers are very funny people…
-        # noinspection PyUnboundLocalVariable
         if 'results' in item:
-            result = Result(item['results'][0]['result'])
+            result = Result.parse_obj(item['results'][0]['result'])
             if result.response and 'error' in result.response:
                 if result.response['error'] == 'outOfRetargetDelta':
-                    raise OutOfRetargetDelta
+                    raise OutOfRetargetDelta()
                 raise ResponseError(result.response)
             return result
         if 'error' in item:
@@ -260,10 +260,10 @@ class API(contextlib.AbstractContextManager):
         self.call('registration', {'user': {'referrer': {'type': 'menu', 'id': '0'}}})
 
     def get_user_info(self) -> User:
-        return User(self.call('userGetInfo').response)
+        return User.parse_obj(self.call('userGetInfo').response)
 
     def get_all_heroes(self, random_sleep=True) -> List[Hero]:
-        return list_of(Hero, self.call('heroGetAll', random_sleep=random_sleep).response)
+        return list_of(Hero.parse_obj, self.call('heroGetAll', random_sleep=random_sleep).response)
 
     # Daily bonus.
     # ------------------------------------------------------------------------------------------------------------------
@@ -275,7 +275,7 @@ class API(contextlib.AbstractContextManager):
     # ------------------------------------------------------------------------------------------------------------------
 
     def list_expeditions(self) -> List[Expedition]:
-        return list_of(Expedition, self.call('expeditionGet').response)
+        return list_of(Expedition.parse_obj, self.call('expeditionGet').response)
 
     def farm_expedition(self, expedition_id: str) -> Reward:
         return Reward.parse_obj(self.call('expeditionFarm', {'expeditionId': expedition_id}).response)
@@ -288,7 +288,7 @@ class API(contextlib.AbstractContextManager):
     # ------------------------------------------------------------------------------------------------------------------
 
     def get_all_quests(self) -> Quests:
-        return list_of(Quest, self.call('questGetAll').response)
+        return list_of(Quest.parse_obj, self.call('questGetAll').response)
 
     def farm_quest(self, quest_id: str) -> Reward:
         return Reward.parse_obj(self.call('questFarm', {'questId': quest_id}).response)
@@ -320,19 +320,19 @@ class API(contextlib.AbstractContextManager):
     # ------------------------------------------------------------------------------------------------------------------
 
     def find_arena_enemies(self) -> List[ArenaEnemy]:
-        return list_of(ArenaEnemy, self.call('arenaFindEnemies').response)
+        return list_of(ArenaEnemy.parse_obj, self.call('arenaFindEnemies').response)
 
     def attack_arena(self, user_id: str, hero_ids: Iterable[str]) -> Tuple[ArenaResult, Quests]:
         result = self.call('arenaAttack', {'userId': user_id, 'heroes': list(hero_ids)})
-        return ArenaResult(result.response), result.quests
+        return ArenaResult.parse_obj(result.response), result.quests
 
     def find_grand_enemies(self) -> List[GrandArenaEnemy]:
         # Random sleep is turned off because model prediction takes some time already.
-        return list_of(GrandArenaEnemy, self.call('grandFindEnemies', random_sleep=False).response)
+        return list_of(GrandArenaEnemy.parse_obj, self.call('grandFindEnemies', random_sleep=False).response)
 
     def attack_grand(self, user_id: str, hero_ids: List[List[str]]) -> Tuple[ArenaResult, Quests]:
         result = self.call('grandAttack', {'userId': user_id, 'heroes': hero_ids})
-        return ArenaResult(result.response), result.quests
+        return ArenaResult.parse_obj(result.response), result.quests
 
     def farm_grand_coins(self) -> Reward:
         return Reward.parse_obj(self.call('grandFarmCoins').response['reward'] or {})
@@ -365,7 +365,7 @@ class API(contextlib.AbstractContextManager):
 
     def get_battle_by_type(self, battle_type: BattleType, offset=0, limit=20) -> List[Replay]:
         response = self.call('battleGetByType', {'type': battle_type.value, 'offset': offset, 'limit': limit}).response
-        return list_of(Replay, response['replays'])
+        return list_of(Replay.parse_obj, response['replays'])
 
     # Raids.
     # https://github.com/eigenein/bestmobabot/wiki/Raids
@@ -376,14 +376,14 @@ class API(contextlib.AbstractContextManager):
         return list_of(Reward.parse_obj, response)
 
     def get_all_missions(self) -> List[Mission]:
-        return list_of(Mission, self.call('missionGetAll').response)
+        return list_of(Mission.parse_obj, self.call('missionGetAll').response)
 
     # Boss.
     # https://github.com/eigenein/bestmobabot/wiki/Boss
     # ------------------------------------------------------------------------------------------------------------------
 
     def get_all_bosses(self) -> List[Boss]:
-        return list_of(Boss, self.call('bossGetAll').response)
+        return list_of(Boss.parse_obj, self.call('bossGetAll').response)
 
     def raid_boss(self, boss_id: str) -> Reward:
         return Reward.parse_obj(self.call('bossRaid', {'bossId': boss_id}).response['everyWinReward'])
@@ -397,7 +397,7 @@ class API(contextlib.AbstractContextManager):
 
     def get_shop(self, shop_id: str) -> List[ShopSlot]:
         response = self.call('shopGet', {'shopId': shop_id}).response
-        return list_of(ShopSlot, response['slots'])
+        return list_of(ShopSlot.parse_obj, response['slots'])
 
     def shop(self, *, slot_id: str, shop_id: str) -> Reward:
         return Reward.parse_obj(self.call('shopBuy', {'slot': slot_id, 'shopId': shop_id}).response)
@@ -406,14 +406,14 @@ class API(contextlib.AbstractContextManager):
     # ------------------------------------------------------------------------------------------------------------------
 
     def get_tower_info(self) -> Tower:
-        return Tower(self.call('towerGetInfo').response)
+        return Tower.parse_obj(self.call('towerGetInfo').response)
 
     def skip_tower_floor(self) -> Tuple[Tower, Reward]:
         response = self.call('towerSkipFloor').response
-        return Tower(response['tower']), Reward.parse_obj(response['reward'])
+        return Tower.parse_obj(response['tower']), Reward.parse_obj(response['reward'])
 
     def buy_tower_buff(self, buff_id: int) -> Tower:
-        return Tower(self.call('towerBuyBuff', {'buffId': buff_id}).response)
+        return Tower.parse_obj(self.call('towerBuyBuff', {'buffId': buff_id}).response)
 
     def open_tower_chest(self, number: int) -> Tuple[Reward, Quests]:
         assert number in (0, 1, 2)
@@ -421,16 +421,16 @@ class API(contextlib.AbstractContextManager):
         return Reward.parse_obj(result.response['reward']), result.quests
 
     def next_tower_floor(self) -> Tower:
-        return Tower(self.call('towerNextFloor').response)
+        return Tower.parse_obj(self.call('towerNextFloor').response)
 
     def next_tower_chest(self) -> Tower:
-        return Tower(self.call('towerNextChest').response)
+        return Tower.parse_obj(self.call('towerNextChest').response)
 
     # Offers.
     # ------------------------------------------------------------------------------------------------------------------
 
     def get_all_offers(self) -> List[Offer]:
-        return list_of(Offer, self.call('offerGetAll').response)
+        return list_of(Offer.parse_obj, self.call('offerGetAll').response)
 
     def farm_offer_reward(self, offer_id: str) -> Reward:
         return Reward.parse_obj(self.call('offerFarmReward', {'offerId': offer_id}).response)
