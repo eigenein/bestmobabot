@@ -69,32 +69,12 @@ class Reward(BaseModel):
             logger.success(f'{value} × «{resources.titan_artifact_name(artifact_id)}» titan artifact fragment.')
 
 
-class MissionEnemyDrop(BaseModel):
-    reward: Reward
-
-
-class MissionEnemy(BaseModel):
-    drops: List[MissionEnemyDrop] = []
-
-    class Config:
-        fields = {'drops': 'drop'}
-
-
-class MissionWave(BaseModel):
-    enemies: List[MissionEnemy]
-
-
-class MissionMode(BaseModel):
-    waves: List[MissionWave]
-
-
 class Mission(BaseModel):
     id: str
     is_heroic: bool
-    normal_mode: MissionMode
 
     class Config:
-        fields = {'is_heroic': 'isHeroic', 'normal_mode': 'normalMode'}
+        fields = {'is_heroic': 'isHeroic'}
 
 
 class Library(BaseModel):
