@@ -83,7 +83,7 @@ class AbstractArena(ABC, Generic[TEnemy, TAttackers]):
             # It appears that often enemies are repeated during the search. So don't repeat computations.
             if enemy.user.id in self.cache:
                 attackers, probability = self.cache[enemy.user.id]
-                logger.info(f'«{enemy.user.name}» at «{enemy.user.clan_title}»: {100.0 * probability:.1f}% (cached)')
+                logger.info(f'«{enemy.user.name}» from «{enemy.user.clan_title}»: {100.0 * probability:.1f}% (cached)')
             else:
                 attackers, probability = self.select_attackers(enemy)  # type: TAttackers, float
                 self.cache[enemy.user.id] = attackers, probability
@@ -144,7 +144,7 @@ class Arena(AbstractArena[ArenaEnemy, List[Hero]]):
         # Select top combination by win probability.
         y: numpy.ndarray = self.model.estimator.predict_proba(x)[:, 1]
         index: int = y.argmax()
-        logger.info(f'«{enemy.user.name}» at «{enemy.user.clan_title}»: {100.0 * y[index]:.1f}%')
+        logger.info(f'«{enemy.user.name}» from «{enemy.user.clan_title}»: {100.0 * y[index]:.1f}%')
         return [self.heroes[i] for i in hero_combinations_[index]], y[index]
 
 
@@ -231,7 +231,7 @@ class GrandArena(AbstractArena[GrandArenaEnemy, List[List[Hero]]]):
 
         # noinspection PyUnboundLocalVariable
         logger.info(
-            f'«{enemy.user.name}» at «{enemy.user.clan_title}»:'
+            f'«{enemy.user.name}» from «{enemy.user.clan_title}»:'
             f' {100.0 * max_probability:.2f}%'
             f' ({100 * p1[max_index]:.1f}% {100 * p2[max_index]:.1f}% {100 * p3[max_index]:.1f}%)'
         )

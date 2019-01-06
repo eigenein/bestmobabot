@@ -195,10 +195,7 @@ class GrandArenaEnemy(BaseArenaEnemy):
     heroes: List[List[Hero]]
 
 
-class ArenaResult(BaseModel):
-    win: bool
-    battles: List[Replay]
-    reward: Reward
+class ArenaState(BaseModel):
     arena_place: Optional[str] = None
     grand_place: Optional[str] = None
 
@@ -208,17 +205,25 @@ class ArenaResult(BaseModel):
             'grand_place': 'grandPlace',
         }
 
+
+class ArenaResult(BaseModel):
+    win: bool
+    battles: List[Replay]
+    reward: Optional[Reward]
+    state: ArenaState
+
     # noinspection PyMethodParameters
     @validator('reward', pre=True)
-    def fix_reward(cls, value: Any) -> Reward:
+    def fix_reward(cls, value: Any) -> Optional[Reward]:
         # They return the empty list in case of an empty reward. 🤦
-        return value if not isinstance(value, list) else Reward()
+        return value or None
 
     def log(self):
         logger.info('You won!' if self.win else 'You lose.')
         for i, battle in enumerate(self.battles, start=1):
             logger.info(f'Battle #{i}: {"⭐" * battle.result.stars if battle.result.win else "lose."}')
-        self.reward.log()
+        if self.reward is not None:
+            self.reward.log()
 
 
 class Offer(BaseModel):

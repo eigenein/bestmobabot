@@ -360,7 +360,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
 
         # Collect results.
         result.log()
-        logger.info(f'Current place: {result.arena_place}.')
+        logger.info('Current place: {}.', result.state.arena_place)
         self.farm_quests(quests)
 
     def attack_grand_arena(self):
@@ -396,7 +396,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
 
         # Collect results.
         result.log()
-        logger.info(f'Current place: {result.grand_place}.')
+        logger.info('Current place: {}.', result.state.grand_place)
         self.farm_quests(quests)
         self.api.farm_grand_coins().log()
 
