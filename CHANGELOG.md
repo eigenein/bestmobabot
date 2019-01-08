@@ -7,6 +7,7 @@
 * Use `ujson` instead of `json`
 * Update resources
 * Use `loguru` for logging and improve testing
+* Set default settings filename
 
 # `2.3`
 

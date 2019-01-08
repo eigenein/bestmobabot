@@ -19,10 +19,11 @@ from bestmobabot.vk import VK
 @option(
     '--settings',
     help='Settings file.',
+    default='settings.yaml',
+    show_default=True,
     envvar='BESTMOBABOT_SETTINGS',
     show_envvar=True,
     type=SettingsFileParamType(Settings),
-    required=True,
 )
 @option(
     'verbosity', '-v', '--verbose',

@@ -56,9 +56,9 @@ services:
     image: eigenein/bestmobabot:latest
     volumes:
     - 'bestmobabot:/app'
+    - '/root/settings.yaml:/app/settings.yaml:ro'
     environment:
       TZ: 'Europe/Amsterdam'
-      BESTMOBABOT_SETTINGS: 'settings.yaml'
       BESTMOBABOT_VERBOSITY: '1'
 volumes:
   bestmobabot:
