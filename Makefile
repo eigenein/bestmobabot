@@ -25,11 +25,11 @@ venv :
 requirements.txt : setup.py
 	@$(PIP-COMPILE) --no-index --no-emit-trusted-host --generate-hashes --output-file requirements.txt setup.py
 
-make test : venv
+make test :
 	@$(FLAKE8) bestmobabot tests
 	@$(PYTEST)
 
-tag : venv
+tag :
 	@$(eval VERSION = $(shell $(PYTHON) setup.py --version))
 	@git tag -a '$(VERSION)' -m '$(VERSION)'
 
@@ -46,7 +46,7 @@ publish/docker : docker
 	@docker push 'eigenein/bestmobabot:latest'
 	@docker push 'eigenein/bestmobabot:$(VERSION)'
 
-dist : venv
+dist :
 	@rm -rf dist
 	@$(PYTHON) setup.py sdist bdist_wheel
 
