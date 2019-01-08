@@ -111,7 +111,7 @@ To find the best attackers, top N most powerful teams are fed into the classifie
 
 ### Grand arena optimisation
 
-Grand arena is a bit special because the total number of hero combinations is too large to run the estimator on all of them (there're `N choose 5 ⋅ (N - 5) choose 5 ⋅ (N - 10) choose 5` possible attackers combinations). Thus, a sort of genetic algorithm is used to find the best attackers (local optimum perhaps).
+Grand arena is a bit special because the total number of hero combinations is too large to run the estimator on all of them (there're `N choose 5 × (N - 5) choose 5 × (N - 10) choose 5` possible attackers combinations). Thus, a sort of genetic algorithm is used to find the best attackers (local optimum perhaps).
 
 ## Storage
 

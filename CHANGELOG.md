@@ -1,3 +1,7 @@
+# `latest`
+
+* **GA for normal arena**
+
 # `2.4b0`
 
 * **Send logging messages to Telegram (experimental)**

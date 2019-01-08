@@ -23,7 +23,7 @@ def test_secretary_max(items, expected, next_):
     https://codegolf.stackexchange.com/questions/75967/solve-the-secretary-problem
     """
     iterator = iter(items)
-    assert secretary_max(iterator, len(items)) == (expected, expected)
+    assert secretary_max(iterator, len(items)) == expected
     assert next(iterator, None) == next_  # test the iterator position
 
 
@@ -41,5 +41,5 @@ def test_secretary_max(items, expected, next_):
 ])
 def test_secretary_max_early_stop(items, early_stop, expected, next_):
     iterator = iter(items)
-    assert secretary_max(iterator, len(items), early_stop=early_stop) == (expected, expected)
+    assert secretary_max(iterator, len(items), early_stop=early_stop) == expected
     assert next(iterator, None) == next_  # test the iterator position
