@@ -47,6 +47,23 @@ docker run \
     eigenein/bestmobabot -v --settings settings.yaml
 ```
 
+### `docker-compose.yml`
+
+```yaml
+version: '3.7'
+services:
+  iftttie:
+    image: eigenein/bestmobabot:latest
+    volumes:
+    - 'bestmobabot:/app'
+    environment:
+      TZ: 'Europe/Amsterdam'
+      BESTMOBABOT_SETTINGS: 'settings.yaml'
+      BESTMOBABOT_VERBOSITY: '1'
+volumes:
+  bestmobabot:
+```
+
 ## Tasks
 
 Bot uses its own cron-like scheduler to perform game tasks. There're tasks that performed daily at particular time and there're periodic tasks that performed every N minutes/hours. They're spread over a day to decrease game API requests frequency.

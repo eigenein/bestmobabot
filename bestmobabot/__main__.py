@@ -15,19 +15,26 @@ from bestmobabot.tracking import get_version
 from bestmobabot.vk import VK
 
 
-@command()
+@command(context_settings={'max_content_width': 120})
 @option(
     '--settings',
     help='Settings file.',
-    envvar='SETTINGS',
+    envvar='BESTMOBABOT_SETTINGS',
+    show_envvar=True,
     type=SettingsFileParamType(Settings),
     required=True,
 )
-@option('verbosity', '-v', '--verbose', help='Increase verbosity.', envvar='VERBOSITY', count=True)
+@option(
+    'verbosity', '-v', '--verbose',
+    help='Increase verbosity.',
+    envvar='BESTMOBABOT_VERBOSITY',
+    show_envvar=True,
+    count=True,
+)
 @option('--shell', is_flag=True, help='Start interactive shell after initialization instead of normal run.')
 def main(settings: Settings, verbosity: int, shell: bool):
     """
-    Hero Wars bot.
+    Hero Wars game bot 🏆
     """
     install_logging(verbosity)
     logger.info(f'Bot is starting. Version: {get_version()}.')
@@ -51,4 +58,4 @@ def main(settings: Settings, verbosity: int, shell: bool):
 
 
 if __name__ == '__main__':
-    main()
+    main(auto_envvar_prefix='BESTMOBABOT')
