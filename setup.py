@@ -29,6 +29,7 @@ setuptools.setup(
         'ujson',
         'loguru',
     ],
+    tests_require=['pytest'],
     extras_require={},
     entry_points={
         'console_scripts': [

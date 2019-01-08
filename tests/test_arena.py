@@ -1,7 +1,8 @@
-# noinspection PyPackageRequirements
+from typing import List
+
 import pytest
 
-from bestmobabot.arena import secretary_max
+from bestmobabot.arena import ranges, secretary_max
 
 
 @pytest.mark.parametrize('items, expected, next_', [
@@ -43,3 +44,10 @@ def test_secretary_max_early_stop(items, early_stop, expected, next_):
     iterator = iter(items)
     assert secretary_max(iterator, len(items), early_stop=early_stop) == expected
     assert next(iterator, None) == next_  # test the iterator position
+
+
+@pytest.mark.parametrize('n_ranges, range_size, expected', [
+    (3, 5, [range(0, 5), range(5, 10), range(10, 15)]),
+])
+def test_ranges(n_ranges: int, range_size: int, expected: List[range]):
+    assert list(ranges(n_ranges, range_size)) == expected

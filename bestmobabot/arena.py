@@ -361,10 +361,10 @@ class ArenaSolver:
         defenders_features = [self.make_team_features(team).sum(axis=0) for team in enemy.teams]
 
         # Used to select separate teams from the population array.
-        team_selectors = (slice(0, 5), slice(5, 10), slice(10, 15))  # FIXME
+        team_selectors = slices(n_teams, TEAM_SIZE)
 
         # Possible (per)mutations of a single solution.
-        # Each permutation swaps two particular elements so that the heroes are moved to or from the teams.
+        # Each permutation swaps two particular elements so that the heroes are replaced between the teams.
         swaps = vstack(swap_permutation(n_heroes, i, j) for i, j in chain(
             product(range(0, 5), range(5, 10)),
             product(range(0, 5), range(10, 15)),
@@ -373,10 +373,10 @@ class ArenaSolver:
         ))  # FIXME
 
         # Let's evolve.
-        max_index: int = None
-        best_probability = 0.0
-        ys: List[ndarray] = []
         cool_down = CoolDown(count(1), self.n_generations_cool_down)
+        ys: List[ndarray] = []
+        max_index: int = None
+        max_probability = 0.0
 
         for n_generation in cool_down:
             # Generate new solutions.
@@ -397,36 +397,37 @@ class ArenaSolver:
                 for selector, defender_features in zip(team_selectors, defenders_features)
             )
             ys = numpy.split(self.model.estimator.predict_proba(x)[:, 1], n_teams)
-            y = self.reduce_probabilities(ys)  # vector of reduced probabilities
+            probabilities = self.reduce_probabilities(ys)  # vector of reduced probabilities
 
             # Select top ones for the next iteration.
             # See also: https://stackoverflow.com/a/23734295/359730
-            top_indexes = y.argpartition(-self.n_keep_solutions)[-self.n_keep_solutions:]
+            top_indexes = probabilities.argpartition(-self.n_keep_solutions)[-self.n_keep_solutions:]
             self.solutions = self.solutions[top_indexes, :]
-            y = y[top_indexes]
+            probabilities = probabilities[top_indexes]
 
             # Select the best one.
-            max_index = y.argmax()
-            if y[max_index] - best_probability > 0.00001:
+            max_index = probabilities.argmax()
+            if probabilities[max_index] - max_probability > 0.00001:
                 # Improved solution. Give the optimizer another chance to beat the best solution.
                 cool_down.reset()
-            best_probability = y[max_index]
+            max_probability = probabilities[max_index]
             logger.trace(
                 'Generation {:2}: {:.2f}%{}',
                 n_generation,
-                100.0 * best_probability,
+                100.0 * max_probability,
                 (" +" if cool_down.is_fresh else ""),
             )
 
             # I'm feeling lucky!
-            if best_probability > 0.99999:
+            if max_probability > 0.99999:
                 break
 
         logger.info(
-            '«{user.name}» from «{user.clan_title}»: {probability:.2f}% ({probabilities})',
-            user=enemy.user,
-            probability=(100.0 * best_probability),
-            probabilities=' '.join(f'{100 * y[max_index]:.1f}%' for y in ys),
+            '«{}» from «{}»: {:.1f}% ({})',
+            enemy.user.name,
+            enemy.user.clan_title,
+            100.0 * max_probability,
+            ' '.join(f'{100 * y[max_index]:.1f}%' for y in ys),
         )
 
         return ArenaSolution(
@@ -435,7 +436,7 @@ class ArenaSolver:
                 [self.heroes[i] for i in self.solutions[max_index, selector]]
                 for selector in team_selectors
             ],
-            probability=best_probability,
+            probability=max_probability,
         )
 
     def make_hero_features(self, hero: Hero) -> ndarray:
@@ -468,6 +469,14 @@ def swap_permutation(size: int, index_1: int, index_2: int) -> ndarray:
     permutation = arange(size)
     permutation[[index_1, index_2]] = permutation[[index_2, index_1]]
     return permutation
+
+
+def ranges(n_ranges: int, range_size: int) -> Iterable[range]:
+    return (range(i * range_size, (i + 1) * range_size) for i in range(n_ranges))
+
+
+def slices(n_slices: int, slice_size: int) -> Tuple[slice, ...]:
+    return tuple(slice(range_.start, range_.stop) for range_ in ranges(n_slices, slice_size))
 
 
 def secretary_max(
