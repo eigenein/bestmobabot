@@ -1,4 +1,4 @@
-# `latest`
+# `2.4b`
 
 * **Send logging messages to Telegram (experimental)**
 * **Support tower full skip for the 130th level**
