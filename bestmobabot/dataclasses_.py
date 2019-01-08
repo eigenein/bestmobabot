@@ -131,6 +131,9 @@ class Hero(BaseModel):
         return f'{"⭐" * self.star} {resources.hero_name(self.id)} ({self.level}) {COLORS.get(self.color, self.color)}'
 
 
+Team = List[Hero]
+
+
 class BattleResult(BaseModel):
     win: bool
     stars: int = 0
@@ -186,13 +189,25 @@ class BaseArenaEnemy(BaseModel):
             'user_id': 'userId',
         }
 
+    @property
+    def teams(self) -> List[Team]:
+        raise NotImplementedError()
+
 
 class ArenaEnemy(BaseArenaEnemy):
     heroes: List[Hero]
 
+    @property
+    def teams(self) -> List[Team]:
+        return [self.heroes]
+
 
 class GrandArenaEnemy(BaseArenaEnemy):
     heroes: List[List[Hero]]
+
+    @property
+    def teams(self) -> List[Team]:
+        return self.heroes
 
 
 class ArenaState(BaseModel):
