@@ -52,7 +52,7 @@ docker run \
 ```yaml
 version: '3.7'
 services:
-  iftttie:
+  bestmobabot:
     image: eigenein/bestmobabot:latest
     volumes:
     - 'bestmobabot:/app'
@@ -63,6 +63,25 @@ services:
 volumes:
   bestmobabot:
 ```
+
+Or:
+
+```yaml
+version: '3.7'
+services:
+  bestmobabot:
+    image: eigenein/bestmobabot:latest
+    volumes:
+    - '/root/bestmobabot.sqlite3:/app/db.sqlite3:rw'
+    - '/root/settings.yaml:/app/settings.yaml:ro'
+    environment:
+      TZ: 'Europe/Amsterdam'
+      BESTMOBABOT_VERBOSITY: '1'
+volumes:
+  bestmobabot:
+```
+
+You may also need to run `chown nobody:nogroup bestmobabot.sqlite3`.
 
 ## Tasks
 
