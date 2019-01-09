@@ -13,12 +13,13 @@ from typing import Dict, Iterable, List, Optional, Tuple
 
 import requests
 
-from bestmobabot import arena, constants
+from bestmobabot import constants
 from bestmobabot.api import API, AlreadyError, InvalidResponseError, NotEnoughError, NotFoundError, OutOfRetargetDelta
+from bestmobabot.arena import ArenaSolver, reduce_grand_arena, reduce_normal_arena
 from bestmobabot.database import Database
 from bestmobabot.dataclasses_ import Hero, Mission, Quests, Replay, User
 from bestmobabot.enums import BattleType
-from bestmobabot.logging_ import log_heroes, log_rewards, logger
+from bestmobabot.logging_ import log_rewards, logger
 from bestmobabot.model import Model
 from bestmobabot.resources import get_heroic_mission_ids, mission_name, shop_name
 from bestmobabot.settings import Settings
@@ -128,7 +129,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             Task(next_run_at=Task.at(hour=21, minute=30, tz=self.user.tz), execute=self.farm_quests),
 
             # Recurring tasks.
-            Task(next_run_at=Task.every_n_minutes(24 * 60 // 5, self.settings.bot.arena.schedule_offset), execute=self.attack_arena),  # noqa
+            Task(next_run_at=Task.every_n_minutes(24 * 60 // 5, self.settings.bot.arena.schedule_offset), execute=self.attack_normal_arena),  # noqa
             Task(next_run_at=Task.every_n_minutes(24 * 60 // 5, self.settings.bot.arena.schedule_offset), execute=self.attack_grand_arena),  # noqa
             Task(next_run_at=Task.every_n_hours(6), execute=self.farm_mail),
             Task(next_run_at=Task.every_n_hours(6), execute=self.check_freebie),
@@ -332,37 +333,42 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             n_last_battles=self.settings.bot.arena.last_battles,
         ).train()
 
-    def attack_arena(self):
+    # FIXME: refactor.
+    def attack_normal_arena(self):
         """
         Совершает бой на арене.
         """
-        logger.info('Attacking arena…')
+        logger.info('Attacking normal arena…')
         model, heroes = self.check_arena(constants.TEAM_SIZE)
 
         # Pick an enemy and select attackers.
-        enemy, attackers, probability = arena.Arena(
+        solution = ArenaSolver(
             model=model,
             user_clan_id=self.user.clan_id,
             heroes=heroes,
-            get_enemies_page=self.api.find_arena_enemies,
-            settings=self.settings,
-        ).select_enemy()
-
-        # Debugging.
-        logger.info(f'Enemy name: "{enemy.user.name}".')
-        logger.info(f'Enemy place: {enemy.place}.')
-        logger.info(f'Probability: {100.0 * probability:.1f}%.')
-        log_heroes('Attackers:', attackers)
-        log_heroes(f'Defenders:', enemy.heroes)
+            max_iterations=self.settings.bot.arena.normal_max_pages,
+            n_keep_solutions=self.settings.bot.arena.normal_keep_solutions,
+            n_generate_solutions=self.settings.bot.arena.normal_generate_solutions,
+            n_generations_count_down=self.settings.bot.arena.normal_generations_count_down,
+            early_stop=self.settings.bot.arena.early_stop,
+            get_enemies=self.api.find_arena_enemies,
+            friendly_clans=self.settings.bot.arena.friendly_clans,
+            reduce_probabilities=reduce_normal_arena,
+        ).solve()
+        solution.log()
 
         # Attack!
-        result, quests = self.api.attack_arena(enemy.user.id, self.get_hero_ids(attackers))
+        result, quests = self.api.attack_arena(
+            solution.enemy.user_id,
+            self.get_hero_ids(solution.attackers[0]),
+        )
 
         # Collect results.
         result.log()
         logger.info('Current place: {}.', result.state.arena_place)
         self.farm_quests(quests)
 
+    # FIXME: refactor.
     def attack_grand_arena(self):
         """
         Совершает бой на гранд арене.
@@ -371,27 +377,25 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         model, heroes = self.check_arena(constants.GRAND_SIZE)
 
         # Pick an enemy and select attackers.
-        enemy, attacker_teams, probability = arena.GrandArena(
+        solution = ArenaSolver(
             model=model,
             user_clan_id=self.user.clan_id,
             heroes=heroes,
-            get_enemies_page=self.api.find_grand_enemies,
-            settings=self.settings,
-        ).select_enemy()
-
-        # Debugging.
-        logger.info(f'Enemy name: "{enemy.user.name}".')
-        logger.info(f'Enemy place: {enemy.place}.')
-        logger.info(f'Probability: {100.0 * probability:.1f}%.')
-        for i, (attackers, defenders) in enumerate(zip(attacker_teams, enemy.heroes), start=1):
-            logger.info(f'Battle #{i}.')
-            log_heroes('Attackers:', attackers)
-            log_heroes('Defenders:', defenders)
+            max_iterations=self.settings.bot.arena.grand_max_pages,
+            n_keep_solutions=self.settings.bot.arena.grand_keep_solutions,
+            n_generate_solutions=self.settings.bot.arena.grand_generate_solutions,
+            n_generations_count_down=self.settings.bot.arena.grand_generations_count_down,
+            early_stop=self.settings.bot.arena.early_stop,
+            get_enemies=self.api.find_grand_enemies,
+            friendly_clans=self.settings.bot.arena.friendly_clans,
+            reduce_probabilities=reduce_grand_arena,
+        ).solve()
+        solution.log()
 
         # Attack!
-        result, quests = self.api.attack_grand(enemy.user.id, [
-            [attacker.id for attacker in attackers]
-            for attackers in attacker_teams
+        result, quests = self.api.attack_grand(solution.enemy.user_id, [
+            self.get_hero_ids(attackers)
+            for attackers in solution.attackers
         ])
 
         # Collect results.

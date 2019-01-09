@@ -128,7 +128,8 @@ class Hero(BaseModel):
         return NotImplemented
 
     def __str__(self):
-        return f'{"⭐" * self.star} {resources.hero_name(self.id)} ({self.level}) {COLORS.get(self.color, self.color)}'
+        stars = '🌟' if self.star > 5 else '⭐' * self.star
+        return f'{stars} {resources.hero_name(self.id)} ({self.level}) {COLORS.get(self.color, self.color)}'
 
 
 Team = List[Hero]
@@ -177,6 +178,9 @@ class User(BaseModel):
     def is_from_clans(self, clans: Iterable[str]) -> bool:
         return (self.clan_id and self.clan_id in clans) or (self.clan_title and self.clan_title in clans)
 
+    def __str__(self) -> str:
+        return f'«{self.name}» from «{self.clan_title}»'
+
 
 class BaseArenaEnemy(BaseModel):
     user_id: str
@@ -192,6 +196,9 @@ class BaseArenaEnemy(BaseModel):
     @property
     def teams(self) -> List[Team]:
         raise NotImplementedError()
+
+    def __str__(self) -> str:
+        return f'{self.user} at place {self.place}'
 
 
 class ArenaEnemy(BaseArenaEnemy):

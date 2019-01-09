@@ -20,17 +20,24 @@ class TelegramSettings(BaseModel):
 
 
 class ArenaSettings(BaseModel):
-    skip_clans: Set[str] = []  # names or clan IDs which must be skipped during enemy search
-    early_stop: confloat(ge=0.0, le=1.0) = 0.95  # minimal win probability to stop enemy search
+    # Shared settings.
     schedule_offset: timedelta = timedelta()  # arena task schedule offset
-    teams_limit: conint(ge=1) = 20000  # number of the most powerful teams tested
-    grand_generations_cool_down: conint(ge=1) = 25  # maximum number of GA iterations without any improvement
-    max_pages: conint(ge=1) = 15  # maximal number of pages during enemy search
-    max_grand_pages: conint(ge=1) = 15  # maximal number of pages during grand enemy search
-    randomize_grand_defenders: bool = False
+    friendly_clans: Set[str] = []  # names or clan IDs which must be skipped during enemy search
+    early_stop: confloat(ge=0.0, le=1.0) = 0.95  # minimal win probability to stop enemy search
+    last_battles: conint(ge=1) = constants.MODEL_N_LAST_BATTLES  # use last N battles for training
+
+    # Normal arena.
+    normal_max_pages: conint(ge=1) = 15  # maximal number of pages during normal enemy search
+    normal_generations_count_down: conint(ge=1) = 5
+    normal_generate_solutions: conint(ge=1) = 750
+    normal_keep_solutions: conint(ge=1) = 250
+
+    # Grand arena.
+    grand_max_pages: conint(ge=1) = 15  # maximal number of pages during grand enemy search
+    grand_generations_count_down: conint(ge=1) = 25  # maximum number of GA iterations without any improvement
     grand_generate_solutions: conint(ge=1) = 1250
     grand_keep_solutions: conint(ge=1) = 250
-    last_battles: conint(ge=1) = constants.MODEL_N_LAST_BATTLES  # use last N battles for training
+    randomize_grand_defenders: bool = False
 
 
 # noinspection PyMethodParameters

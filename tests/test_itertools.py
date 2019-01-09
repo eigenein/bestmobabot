@@ -1,8 +1,18 @@
+from __future__ import annotations
+
 from typing import List
 
 import pytest
 
-from bestmobabot.arena import ranges, secretary_max
+from bestmobabot.itertools_ import secretary_max, slices
+
+
+@pytest.mark.parametrize('n, length, expected', [
+    (1, 5, [slice(0, 5)]),
+    (3, 5, [slice(0, 5), slice(5, 10), slice(10, 15)]),
+])
+def test_slices(n: int, length: int, expected: List[slice]):
+    assert slices(n, length) == expected
 
 
 @pytest.mark.parametrize('items, expected, next_', [
@@ -44,10 +54,3 @@ def test_secretary_max_early_stop(items, early_stop, expected, next_):
     iterator = iter(items)
     assert secretary_max(iterator, len(items), early_stop=early_stop) == expected
     assert next(iterator, None) == next_  # test the iterator position
-
-
-@pytest.mark.parametrize('n_ranges, range_size, expected', [
-    (3, 5, [range(0, 5), range(5, 10), range(10, 15)]),
-])
-def test_ranges(n_ranges: int, range_size: int, expected: List[range]):
-    assert list(ranges(n_ranges, range_size)) == expected
