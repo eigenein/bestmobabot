@@ -301,16 +301,24 @@ class Tower(BaseModel):
         return self.floor_type == 'chest'
 
 
-class ShopSlot(BaseModel):
-    id: str
-    is_bought: bool
-    reward: Reward
+class Cost(BaseModel):
     star_money: int = 0
 
     class Config:
         fields = {
-            'is_bought': 'bought',
             'star_money': 'starmoney',
+        }
+
+
+class ShopSlot(BaseModel):
+    id: str
+    is_bought: bool
+    reward: Reward
+    cost: Cost
+
+    class Config:
+        fields = {
+            'is_bought': 'bought',
         }
 
 

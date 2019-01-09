@@ -479,7 +479,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             (shop_id, slot.id)
             for shop_id in constants.SHOP_IDS
             for slot in self.api.get_shop(shop_id)
-            if (not slot.is_bought) and (not slot.star_money) and (slot.reward.keywords & self.settings.bot.shops)
+            if (not slot.is_bought) and (not slot.cost.star_money) and (slot.reward.keywords & self.settings.bot.shops)
         ]
 
         logger.info(f'Going to buy {len(slots)} slots.')

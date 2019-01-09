@@ -1,3 +1,7 @@
+# `2.4b2`
+
+* Fix critical bug in `bestmobabot.dataclasses_.ShopSlot`
+
 # `2.4b1`
 
 * **Unified arena solver for arenas, work in progress**
