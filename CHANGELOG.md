@@ -1,6 +1,7 @@
 # `latest`
 
-* **GA for normal arena**
+* **Unified arena solver for arenas, work in progress**
+* Fix critical bug in `bestmobabot.dataclasses_.Tower`
 
 # `2.4b0`
 

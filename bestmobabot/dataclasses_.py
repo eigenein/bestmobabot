@@ -270,7 +270,7 @@ class Mission(BaseModel):
 
 class Tower(BaseModel):
     floor_number: int
-    may_skip_floor: bool
+    may_skip_floor: int
     may_full_skip: bool
     floor_type: str
     floor: Any = []  # cannot assume any specific type because it depends on the current floor type 🤦‍
