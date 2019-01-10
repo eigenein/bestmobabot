@@ -1,3 +1,7 @@
+# `2.4b4`
+
+* **Print arena win rating.**
+
 # `2.4b3`
 
 * **Unified arena solver for arenas**

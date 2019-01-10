@@ -218,6 +218,8 @@ class GrandArenaEnemy(BaseArenaEnemy):
 
 
 class ArenaState(BaseModel):
+    battles: int
+    wins: int
     arena_place: Optional[str] = None
     grand_place: Optional[str] = None
 
@@ -226,6 +228,14 @@ class ArenaState(BaseModel):
             'arena_place': 'arenaPlace',
             'grand_place': 'grandPlace',
         }
+
+    def log(self):
+        if self.arena_place:
+            logger.success('Place: {}.', self.arena_place)
+        if self.grand_place:
+            logger.success('Grand place: {}.', self.grand_place)
+        logger.success('Battles: {}. Wins: {}.', self.battles, self.wins)
+        logger.success('Rating: {:.2f}%.', 100.0 * (self.wins / self.battles))
 
 
 class ArenaResult(BaseModel):
@@ -246,6 +256,7 @@ class ArenaResult(BaseModel):
             logger.info(f'Battle #{i}: {"⭐" * battle.result.stars if battle.result.win else "lose."}')
         if self.reward is not None:
             self.reward.log()
+        self.state.log()
 
 
 class Offer(BaseModel):

@@ -365,7 +365,6 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
 
         # Collect results.
         result.log()
-        logger.info('Current place: {}.', result.state.arena_place)
         self.farm_quests(quests)
 
     # FIXME: refactor.
@@ -400,7 +399,6 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
 
         # Collect results.
         result.log()
-        logger.info('Current place: {}.', result.state.grand_place)
         self.farm_quests(quests)
         self.api.farm_grand_coins().log()
 
