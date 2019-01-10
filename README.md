@@ -6,19 +6,14 @@ At the moment settings are described only in `settings.py`. Here is an example o
 
 ```yaml
 vk:
-  # VK.com settings:
   remixsid: <VK.com `remixsid` cookie>
   access_token: <VK.com API access token>
 bot:
-  # Bot settings:
   no_experience: no  # do not farm experience quests
   is_trainer: yes  # train arena prediction model nightly
   arena:
-    # Arena and grand arena settings:
     schedule_offset: 01:00:00  # shift time from the default one
-    teams_limit: 40000
   friend_ids:
-  # Send ❤️ gifts to:
   - 123456789
   - 123456790
   shops:
