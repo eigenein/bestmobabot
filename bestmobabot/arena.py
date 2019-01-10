@@ -39,7 +39,6 @@ class ArenaSolution:
         logger.success('Solution:')
         logger.success('{}', self)
         for i, (defenders, attackers) in enumerate(zip(self.enemy.teams, self.attackers), start=1):
-            logger.success('')
             logger.success('Defenders #{}', i)
             for hero in sorted(defenders, reverse=True):
                 logger.success('{}', hero)
