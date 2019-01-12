@@ -1,6 +1,10 @@
+# `2.4b5`
+
+* **Hot fix for grand arena enemies at places under 100**
+
 # `2.4b4`
 
-* **Print arena win rating.**
+* **Print arena win rating**
 
 # `2.4b3`
 

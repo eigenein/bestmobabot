@@ -71,6 +71,7 @@ class ArenaSolver:
         model: Model,
         user_clan_id: Optional[str],
         heroes: List[Hero],
+        n_required_teams: int,
         max_iterations: int,
         n_keep_solutions: int,
         n_generate_solutions: int,
@@ -84,6 +85,7 @@ class ArenaSolver:
         :param model: prediction model.
         :param user_clan_id: current user clan ID.
         :param heroes: current user heroes.
+        :param n_required_teams: how much teams must be generated.
         :param max_iterations: maximum number of `get_enemies` calls.
         :param n_keep_solutions: number of the best kept solutions from each generation.
         :param n_generate_solutions: number of newly generated solutions in each generation.
@@ -97,6 +99,7 @@ class ArenaSolver:
         self.model = model
         self.user_clan_id = user_clan_id
         self.heroes = heroes
+        self.n_required_teams = n_required_teams
         self.max_iterations = max_iterations
         self.n_keep_solutions = n_keep_solutions
         self.n_generate_solutions = n_generate_solutions
@@ -134,6 +137,9 @@ class ArenaSolver:
         Filter out "bad" enemies and enemies from the friendly clans.
         """
         for enemy in enemies:
+            if len(enemy.teams) < self.n_required_teams:
+                logger.warning('Enemy has unknown teams: {}.', enemy.user)
+                continue
             if enemy.user is None:
                 logger.debug('Skipped empty user #{}.', enemy.user_id)
                 continue
@@ -165,14 +171,14 @@ class ArenaSolver:
         logger.debug('Solving arena for {}…', enemy)
 
         n_heroes = len(self.heroes)
-        n_teams = len(enemy.teams)  # we will generate the same number of attacker teams
-        n_attackers = n_teams * TEAM_SIZE
+        n_actual_teams = len(enemy.teams)  # at first we will generate the same number of attacker teams
+        n_attackers = n_actual_teams * TEAM_SIZE
 
         hero_features = self.make_team_features(self.heroes)
         defenders_features = [self.make_team_features(team).sum(axis=0) for team in enemy.teams]
 
         # Used to speed up selection of separate attacker teams from the solutions array.
-        team_selectors = slices(n_teams, TEAM_SIZE)
+        team_selectors = slices(n_actual_teams, TEAM_SIZE)
 
         # Generate all possible (per)mutations of a single solution.
         # We will use it to speed up mutation process by selecting random rows from the `swaps` array.
@@ -212,7 +218,7 @@ class ArenaSolver:
                 hero_features[self.solutions[:, selector]].sum(axis=1) - defender_features
                 for selector, defender_features in zip(team_selectors, defenders_features)
             )
-            ys = numpy.split(self.model.estimator.predict_proba(x)[:, 1], n_teams)
+            ys = numpy.split(self.model.estimator.predict_proba(x)[:, 1], n_actual_teams)
 
             # Convert individual battle probabilities to the final arena battle probabilities.
             y_reduced = self.reduce_probabilities(*ys)
