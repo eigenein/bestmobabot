@@ -55,6 +55,7 @@ services:
     environment:
       TZ: 'Europe/Amsterdam'
       BESTMOBABOT_VERBOSITY: '1'
+    restart: always
 volumes:
   bestmobabot:
 ```
@@ -72,6 +73,7 @@ services:
     environment:
       TZ: 'Europe/Amsterdam'
       BESTMOBABOT_VERBOSITY: '1'
+    restart: always
 volumes:
   bestmobabot:
 ```
