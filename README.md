@@ -102,19 +102,16 @@ Trained model is then saved back to the database.
 
 Random forest classifier is used to predict probability to win an arena (grand arena) battle. The input for this classifier is features of attackers and defenders such as: hero level, hero color and hero stars. [Secretary problem](https://en.wikipedia.org/wiki/Secretary_problem) optimal policy is then used to maximise win probability across possible enemies. The model is trained on past battles from the arena and grand arena journals.
 
-### Arena optimisation
+### Arena and grand arena optimisation
 
-To find the best attackers, top N most powerful teams are fed into the classifier. The best one is then chosen as attackers. Usually, it's a global optimum when N is large enough (say 20000-40000).
-
-### Grand arena optimisation
-
-Grand arena is a bit special because the total number of hero combinations is too large to run the estimator on all of them (there're `N choose 5 × (N - 5) choose 5 × (N - 10) choose 5` possible attackers combinations). Thus, a sort of genetic algorithm is used to find the best attackers (local optimum perhaps).
+A sort of genetic algorithm is used to find the best attackers (local optimum perhaps).
 
 ## Storage
 
 SQLite database is used as a sort of key-value store to preserve state between restarts:
 
 * Arena and grand arena battle results
+* Arena and grand arena enemies
 * Authentication credentials
 * API session
 * Picked up gifts
@@ -122,11 +119,7 @@ SQLite database is used as a sort of key-value store to preserve state between r
 
 The same database can be used by multiple bots. Actually, it is _recommended_ that multiple bots use the same database in order to share the arena prediction model.
 
-**Warning.** The database contains user IDs and Hero Wars API authentication tokens. Make sure that you remove them manually should you share your database. You can use the following statement to delete everything except of battle results:
-
-```sql
-DELETE FROM "default" WHERE "index" <> 'replays';
-```
+**Warning.** The database contains user IDs and Hero Wars API authentication tokens. Make sure that you remove them manually should you share your database.
 
 ## Authors
 
