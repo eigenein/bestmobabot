@@ -392,7 +392,6 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         solution.log()
 
         # Attack!
-        return
         result, quests = self.api.attack_grand(solution.enemy.user_id, get_teams_hero_ids(solution.attackers))
 
         # Collect results.
