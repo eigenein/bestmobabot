@@ -133,6 +133,7 @@ class Hero(BaseModel):
 
 
 Team = List[Hero]
+Teams = List[Team]
 
 
 class BattleResult(BaseModel):
@@ -194,7 +195,7 @@ class BaseArenaEnemy(BaseModel):
         }
 
     @property
-    def teams(self) -> List[Team]:
+    def teams(self) -> Teams:
         raise NotImplementedError()
 
     def __str__(self) -> str:
@@ -205,7 +206,7 @@ class ArenaEnemy(BaseArenaEnemy):
     heroes: List[Hero]
 
     @property
-    def teams(self) -> List[Team]:
+    def teams(self) -> Teams:
         return [self.heroes]
 
 
@@ -213,7 +214,7 @@ class GrandArenaEnemy(BaseArenaEnemy):
     heroes: List[List[Hero]]
 
     @property
-    def teams(self) -> List[Team]:
+    def teams(self) -> Teams:
         return self.heroes
 
 

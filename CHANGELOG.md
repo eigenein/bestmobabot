@@ -1,6 +1,7 @@
 # `2.4b7`
 
 * Change `Database` interface. The model must be re-trained after deployment
+* Store heroes of arena enemies in the database
 
 # `2.4b6`
 

@@ -20,6 +20,7 @@ from bestmobabot.arena import ArenaSolver, reduce_grand_arena, reduce_normal_are
 from bestmobabot.database import Database
 from bestmobabot.dataclasses_ import Hero, Mission, Quests, Replay, User
 from bestmobabot.enums import BattleType
+from bestmobabot.helpers import get_hero_ids, get_teams_hero_ids
 from bestmobabot.logging_ import log_rewards, logger
 from bestmobabot.model import Model
 from bestmobabot.resources import get_heroic_mission_ids, mission_name, shop_name
@@ -38,10 +39,6 @@ class BotHelperMixin:
     db: Database
     api: API
     settings: Settings
-
-    @staticmethod
-    def get_hero_ids(heroes: Iterable[Hero]) -> List[str]:
-        return [hero.id for hero in heroes]
 
     @staticmethod
     def naive_select_attackers(heroes: Iterable[Hero], count: int = constants.TEAM_SIZE) -> List[Hero]:
@@ -277,7 +274,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         expedition = min(expeditions, key=attrgetter('duration'))  # choose the fastest expedition
 
         # Send the expedition.
-        end_time, quests = self.api.send_expedition_heroes(expedition.id, self.get_hero_ids(heroes))
+        end_time, quests = self.api.send_expedition_heroes(expedition.id, get_hero_ids(heroes))
         logger.info(f'The expedition ends at {end_time}.')
         self.farm_quests(quests)
         return end_time
@@ -362,10 +359,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         solution.log()
 
         # Attack!
-        result, quests = self.api.attack_arena(
-            solution.enemy.user_id,
-            self.get_hero_ids(solution.attackers[0]),
-        )
+        result, quests = self.api.attack_arena(solution.enemy.user_id, get_hero_ids(solution.attackers[0]))
 
         # Collect results.
         result.log()
@@ -398,10 +392,8 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         solution.log()
 
         # Attack!
-        result, quests = self.api.attack_grand(solution.enemy.user_id, [
-            self.get_hero_ids(attackers)
-            for attackers in solution.attackers
-        ])
+        return
+        result, quests = self.api.attack_grand(solution.enemy.user_id, get_teams_hero_ids(solution.attackers))
 
         # Collect results.
         result.log()
@@ -592,6 +584,6 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         heroes = self.naive_select_attackers(self.api.get_all_heroes(), count=constants.N_GRAND_HEROES)
         if len(heroes) < constants.N_GRAND_HEROES:
             raise TaskNotAvailable('not enough heroes')
-        hero_ids = self.get_hero_ids(heroes)
+        hero_ids = get_hero_ids(heroes)
         shuffle(hero_ids)
         self.api.set_grand_heroes([hero_ids[0:5], hero_ids[5:10], hero_ids[10:15]])

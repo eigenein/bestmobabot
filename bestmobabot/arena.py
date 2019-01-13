@@ -7,7 +7,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from functools import total_ordering
 from itertools import combinations, count, product
-from typing import Any, Callable, Dict, Iterable, List, Optional, TypeVar, MutableMapping
+from typing import Any, Callable, Dict, Iterable, List, MutableMapping, Optional, TypeVar
 
 import numpy
 from loguru import logger
@@ -18,6 +18,7 @@ from numpy.random import choice, permutation, randint
 
 from bestmobabot.constants import TEAM_SIZE
 from bestmobabot.dataclasses_ import BaseArenaEnemy, Hero, Team
+from bestmobabot.helpers import get_teams_hero_ids
 from bestmobabot.itertools_ import CountDown, secretary_max, slices
 from bestmobabot.model import Model
 
@@ -145,6 +146,7 @@ class ArenaSolver:
             if enemy.user is None:
                 logger.debug('Skipped empty user #{}.', enemy.user_id)
                 continue
+            self.store_enemy(enemy)
             if self.user_clan_id and enemy.user.is_from_clans((self.user_clan_id,)):
                 logger.info('Skipped enemy «{}» from your clan.', enemy.user.name)
                 continue
@@ -152,6 +154,14 @@ class ArenaSolver:
                 logger.info('Skipped enemy {}.', enemy.user)
                 continue
             yield enemy
+
+    def store_enemy(self, enemy: BaseArenaEnemy):
+        """
+        Store enemy teams and place to be able to guess their hidden teams in top-100.
+        """
+        enemy_key = f'arena:{self.n_required_teams}:{enemy.user.server_id}:{enemy.user_id}'
+        self.db[f'{enemy_key}:teams'] = get_teams_hero_ids(enemy.teams)
+        self.db[f'{enemy_key}:place'] = enemy.place
 
     def solve_enemy_cached(self, enemy: BaseArenaEnemy) -> ArenaSolution:
         """

@@ -8,6 +8,8 @@ from typing import Any, Iterable, Iterator, MutableMapping, Tuple, TypeVar
 
 from ujson import dumps, loads
 
+from loguru import logger
+
 T = TypeVar('T')
 
 
@@ -41,6 +43,7 @@ class Database(AbstractContextManager, MutableMapping[str, Any]):
             return bool(cursor.fetchone()[0])
 
     def __getitem__(self, key: str) -> Any:
+        logger.trace('get {}', key)
         with closing(self.connection.cursor()) as cursor:  # type: sqlite3.Cursor
             cursor.execute('SELECT value FROM `default` WHERE `key` = ?', (key,))
             row = cursor.fetchone()
@@ -49,6 +52,7 @@ class Database(AbstractContextManager, MutableMapping[str, Any]):
             return loads(row[0])
 
     def __setitem__(self, key: str, value: Any) -> None:
+        logger.trace('set {}', key)
         with closing(self.connection.cursor()) as cursor:  # type: sqlite3.Cursor
             cursor.execute('''
                 INSERT OR REPLACE INTO `default` (`key`, `value`)
