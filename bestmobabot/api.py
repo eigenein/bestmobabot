@@ -113,14 +113,21 @@ class API(contextlib.AbstractContextManager):
         self.session.__exit__(exc_type, exc_val, exc_tb)
 
     def start(self, invalidate_session: bool = False):
-        state: Dict[str, Any] = self.db.get_by_key(f'api:{self.remixsid}:state')
-        if not invalidate_session and state:
-            logger.info('Using saved credentials.')
-            self.user_id = state['user_id']
-            self.auth_token = state['auth_token']
-            self.session_id = state['session_id']
-            self.request_id = self.db.get_by_key(f'api:{self.remixsid}:request_id', default=0)
-            return
+        if not invalidate_session:
+            try:
+                state: Dict[str, Any] = self.db[f'api:{self.remixsid}:state']
+            except KeyError:
+                logger.info('Previously saved state is missing.')
+            else:
+                logger.info('Using saved credentials.')
+                self.user_id = state['user_id']
+                self.auth_token = state['auth_token']
+                self.session_id = state['session_id']
+                try:
+                    self.request_id = self.db[f'api:{self.remixsid}:request_id']
+                except KeyError:
+                    self.request_id = 0
+                return
 
         logger.info('Authenticating…')
         with requests.Session() as session:
@@ -149,11 +156,11 @@ class API(contextlib.AbstractContextManager):
         self.session_id = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(14))
         self.request_id = 0
 
-        self.db.set(f'api:{self.remixsid}:state', {
+        self.db[f'api:{self.remixsid}:state'] = {
             'user_id': self.user_id,
             'auth_token': self.auth_token,
             'session_id': self.session_id,
-        })
+        }
 
     def call(self, name: str, arguments: Optional[Dict[str, Any]] = None, random_sleep=True) -> Result:
         try:
@@ -166,7 +173,7 @@ class API(contextlib.AbstractContextManager):
 
     def _call(self, name: str, *, arguments: Optional[Dict[str, Any]] = None, random_sleep=True) -> Result:
         self.request_id += 1
-        self.db.set(f'api:{self.remixsid}:request_id', self.request_id)
+        self.db[f'api:{self.remixsid}:request_id'] = self.request_id
 
         # Emulate human behavior a little bit.
         sleep_time = random.uniform(5.0, 10.0) if random_sleep and self.request_id != 1 else 0.0

@@ -15,8 +15,8 @@ LIBRARY_URL = 'https://heroes.cdnvideo.ru/vk/v0463/lib/lib.json.gz'
 
 # Fundamental constants.
 TEAM_SIZE = 5  # heroes
-GRAND_TEAMS = 3
-GRAND_SIZE = GRAND_TEAMS * TEAM_SIZE  # heroes
+N_GRAND_TEAMS = 3
+N_GRAND_HEROES = N_GRAND_TEAMS * TEAM_SIZE  # heroes
 
 # Chests control.
 MAX_OPEN_ARTIFACT_CHESTS = 10

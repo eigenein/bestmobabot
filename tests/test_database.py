@@ -1,45 +1,38 @@
+import pytest
+
 from bestmobabot.database import Database
 
 
 def test_get_missing():
-    assert Database(':memory:').get_by_key('missing_key') is None
-
-
-def test_default():
-    assert Database(':memory:').get_by_key('missing_key', default=42) == 42
+    with pytest.raises(KeyError):
+        Database(':memory:').__getitem__('missing_key')
 
 
 def test_exists():
     db = Database(':memory:')
-    db.set('foo', 42)
-    assert db.exists('foo')
+    db['foo'] = 42
+    assert 'foo' in db
 
 
 def test_not_exists():
-    assert not Database(':memory:').exists('missing_key')
+    assert not 'missing_key' in Database(':memory:')
 
 
 def test_set():
     db = Database(':memory:')
-    db.set('foo', 42)
-    assert db.get_by_key('foo') == 42
+    db['foo'] = 42
+    assert db['foo'] == 42
 
 
 def test_set_replace():
     db = Database(':memory:')
-    db.set('foo', 42)
-    db.set('foo', 43)
-    assert db.get_by_key('foo') == 43
+    db['foo'] = 42
+    db['foo'] = 43
+    assert db['foo'] == 43
 
 
 def test_get_by_prefix():
     db = Database(':memory:')
-    db.set('foo:qux', 42)
-    db.set('foo:quux', 43)
+    db['foo:qux'] = 42
+    db['foo:quux'] = 43
     assert list(db.get_by_prefix('foo')) == [('foo:qux', 42), ('foo:quux', 43)]
-
-
-def test_custom_dumps_loads():
-    db = Database(':memory:')
-    db.set('foo', 'trololo', dumps=str)
-    assert db.get_by_key('foo', loads=str) == 'trololo'

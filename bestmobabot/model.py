@@ -1,4 +1,5 @@
 import pickle
+from base64 import b85encode
 from collections import defaultdict
 from itertools import chain, product
 from operator import itemgetter
@@ -65,7 +66,7 @@ class Trainer:
             logger.trace(f'Feature {column}: {importance:.7f}')
 
         logger.info('Saving model…')
-        self.db.set('bot:model', pickle.dumps(Model(estimator, list(x.columns))), dumps=bytes.hex)
+        self.db['bot:model'] = b85encode(pickle.dumps(Model(estimator, list(x.columns))))
 
         logger.info('Optimizing database…')
         self.db.vacuum()

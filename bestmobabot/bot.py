@@ -5,6 +5,7 @@ The bot logic.
 import contextlib
 import os
 import pickle
+from base64 import b85decode
 from datetime import datetime, timedelta
 from operator import attrgetter
 from random import choice, shuffle
@@ -54,19 +55,20 @@ class BotHelperMixin:
         Loads a predictive model from the database.
         """
         logger.info('Loading model…')
-        return self.db.get_by_key('bot:model', loads=lambda value: pickle.loads(bytes.fromhex(value)))
+        return pickle.loads(b85decode(self.db['bot:model']))
 
-    def check_arena(self, min_hero_count: int) -> Tuple[Model, List[Hero]]:
+    def check_arena(self, n_heroes: int) -> Tuple[Model, List[Hero]]:
         """
         Checks pre-conditions for arena.
         """
         model = self.get_model()
         if not model:
             raise TaskNotAvailable('model is not ready yet')
+        logger.trace('Model: {}.', model)
 
         heroes = self.api.get_all_heroes()
-        if len(heroes) < min_hero_count:
-            raise TaskNotAvailable('not enough heroes')
+        if len(heroes) < n_heroes:
+            raise TaskNotAvailable(f'not enough heroes: {n_heroes} needed, you have {len(heroes)}')
 
         self.user = self.api.get_user_info()  # refresh clan ID
         return model, heroes
@@ -343,6 +345,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
 
         # Pick an enemy and select attackers.
         solution = ArenaSolver(
+            db=self.db,
             model=model,
             user_clan_id=self.user.clan_id,
             heroes=heroes,
@@ -374,14 +377,15 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         Совершает бой на гранд арене.
         """
         logger.info('Attacking grand arena…')
-        model, heroes = self.check_arena(constants.GRAND_SIZE)
+        model, heroes = self.check_arena(constants.N_GRAND_HEROES)
 
         # Pick an enemy and select attackers.
         solution = ArenaSolver(
+            db=self.db,
             model=model,
             user_clan_id=self.user.clan_id,
             heroes=heroes,
-            n_required_teams=3,
+            n_required_teams=constants.N_GRAND_TEAMS,
             max_iterations=self.settings.bot.arena.grand_max_pages,
             n_keep_solutions=self.settings.bot.arena.grand_keep_solutions,
             n_generate_solutions=self.settings.bot.arena.grand_generate_solutions,
@@ -414,14 +418,14 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             *self.api.get_battle_by_type(BattleType.GRAND),
         ]
         for replay in replays:
-            if self.db.exists(f'replays:{replay.id}'):
+            if f'replays:{replay.id}' in self.db:
                 continue
-            self.db.set(f'replays:{replay.id}', {
+            self.db[f'replays:{replay.id}'] = {
                 'start_time': replay.start_time.timestamp(),
                 'win': replay.result.win,
                 'attackers': [hero.dict() for hero in replay.attackers.values()],
                 'defenders': [hero.dict() for defenders in replay.defenders for hero in defenders.values()],
-            })
+            }
             logger.info(f'Saved #{replay.id}.')
 
     def check_freebie(self):
@@ -432,14 +436,14 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         should_farm_mail = False
 
         for gift_id in self.vk.find_gifts():
-            if self.db.exists(f'gifts:{self.api.user_id}:{gift_id}'):
+            if f'gifts:{self.api.user_id}:{gift_id}' in self.db:
                 continue
             logger.info(f'Checking {gift_id}…')
             reward = self.api.check_freebie(gift_id)
             if reward is not None:
                 reward.log()
                 should_farm_mail = True
-            self.db.set(f'gifts:{self.api.user_id}:{gift_id}', True)
+            self.db[f'gifts:{self.api.user_id}:{gift_id}'] = True
 
         if should_farm_mail:
             self.farm_mail()
@@ -585,8 +589,8 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         Выставляет в защиту гранд-арены топ-15 героев в случайном порядке.
         """
         logger.info('Randomizing grand defenders…')
-        heroes = self.naive_select_attackers(self.api.get_all_heroes(), count=constants.GRAND_SIZE)
-        if len(heroes) < constants.GRAND_SIZE:
+        heroes = self.naive_select_attackers(self.api.get_all_heroes(), count=constants.N_GRAND_HEROES)
+        if len(heroes) < constants.N_GRAND_HEROES:
             raise TaskNotAvailable('not enough heroes')
         hero_ids = self.get_hero_ids(heroes)
         shuffle(hero_ids)

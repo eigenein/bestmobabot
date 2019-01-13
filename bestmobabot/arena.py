@@ -7,7 +7,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from functools import total_ordering
 from itertools import combinations, count, product
-from typing import Any, Callable, Dict, Iterable, List, Optional, TypeVar
+from typing import Any, Callable, Dict, Iterable, List, Optional, TypeVar, MutableMapping
 
 import numpy
 from loguru import logger
@@ -68,6 +68,7 @@ class ArenaSolver:
     def __init__(
         self,
         *,
+        db: MutableMapping[str, Any],
         model: Model,
         user_clan_id: Optional[str],
         heroes: List[Hero],
@@ -96,6 +97,7 @@ class ArenaSolver:
         :param reduce_probabilities: callable to combine probabilities from multiple battles into a final one.
         """
 
+        self.db = db
         self.model = model
         self.user_clan_id = user_clan_id
         self.heroes = heroes
