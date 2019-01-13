@@ -65,7 +65,7 @@ class Trainer:
             logger.trace(f'Feature {column}: {importance:.7f}')
 
         logger.info('Saving model…')
-        self.db.set('bot', 'model', pickle.dumps(Model(estimator, list(x.columns))), dumps=bytes.hex)
+        self.db.set('bot:model', pickle.dumps(Model(estimator, list(x.columns))), dumps=bytes.hex)
 
         logger.info('Optimizing database…')
         self.db.vacuum()
@@ -91,7 +91,7 @@ class Trainer:
 
     def read_battles(self) -> Iterable[Dict[str, Any]]:
         logger.info('Reading, sorting and selecting battles…')
-        values = [value for _, value in self.db.get_by_index('replays')]
+        values = [value for _, value in self.db.get_by_prefix('replays:')]
         values.sort(key=lambda value: value.get('start_time', 0.0))
         values = values[-self.n_last_battles:]
         return list(chain.from_iterable(self.parse_battles(value) for value in values))
@@ -145,7 +145,7 @@ class TTestSearchCV:
             logger.debug(f'Score: {score:.4f} with {params}.')
             if not self.is_better_score(score, scores):
                 continue
-            logger.info(f'Found significantly better score: {score:.4f}.')
+            logger.success(f'Found significantly better score: {score:.4f}.')
             self.best_params_ = params
             self.best_score_ = score
             self.best_scores_ = scores

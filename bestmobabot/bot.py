@@ -54,7 +54,7 @@ class BotHelperMixin:
         Loads a predictive model from the database.
         """
         logger.info('Loading model…')
-        return self.db.get_by_key('bot', 'model', loads=lambda value: pickle.loads(bytes.fromhex(value)))
+        return self.db.get_by_key('bot:model', loads=lambda value: pickle.loads(bytes.fromhex(value)))
 
     def check_arena(self, min_hero_count: int) -> Tuple[Model, List[Hero]]:
         """
@@ -414,9 +414,9 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             *self.api.get_battle_by_type(BattleType.GRAND),
         ]
         for replay in replays:
-            if self.db.exists('replays', replay.id):
+            if self.db.exists(f'replays:{replay.id}'):
                 continue
-            self.db.set('replays', replay.id, {
+            self.db.set(f'replays:{replay.id}', {
                 'start_time': replay.start_time.timestamp(),
                 'win': replay.result.win,
                 'attackers': [hero.dict() for hero in replay.attackers.values()],
@@ -432,14 +432,14 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         should_farm_mail = False
 
         for gift_id in self.vk.find_gifts():
-            if self.db.exists(f'gifts:{self.api.user_id}', gift_id):
+            if self.db.exists(f'gifts:{self.api.user_id}:{gift_id}'):
                 continue
             logger.info(f'Checking {gift_id}…')
             reward = self.api.check_freebie(gift_id)
             if reward is not None:
                 reward.log()
                 should_farm_mail = True
-            self.db.set(f'gifts:{self.api.user_id}', gift_id, True)
+            self.db.set(f'gifts:{self.api.user_id}:{gift_id}', True)
 
         if should_farm_mail:
             self.farm_mail()

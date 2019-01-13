@@ -1,3 +1,23 @@
+# `2.4b6`
+
+* Merge `index` and `key` columns in the database. Manual upgrade script:
+
+```bash
+litecli db.sqlite3
+```
+
+```sql
+CREATE TABLE `new` (
+    `key` TEXT PRIMARY KEY NOT NULL,
+    value TEXT,
+    modified_on DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+INSERT INTO `new` (`key`, value, modified_on) SELECT `index` || ':' || `key`, value, modified_on FROM `default`;
+DROP TABLE IF EXISTS `backup`;
+ALTER TABLE `default` RENAME TO `backup`;
+ALTER TABLE `new` RENAME TO `default`;
+```
+
 # `2.4b5`
 
 * **Hot fix for grand arena enemies at places under 100**

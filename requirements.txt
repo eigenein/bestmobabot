@@ -9,31 +9,37 @@ backcall==0.1.0           # via ipython
 better-exceptions-fork==0.2.1.post6  # via loguru
 certifi==2018.11.29       # via requests
 chardet==3.0.4            # via requests
+cli-helpers[styles]==1.1.0  # via litecli
 click==7.0
 colorama==0.4.1           # via ansimarkup, loguru
+configobj==5.0.6          # via cli-helpers, litecli
 decorator==4.3.0          # via ipython, traitlets
 idna==2.8                 # via requests
 ipython-genutils==0.2.0   # via traitlets
 ipython==7.2.0
 jedi==0.13.2              # via ipython
+litecli==1.0.0
 loguru==0.2.3
 numpy==1.15.4
 pandas==0.23.4
 parso==0.3.1              # via jedi
 pexpect==4.6.0            # via ipython
 pickleshare==0.7.5        # via ipython
-prompt-toolkit==2.0.7     # via ipython
+prompt-toolkit==2.0.7     # via ipython, litecli
 ptyprocess==0.6.0         # via pexpect
 pydantic[ujson]==0.17
-pygments==2.3.1           # via better-exceptions-fork, ipython
+pygments==2.3.1           # via better-exceptions-fork, cli-helpers, ipython, litecli
 python-dateutil==2.7.5    # via pandas
 pytz==2018.7              # via pandas
 pyyaml==3.13
 requests==2.21.0
 scikit-learn==0.20.2
 scipy==1.2.0
-six==1.12.0               # via prompt-toolkit, python-dateutil, traitlets
+six==1.12.0               # via configobj, prompt-toolkit, python-dateutil, traitlets
+sqlparse==0.2.4           # via litecli
+tabulate[widechars]==0.8.2  # via cli-helpers
+terminaltables==3.1.0     # via cli-helpers
 traitlets==4.3.2          # via ipython
 ujson==1.35
 urllib3==1.24.1           # via requests
-wcwidth==0.1.7            # via prompt-toolkit
+wcwidth==0.1.7            # via prompt-toolkit, tabulate
