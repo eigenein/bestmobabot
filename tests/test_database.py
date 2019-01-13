@@ -15,7 +15,7 @@ def test_exists():
 
 
 def test_not_exists():
-    assert not 'missing_key' in Database(':memory:')
+    assert 'missing_key' not in Database(':memory:')
 
 
 def test_set():
