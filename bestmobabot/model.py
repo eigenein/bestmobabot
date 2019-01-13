@@ -91,10 +91,12 @@ class Trainer:
         return search_cv.best_params_
 
     def read_battles(self) -> Iterable[Dict[str, Any]]:
-        logger.info('Reading, sorting and selecting battles…')
+        logger.info('Selecting battles…')
         values = [value for _, value in self.db.get_by_prefix('replays:')]
+        logger.info('Sorting battles…')
         values.sort(key=lambda value: value.get('start_time', 0.0))
         values = values[-self.n_last_battles:]
+        logger.info('Parsing battles…')
         return list(chain.from_iterable(self.parse_battles(value) for value in values))
 
     @staticmethod
