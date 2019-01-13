@@ -12,7 +12,7 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, TypeVar
 import numpy
 from loguru import logger
 # noinspection PyUnresolvedReferences
-from numpy import arange, fromiter, ndarray, vstack
+from numpy import arange, ndarray, vstack
 # noinspection PyUnresolvedReferences
 from numpy.random import choice, permutation, randint
 
