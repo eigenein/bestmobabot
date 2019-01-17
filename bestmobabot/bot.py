@@ -18,7 +18,7 @@ from bestmobabot import constants
 from bestmobabot.api import API, AlreadyError, InvalidResponseError, NotEnoughError, NotFoundError, OutOfRetargetDelta
 from bestmobabot.arena import ArenaSolver, reduce_grand_arena, reduce_normal_arena
 from bestmobabot.database import Database
-from bestmobabot.dataclasses_ import Hero, Mission, Quests, Replay, User
+from bestmobabot.dataclasses_ import Expedition, Hero, Mission, Quests, Replay, User
 from bestmobabot.enums import BattleType
 from bestmobabot.helpers import find_expedition_team, get_hero_ids, get_teams_hero_ids
 from bestmobabot.logging_ import log_rewards, logger
@@ -246,13 +246,12 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             if expedition.is_started and expedition.end_time < now:
                 self.api.farm_expedition(expedition.id).log()
 
-        return self.send_expeditions()  # farm expeditions once finished
+        return self.send_expeditions(expeditions)  # farm expeditions once finished
 
-    def send_expeditions(self) -> Optional[datetime]:
+    def send_expeditions(self, expeditions: List[Expedition]) -> Optional[datetime]:
         logger.info('Sending expeditions…')
 
         # Need to know which expeditions are already started.
-        expeditions = self.api.list_expeditions()
         started_expeditions = [expedition for expedition in expeditions if expedition.is_started]
         logger.info('{} expeditions in progress.', len(started_expeditions))
         next_run_at = min([expedition.end_time for expedition in started_expeditions], default=None)
