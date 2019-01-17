@@ -18,7 +18,6 @@ from numpy.random import choice, permutation, randint
 
 from bestmobabot.constants import TEAM_SIZE
 from bestmobabot.dataclasses_ import BaseArenaEnemy, Hero, Team
-from bestmobabot.helpers import get_teams_hero_ids
 from bestmobabot.itertools_ import CountDown, secretary_max, slices
 from bestmobabot.model import Model
 
@@ -157,10 +156,10 @@ class ArenaSolver:
 
     def store_enemy(self, enemy: BaseArenaEnemy):
         """
-        Store enemy teams and place to be able to guess their hidden teams in top-100.
+        Store enemy teams and place to be able to guess their hidden teams in Top 100.
         """
         enemy_key = f'arena:{self.n_required_teams}:{enemy.user.server_id}:{enemy.user_id}'
-        self.db[f'{enemy_key}:teams'] = get_teams_hero_ids(enemy.teams)
+        self.db[f'{enemy_key}:teams'] = [[hero.dict() for hero in team] for team in enemy.teams]
         self.db[f'{enemy_key}:place'] = enemy.place
 
     def solve_enemy_cached(self, enemy: BaseArenaEnemy) -> ArenaSolution:
