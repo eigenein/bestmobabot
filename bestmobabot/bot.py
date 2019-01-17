@@ -20,7 +20,7 @@ from bestmobabot.arena import ArenaSolver, reduce_grand_arena, reduce_normal_are
 from bestmobabot.database import Database
 from bestmobabot.dataclasses_ import Hero, Mission, Quests, Replay, User
 from bestmobabot.enums import BattleType
-from bestmobabot.helpers import get_hero_ids, get_teams_hero_ids
+from bestmobabot.helpers import find_expedition_team, get_hero_ids, get_teams_hero_ids
 from bestmobabot.logging_ import log_rewards, logger
 from bestmobabot.model import Model
 from bestmobabot.resources import get_heroic_mission_ids, mission_name, shop_name
@@ -246,38 +246,53 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             if expedition.is_started and expedition.end_time < now:
                 self.api.farm_expedition(expedition.id).log()
 
-        return self.send_expedition()  # farm expeditions once finished
+        return self.send_expeditions()  # farm expeditions once finished
 
-    def send_expedition(self) -> Optional[datetime]:
-        logger.info('Sending an expedition…')
+    def send_expeditions(self) -> Optional[datetime]:
+        logger.info('Sending expeditions…')
 
-        # Check started expeditions.
+        # Need to know which expeditions are already started.
         expeditions = self.api.list_expeditions()
-        for expedition in expeditions:
-            if expedition.is_started:
-                logger.info(f'Started expedition ends at {expedition.end_time}.')
-                return expedition.end_time
+        started_expeditions = [expedition for expedition in expeditions if expedition.is_started]
+        logger.debug('{} expeditions in progress.', len(started_expeditions))
+        next_run_at = min([expedition.end_time for expedition in started_expeditions], default=None)
+        logger.debug('The earliest expedition finishes at {}.', next_run_at)
 
-        # Choose the most powerful available heroes.
-        heroes = self.naive_select_attackers(self.api.get_all_heroes())
-        team_power = sum(hero.power for hero in heroes)
+        # Select available heroes.
+        busy_ids = {hero_id for expedition in started_expeditions for hero_id in expedition.hero_ids}
+        logger.debug('Busy heroes: {}.', busy_ids)
+        heroes: Dict[str, Hero] = {hero.id: hero for hero in self.api.get_all_heroes() if hero.id not in busy_ids}
+        logger.debug('{} heroes are still available.', len(heroes))
 
-        # Find available expeditions.
-        expeditions = [
-            expedition
-            for expedition in expeditions
-            if expedition.is_available and expedition.power <= team_power
-        ]
-        if not expeditions:
-            logger.info('No expeditions available.')
-            return None
-        expedition = min(expeditions, key=attrgetter('duration'))  # choose the fastest expedition
+        # Let's see which expeditions are available.
+        available_expeditions = [expedition for expedition in expeditions if expedition.is_available]
 
-        # Send the expedition.
-        end_time, quests = self.api.send_expedition_heroes(expedition.id, get_hero_ids(heroes))
-        logger.info(f'The expedition ends at {end_time}.')
-        self.farm_quests(quests)
-        return end_time
+        while available_expeditions:
+            logger.debug('{} expeditions are still available.', len(available_expeditions))
+
+            # Choose the least powerful expedition.
+            expedition, *available_expeditions = sorted(available_expeditions, key=attrgetter('power'))
+            logger.info('The optimal expedition power is {}.', expedition.power)
+
+            # Choose the least powerful appropriate team.
+            team = find_expedition_team(heroes.values(), expedition.power)
+            if team is None:
+                logger.info('Could not find powerful enough team.')
+                break
+
+            # Send the expedition.
+            end_time, quests = self.api.send_expedition_heroes(expedition.id, get_hero_ids(team))
+            self.farm_quests(quests)
+
+            # Exclude the busy heroes.
+            for hero in team:
+                del heroes[hero.id]
+
+            # We should farm the earliest finished expedition.
+            if next_run_at is None or end_time < next_run_at:
+                next_run_at = end_time
+
+        return next_run_at
 
     def farm_quests(self, quests: Quests = None):
         """

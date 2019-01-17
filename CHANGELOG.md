@@ -1,3 +1,7 @@
+# `latest`
+
+* **Send multiple expeditions at once**
+
 # `2.4b9`
 
 * Fix storing arena enemies in the database
