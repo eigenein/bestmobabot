@@ -1,10 +1,11 @@
+#!/usr/bin/env python
 from __future__ import annotations
 
 import setuptools
 
 setuptools.setup(
     name='bestmobabot',
-    version='2.4b9',
+    version='2.4b10',
     author='Pavel Perestoronin',
     author_email='eigenein@gmail.com',
     description='Hero Wars game bot 🏆',

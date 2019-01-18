@@ -1,4 +1,4 @@
-# `latest`
+# `2.4b10`
 
 * **Send multiple expeditions at once**
 
