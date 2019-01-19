@@ -1,6 +1,7 @@
 # `latest`
 
 * fix: improve logging for `send_expeditions`
+* feat: set `PYTHONOPTIMIZE=2` for the Python interpreter
 
 # `2.4b10`
 
