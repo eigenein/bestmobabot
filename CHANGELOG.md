@@ -1,3 +1,7 @@
+# `latest`
+
+* fix: improve logging for `send_expeditions`
+
 # `2.4b10`
 
 * **Send multiple expeditions at once**

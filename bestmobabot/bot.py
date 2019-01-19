@@ -256,7 +256,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         started_expeditions = [expedition for expedition in expeditions if expedition.is_started]
         logger.info('{} expeditions in progress.', len(started_expeditions))
         next_run_at = min([expedition.end_time for expedition in started_expeditions], default=None)
-        logger.info('The earliest expedition finishes at {}.', next_run_at)
+        logger.info('The earliest expedition finishes at {}.', next_run_at.astimezone())
 
         # Select available heroes.
         busy_ids = {hero_id for expedition in started_expeditions for hero_id in expedition.hero_ids}
@@ -266,10 +266,9 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
 
         # Let's see which expeditions are available.
         available_expeditions = [expedition for expedition in expeditions if expedition.is_available]
+        logger.info('{} expeditions are still available.', len(available_expeditions))
 
         while available_expeditions:
-            logger.info('{} expeditions are still available.', len(available_expeditions))
-
             # Choose the least powerful expedition.
             expedition, *available_expeditions = sorted(available_expeditions, key=attrgetter('power'))
             logger.info('The optimal expedition power is {}.', expedition.power)
