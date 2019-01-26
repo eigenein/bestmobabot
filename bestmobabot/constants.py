@@ -47,7 +47,7 @@ SHOP_IDS = ('1', '4', '5', '6', '8', '9', '10', '11')
 
 # Logging.
 LOGURU_FORMAT = ' '.join((
-    '<green>{time:DD-MM HH:mm:ss}</green>',
+    '<green>{time:MMM DD HH:mm:ss}</green>',
     '<cyan>({name}:{line})</cyan>',
     '<level>[{level:.1}]</level>',
     '<level>{message}</level>',

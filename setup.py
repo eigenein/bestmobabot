@@ -29,7 +29,6 @@ setuptools.setup(
         'ipython',
         'ujson',
         'loguru',
-        'litecli',
     ],
     tests_require=['pytest'],
     extras_require={},
