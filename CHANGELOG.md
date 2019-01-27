@@ -1,3 +1,7 @@
+# `latest`
+
+- Fix critical error in `send_expeditions` 
+
 # `2.4b11`
 
 * fix: improve logging for `send_expeditions`

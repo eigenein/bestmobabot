@@ -256,7 +256,8 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         started_expeditions = [expedition for expedition in expeditions if expedition.is_started]
         logger.info('{} expeditions in progress.', len(started_expeditions))
         next_run_at = min([expedition.end_time for expedition in started_expeditions], default=None)
-        logger.info('The earliest expedition finishes at {}.', next_run_at.astimezone())
+        if next_run_at:
+            logger.info('The earliest expedition finishes at {}.', next_run_at.astimezone())
 
         # Select available heroes.
         busy_ids = {hero_id for expedition in started_expeditions for hero_id in expedition.hero_ids}
