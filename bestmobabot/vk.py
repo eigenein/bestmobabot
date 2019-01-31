@@ -9,6 +9,7 @@ from typing import Iterable
 import requests
 from loguru import logger
 
+from bestmobabot import constants
 from bestmobabot.settings import Settings
 
 
@@ -23,7 +24,7 @@ class VK(contextlib.AbstractContextManager):
             'access_token': settings.vk.access_token,
             'owner_id': '-116039030',
             'count': '5',
-            'v': '5.69',
+            'v': '5.92',
         }
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -32,7 +33,7 @@ class VK(contextlib.AbstractContextManager):
     def find_gifts(self) -> Iterable[str]:
         logger.info('Checking VK.com gifts…')
 
-        with self.session.get(self.URL, params=self.params) as response:
+        with self.session.get(self.URL, params=self.params, timeout=constants.API_TIMEOUT) as response:
             response.raise_for_status()
             payload = response.json()
 
