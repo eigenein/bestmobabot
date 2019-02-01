@@ -200,11 +200,11 @@ class ArenaSolver:
             range(n_attackers, n_heroes),  # fake group to keep unused heroes in
         ]
         logger.trace('{} hero groups.', len(groups))
-        swaps = vstack(
+        swaps = vstack([
             swap_permutation(n_heroes, i, j)  # swap these two heroes
             for group_1, group_2 in combinations(groups, 2)  # select two groups to interchange heroes in
             for i, j in product(group_1, group_2)  # select particular indexes to interchange
-        )
+        ])
         logger.trace('Swaps shape: {}.', swaps.shape)
 
         # Let's evolve.
@@ -279,7 +279,7 @@ class ArenaSolver:
         """
         Make team features 2D-array. Shape is number of heroes × number of features.
         """
-        return vstack(self.make_hero_features(hero) for hero in team)
+        return vstack([self.make_hero_features(hero) for hero in team])
 
 
 # Utilities.
