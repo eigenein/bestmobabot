@@ -132,7 +132,12 @@ class API(contextlib.AbstractContextManager):
         logger.info('Authenticating…')
         with requests.Session() as session:
             logger.debug('Loading game page on VK.com…')
-            with session.get(API.GAME_URL, cookies={'remixsid': self.remixsid}) as response:
+            with session.get(
+                API.GAME_URL,
+                cookies={'remixsid': self.remixsid},
+                timeout=constants.API_TIMEOUT,
+            ) as response:
+                logger.info('Status: {}.', response.status_code)
                 response.raise_for_status()
                 app_page = response.text
 
@@ -144,7 +149,8 @@ class API(contextlib.AbstractContextManager):
 
             # Load the proxy page and look for Hero Wars authentication token.
             logger.debug('Authenticating in Hero Wars…')
-            with session.get(API.IFRAME_URL, params=params) as response:
+            with session.get(API.IFRAME_URL, params=params, timeout=constants.API_TIMEOUT) as response:
+                logger.info('Status: {}.', response.status_code)
                 response.raise_for_status()
                 iframe_new = response.text
             match = re.search(r'auth_key=([a-zA-Z0-9.\-]+)', iframe_new)

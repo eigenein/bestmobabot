@@ -34,6 +34,7 @@ class VK(contextlib.AbstractContextManager):
         logger.info('Checking VK.com gifts…')
 
         with self.session.get(self.URL, params=self.params, timeout=constants.API_TIMEOUT) as response:
+            logger.info('Status: {}.', response.status_code)
             response.raise_for_status()
             payload = response.json()
 
