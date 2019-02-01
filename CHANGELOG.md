@@ -5,6 +5,7 @@
 - Upgrade `numpy`
 - Fix `numpy` warning
 - Upgrade `pandas`
+- Update `User-Agent`
 
 # `2.4b11`
 
