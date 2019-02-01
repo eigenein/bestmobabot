@@ -206,6 +206,7 @@ class API(contextlib.AbstractContextManager):
         # They return errors in a bunch of different ways. 🤦
 
         with self.session.post(self.API_URL, data=data, headers=headers, timeout=constants.API_TIMEOUT) as response:
+            logger.info(f'Done #{self.request_id} {name}({arguments or {}}).')
             self.last_responses.append(response.text.strip())
             response.raise_for_status()
             try:
