@@ -17,7 +17,7 @@ ipython-genutils==0.2.0   # via traitlets
 ipython==7.2.0
 jedi==0.13.2              # via ipython
 loguru==0.2.5
-numpy==1.15.4
+numpy==1.16.1
 pandas==0.23.4
 parso==0.3.1              # via jedi
 pexpect==4.6.0            # via ipython
