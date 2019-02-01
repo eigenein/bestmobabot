@@ -225,10 +225,10 @@ class ArenaSolver:
 
             # Predict probabilities.
             # Call to `predict_proba` is expensive, thus call it for all the teams at once. Stack and split.
-            x = vstack(
+            x = vstack([
                 hero_features[self.solutions[:, selector]].sum(axis=1) - defender_features
                 for selector, defender_features in zip(team_selectors, defenders_features)
-            )
+            ])
             ys = numpy.split(self.model.estimator.predict_proba(x)[:, 1], n_actual_teams)
 
             # Convert individual battle probabilities to the final arena battle probabilities.

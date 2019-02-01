@@ -2,6 +2,8 @@
 
 - Fix critical error in `send_expeditions`
 - Set timeout on VK.com API
+- Upgrade `numpy`
+- Fix `numpy` warning
 
 # `2.4b11`
 
