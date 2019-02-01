@@ -119,7 +119,7 @@ class ArenaSolver:
 
     def solve(self) -> ArenaSolution:
         logger.debug('Generating initial solutions…')
-        self.solutions = vstack(permutation(len(self.heroes)) for _ in range(self.n_keep_solutions))
+        self.solutions = vstack([permutation(len(self.heroes)) for _ in range(self.n_keep_solutions)])
         return secretary_max(self.yield_solutions(), self.max_iterations, early_stop=self.early_stop)
 
     def yield_solutions(self) -> Iterable[ArenaSolution]:
