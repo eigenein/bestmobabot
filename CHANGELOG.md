@@ -4,6 +4,7 @@
 - Set timeout on VK.com API
 - Upgrade `numpy`
 - Fix `numpy` warning
+- Upgrade `pandas`
 
 # `2.4b11`
 
