@@ -15,6 +15,7 @@ import requests
 from loguru import logger
 
 import bestmobabot.dataclasses_
+from bestmobabot import constants
 from bestmobabot.constants import LOGURU_FORMAT, VERBOSITY_LEVELS
 from bestmobabot.settings import TelegramSettings
 
@@ -43,7 +44,7 @@ class TelegramHandler(logging.Handler):
                 'text': f'*{self.user_name}*:\n\n`{os.linesep.join(self.messages).rstrip()}`',
                 'parse_mode': 'Markdown',
                 'disable_notification': True,
-            })
+            }, timeout=constants.API_TIMEOUT)
         self.last_emit_time = time()
         self.messages.clear()
 
