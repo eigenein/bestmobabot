@@ -15,7 +15,7 @@ from bestmobabot.settings import Settings
 
 class VK(contextlib.AbstractContextManager):
     URL = 'https://api.vk.com/method/wall.get'
-    GIFT_RE = re.compile(r'gift_id=(\w+)')
+    GIFT_ID_RE = re.compile(r'gift_id=(\w+)')
     VK_CC_RE = re.compile(r'https://vk.cc/\w+')
 
     def __init__(self, settings: Settings):
@@ -34,16 +34,17 @@ class VK(contextlib.AbstractContextManager):
         logger.info('Checking VK.com gifts…')
 
         with self.session.get(self.URL, params=self.params, timeout=constants.API_TIMEOUT) as response:
-            logger.info('Status: {}.', response.status_code)
+            logger.info('Get wall: {}.', response.status_code)
             response.raise_for_status()
             payload = response.json()
 
         for item in payload['response']['items']:
-            yield from self.GIFT_RE.findall(item['text'])
+            yield from self.GIFT_ID_RE.findall(item['text'])
             for url in self.VK_CC_RE.findall(item['text']):
-                # HEAD is not supported by VK.com.
-                with self.session.get(url, stream=True) as response:
-                    yield from self.GIFT_RE.findall(response.url)
+                # HEAD is not supported by VK.com. Use streaming to obtain just the headers.
+                with self.session.get(url, stream=True, timeout=constants.API_TIMEOUT) as response:
+                    logger.info('Get {}: {}.', url, response.status_code)
+                    yield from self.GIFT_ID_RE.findall(response.url)
             for attachment in item['attachments']:
                 if attachment['type'] == 'link':
-                    yield from self.GIFT_RE.findall(attachment['link']['url'])
+                    yield from self.GIFT_ID_RE.findall(attachment['link']['url'])

@@ -43,7 +43,7 @@ def send_event(*, category: str, action: str, user_id: str):
             'ni': '1',
             'cd1': get_version(),
             'cd2': get_ip(),
-        }) as response:
+        }, timeout=constants.API_TIMEOUT) as response:
             response.raise_for_status()
     except requests.RequestException as ex:
         logger.warning('😱 Failed to send the event.', exc_info=ex)
