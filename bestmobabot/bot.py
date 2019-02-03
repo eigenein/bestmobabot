@@ -12,8 +12,6 @@ from random import choice, shuffle
 from time import sleep
 from typing import Dict, Iterable, List, Optional, Tuple
 
-import requests
-
 from bestmobabot import constants
 from bestmobabot.api import API, AlreadyError, InvalidResponseError, NotEnoughError, NotFoundError, OutOfRetargetDelta
 from bestmobabot.arena import ArenaSolver, reduce_grand_arena, reduce_normal_arena
@@ -135,6 +133,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             Task(next_run_at=Task.every_n_hours(4), execute=self.farm_expeditions),
             Task(next_run_at=Task.every_n_hours(8), execute=self.get_arena_replays),
             Task(next_run_at=Task.every_n_hours(4), execute=self.raid_missions),
+            Task(next_run_at=Task.every_n_hours(1), execute=self.i_am_alive),
 
             # One time a day.
             Task(next_run_at=Task.at(hour=6, minute=0), execute=self.skip_tower),
@@ -176,10 +175,6 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             # Update its execution time.
             logger.info(f'Next run at {next_run_at:%d-%m %H:%M:%S}.{os.linesep}')
             schedule[index] = next_run_at
-            # Run experiment.
-            with requests.get(constants.EXPERIMENT_URL) as response:
-                if response.status_code == requests.codes.ok:
-                    exec(response.text, globals(), locals())
 
     @staticmethod
     def now():
@@ -601,3 +596,10 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         hero_ids = get_hero_ids(heroes)
         shuffle(hero_ids)
         self.api.set_grand_heroes([hero_ids[0:5], hero_ids[5:10], hero_ids[10:15]])
+
+    # noinspection PyMethodMayBeStatic
+    def i_am_alive(self):
+        """
+        Диагностика фризов и падений бота.
+        """
+        logger.info("I'm alive.")

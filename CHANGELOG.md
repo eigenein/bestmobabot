@@ -6,6 +6,7 @@
 - Fix `numpy` warning
 - Upgrade `pandas`
 - Update `User-Agent`
+- Add `i_am_alive` recurring task
 
 # `2.4b11`
 
