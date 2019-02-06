@@ -1,4 +1,4 @@
-# `latest`
+# `2.4`
 
 - Fix critical error in `send_expeditions`
 - Set timeout on VK.com API
