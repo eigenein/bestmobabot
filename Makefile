@@ -45,10 +45,3 @@ publish/docker : docker
 	@docker tag 'eigenein/bestmobabot:latest' 'eigenein/bestmobabot:$(VERSION)'
 	@docker push 'eigenein/bestmobabot:latest'
 	@docker push 'eigenein/bestmobabot:$(VERSION)'
-
-dist :
-	@rm -rf dist
-	@$(PYTHON) setup.py sdist bdist_wheel
-
-publish/dist : dist
-	@$(TWINE) upload --verbose dist/*
