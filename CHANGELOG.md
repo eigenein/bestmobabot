@@ -1,3 +1,7 @@
+# `latest`
+
+- Update resource URLs and API request headers
+
 # `2.4`
 
 - Fix critical error in `send_expeditions`

@@ -8,7 +8,7 @@ import random
 import re
 import string
 from datetime import datetime
-from time import sleep
+from time import sleep, time
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, TypeVar
 
 import requests
@@ -201,8 +201,8 @@ class API(contextlib.AbstractContextManager):
             'X-Env-Library-Version': '1',
             'X-Env-Referrer': 'unknown',
             'X-Request-Id': str(self.request_id),
-            'X-Requested-With': 'ShockwaveFlash / 28.0.0.126',
-            'X-Server-Time': '0',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-Server-Time': f'{time():.3f}',
         }
         if self.request_id == 1:
             headers['X-Auth-Session-Init'] = '1'
