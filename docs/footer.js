@@ -1,4 +1,4 @@
-(function(h) {
+(function (h) {
     var response = {
         "userId": "833061",
         "typeId": -1000553,
@@ -199,16 +199,15 @@
     };
 
     console.debug('Get classes.');
+    var Bytes = h['haxe.io.Bytes']; // `ib`
     var BattleInstantPlay = h['game.battle.controller.instant.BattleInstantPlay']; // `vq`
     var BattlePresets = h['game.battle.controller.thread.BattlePresets']; // `sj`
     var DataStorage = h['game.data.storage.DataStorage'];  // `v`
-    var AssetLoader = h['engine.core.assets.AssetLoader']; // `uk`
     var AssetStorage = h['game.assets.storage.AssetStorage']; // `r`
-    var BattleCodeAsset = h['game.assets.battle.BattleCodeAsset']; // `rq`
-    
-    AssetStorage.instance = new AssetStorage();
-    AssetStorage.globalLoader = new AssetLoader();
+
+    console.debug('Load skills.sc.');
     AssetStorage.battle = new h['game.assets.storage.BattleAssetStorage'];
+    AssetStorage.battle.loadEncodedCode(new Bytes(Array.from(fs.readFileSync('skills.sc'))));
     
     h.JsPakoCompression.init();
     pako = module.exports;
@@ -220,18 +219,15 @@
     var presets = new BattlePresets(false, false, true, DataStorage.battleConfig.get_titan(), false);
     var play = new BattleInstantPlay(response, presets);
 
-    console.debug('Request asset.');
-    AssetStorage.globalLoader.requestAsset(new BattleCodeAsset(play.battleData));
-
     console.debug('Execute battle.');
     play.executeBattle();
-    console.debug(play.battleData.defenders.heroes[0].state.hp);
-    
+
     console.debug('Create result.');
     play.createResult();
     var result = play.get_result();
 
     console.debug('Get result.');
+    console.debug(result.progressData);
     console.debug(JSON.stringify(result.get_result()));
     console.debug(JSON.stringify(result.get_progress()));
 })(window.h)
