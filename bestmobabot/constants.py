@@ -2,6 +2,7 @@ from typing import Dict
 
 # General.
 API_TIMEOUT = 10.0
+NODEJS_TIMEOUT = 10
 DATABASE_NAME = 'db.sqlite3'
 ANALYTICS_URL = 'https://www.google-analytics.com/collect'
 ANALYTICS_TID = 'UA-65034198-7'
@@ -12,7 +13,9 @@ USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36
 # FIXME: dynamically find out the latest server version. Or at least make configurable.
 # FIXME: they're moving to JavaScript with `?js=1`.
 TRANSLATIONS_URL = 'https://heroes.cdnvideo.ru/vk/v0479/locale/ru.json.gz'
-LIBRARY_URL = 'https://heroes.cdnvideo.ru/vk/v0479/lib/lib.json.gz'
+LIBRARY_URL = 'https://heroes.cdnvideo.ru/vk/v0481/lib/lib.json.gz'
+HEROES_JS_URL = 'https://heroes.cdnvideo.ru/vk/v0481/assets/heroes.js'
+SKILLS_SC_URL = 'https://heroes.cdnvideo.ru/vk/v0481/assets/hx/skills.sc?js=1'
 
 # Fundamental constants.
 TEAM_SIZE = 5  # heroes

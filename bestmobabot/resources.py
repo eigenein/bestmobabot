@@ -16,12 +16,17 @@ from bestmobabot import constants, dataclasses_
 
 
 @lru_cache(maxsize=None)
-def get_resource(url: str) -> str:
+def get_resource(url: str, decompress: bool = True, decode: bool = True) -> [str, bytes]:
     logger.info('Loading {}…', url)
     with requests.get(url) as response:
         logger.trace('Status: {}.', response.status_code)
         response.raise_for_status()
-        return gzip.decompress(response.content).decode()
+        content: bytes = response.content
+        if decompress:
+            content: bytes = gzip.decompress(content)
+        if decode:
+            content: str = content.decode()
+        return content
 
 
 def get_translations() -> Dict[str, str]:
@@ -31,6 +36,19 @@ def get_translations() -> Dict[str, str]:
 @lru_cache(maxsize=None)
 def get_library() -> dataclasses_.Library:
     return dataclasses_.Library.parse_raw(get_resource(constants.LIBRARY_URL))
+
+
+@lru_cache(maxsize=None)
+def get_heroes_js() -> str:
+    return get_resource(
+        constants.HEROES_JS_URL,
+        decompress=False,
+    ).replace('h.AS3=L;', 'h.AS3=L;window.h=h;', 1)
+
+
+@lru_cache(maxsize=None)
+def get_skills_sc() -> str:
+    return json.dumps(list(get_resource(constants.SKILLS_SC_URL, decompress=False, decode=False)))
 
 
 def hero_name(hero_id: str) -> str:

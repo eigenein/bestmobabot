@@ -31,11 +31,12 @@
     play.executeBattle();
 
     console.debug('Create result.');
-    BattleLog.m.bytes.getEncodedString = function() { return this.bytes }; // This freezes.
+    BattleLog.m.bytes.getEncodedString = function() { return this.bytes }; // Avoid infinite loop in Pako.
     play.createResult();
     var result = play.get_result();
 
-    console.debug('Get result.');
-    console.debug(result.get_result());
-    console.debug(result.get_progress());
+    console.log({
+        result: result.get_result(),
+        progress: result.get_progress(),
+    });
 })(window.h)

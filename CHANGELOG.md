@@ -1,6 +1,7 @@
 # `latest`
 
 - Update resource URLs and API request headers
+- `heroes.js` interface
 
 # `2.4`
 
