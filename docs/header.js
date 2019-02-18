@@ -3,14 +3,22 @@
 
 const { performance } = require('perf_hooks');
 
-window = function() {
-    return window;
-}
+var window = {
+    document: {
+        createElement: function() {
+            return {
+                getContext: function() {
+                    return {
+                        fillRect: function() {},
+                    };
+                },
+            };
+        },
+    },
+    navigator: {
+        userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.81 Safari/537.36',
+    },
+    performance: performance,
+};
 
-window.document = window;
-window.navigator = window;
-window.performance = performance;
-window.createElement = window;
-window.getContext = window;
-window.fillRect = window;
-window.userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.81 Safari/537.36';
+var fs = require('fs');
