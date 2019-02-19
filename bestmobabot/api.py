@@ -183,7 +183,7 @@ class API(contextlib.AbstractContextManager):
 
         # Emulate human behavior a little bit.
         sleep_time = random.uniform(5.0, 10.0) if random_sleep and self.request_id != 1 else 0.0
-        logger.info(f'#{self.request_id} {name}({arguments or {}}) in {sleep_time:.1f} seconds…')
+        logger.info(f'#{self.request_id}: {name}({arguments or {}}) in {sleep_time:.1f} seconds…')
         sleep(sleep_time)
 
         send_event(category='api', action=name, user_id=self.user_id)
@@ -439,6 +439,12 @@ class API(contextlib.AbstractContextManager):
 
     def next_tower_chest(self) -> Tower:
         return Tower.parse_obj(self.call('towerNextChest').response)
+
+    def start_tower_battle(self, hero_ids: Iterable[str]) -> Any:
+        return self.call('towerStartBattle', {'heroes': hero_ids}).response
+
+    def end_tower_battle(self, arguments: Dict[str, Any]) -> Reward:
+        return Reward.parse_obj(self.call('towerEndBattle', arguments).response['reward'])
 
     # Offers.
     # ------------------------------------------------------------------------------------------------------------------

@@ -1,5 +1,6 @@
 # `latest`
 
+- **Automatic tower**
 - Update resource URLs and API request headers
 - `heroes.js` interface
 - Vendored game resources

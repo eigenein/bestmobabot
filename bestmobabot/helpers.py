@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from itertools import combinations
+from operator import attrgetter
 from typing import Generic, Iterable, List, Optional, Sequence, TypeVar
 
 from bestmobabot import constants
@@ -26,6 +27,13 @@ def get_teams_hero_ids(teams: Iterable[Iterable[Hero]]) -> List[List[str]]:
 
 def get_team_power(team: Iterable[Hero]) -> int:
     return sum(hero.power for hero in team)
+
+
+def naive_select_attackers(heroes: Iterable[Hero], count: int = constants.TEAM_SIZE) -> List[Hero]:
+    """
+    Selects the most powerful heroes.
+    """
+    return sorted(heroes, key=attrgetter('power'), reverse=True)[:count]
 
 
 def find_expedition_team(heroes: Iterable[Hero], min_power: int) -> Optional[Sequence[Hero]]:

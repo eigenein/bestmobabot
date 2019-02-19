@@ -17,8 +17,9 @@ from bestmobabot.api import API, AlreadyError, InvalidResponseError, NotEnoughEr
 from bestmobabot.arena import ArenaSolver, reduce_grand_arena, reduce_normal_arena
 from bestmobabot.database import Database
 from bestmobabot.dataclasses_ import Hero, Mission, Quests, Replay, User
-from bestmobabot.enums import BattleType
-from bestmobabot.helpers import find_expedition_team, get_hero_ids, get_teams_hero_ids
+from bestmobabot.enums import BattleType, HeroesJSMode
+from bestmobabot.helpers import find_expedition_team, get_hero_ids, get_teams_hero_ids, naive_select_attackers
+from bestmobabot.jsapi import execute_battles
 from bestmobabot.logging_ import log_rewards, logger
 from bestmobabot.model import Model
 from bestmobabot.resources import get_heroic_mission_ids, mission_name, shop_name
@@ -37,13 +38,6 @@ class BotHelperMixin:
     db: Database
     api: API
     settings: Settings
-
-    @staticmethod
-    def naive_select_attackers(heroes: Iterable[Hero], count: int = constants.TEAM_SIZE) -> List[Hero]:
-        """
-        Selects the most powerful heroes.
-        """
-        return sorted(heroes, key=attrgetter('power'), reverse=True)[:count]
 
     def get_model(self) -> Optional[Model]:
         """
@@ -507,19 +501,31 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         """
         logger.info('Skipping the tower…')
         tower = self.api.get_tower_info()
+        heroes: List[str] = []
 
-        while tower.may_full_skip or tower.floor_number <= tower.may_skip_floor or not tower.is_battle:
+        while tower.floor_number <= 50:
             logger.info(f'Floor #{tower.floor_number}: {tower.floor_type}.')
             if tower.is_battle:
                 if tower.may_full_skip:
                     tower = self.api.next_tower_chest()
-                else:
+                elif tower.floor_number <= tower.may_skip_floor:
                     tower, reward = self.api.skip_tower_floor()
                     reward.log()
+                else:
+                    heroes = heroes or get_hero_ids(naive_select_attackers(self.api.get_all_heroes(), count=constants.TEAM_SIZE))
+                    battle_data = self.api.start_tower_battle(heroes)
+                    response, = execute_battles([battle_data], HeroesJSMode.TOWER)
+                    if response['result']['stars'] == constants.RAID_N_STARS:
+                        self.api.end_tower_battle(response).log()
+                        tower = self.api.next_tower_floor()
+                    else:
+                        logger.warning('Battle result: {}.', response['result'])
+                        break
             elif tower.is_chest:
                 reward, _ = self.api.open_tower_chest(choice([0, 1, 2]))
                 reward.log()
-                if tower.floor_number >= 50:  # FIXME: correct way to test for the last floor?
+                if tower.floor_number == 50:
+                    logger.success('Finished. It was the top floor.')
                     break
                 if tower.may_full_skip:
                     tower = self.api.next_tower_chest()
@@ -590,7 +596,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         Выставляет в защиту гранд-арены топ-15 героев в случайном порядке.
         """
         logger.info('Randomizing grand defenders…')
-        heroes = self.naive_select_attackers(self.api.get_all_heroes(), count=constants.N_GRAND_HEROES)
+        heroes = naive_select_attackers(self.api.get_all_heroes(), count=constants.N_GRAND_HEROES)
         if len(heroes) < constants.N_GRAND_HEROES:
             raise TaskNotAvailable('not enough heroes')
         hero_ids = get_hero_ids(heroes)
