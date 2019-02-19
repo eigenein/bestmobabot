@@ -4,22 +4,22 @@ Node.js & heroes.js interface.
 
 from __future__ import annotations
 
-import json
 import subprocess
 from typing import Any
 
+import ujson as json
 from loguru import logger
 
-from bestmobabot.constants import LIBRARY_URL, NODEJS_TIMEOUT
+from bestmobabot.constants import NODEJS_TIMEOUT
 from bestmobabot.enums import HeroesJSMode
-from bestmobabot.resources import get_heroes_js, get_resource, get_skills_sc
+from bestmobabot.resources import get_heroes_js, get_raw_library, get_skills_sc
 
 
 def run_battle(battle_data: Any, mode: HeroesJSMode) -> Any:
     footer = FOOTER.format(
         battle_data=json.dumps(battle_data),
         skills_sc=get_skills_sc(),
-        library=get_resource(LIBRARY_URL),
+        library=get_raw_library(),
         mode=mode.value,
     )
     output = run_script(f'{HEADER}{get_heroes_js()}{footer}')

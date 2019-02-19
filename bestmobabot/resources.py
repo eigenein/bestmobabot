@@ -4,51 +4,41 @@ Loads and extracts useful constants from the game resources.
 
 from __future__ import annotations
 
-import gzip
 from functools import lru_cache
+from gzip import GzipFile, decompress
 from typing import Dict, Set
 
-import requests
-from loguru import logger
-
 import ujson as json
-from bestmobabot import constants, dataclasses_
+from pkg_resources import resource_stream, resource_string
+
+from bestmobabot import dataclasses_
 
 
 @lru_cache(maxsize=None)
-def get_resource(url: str, decompress: bool = True, decode: bool = True) -> [str, bytes]:
-    logger.info('Loading {}…', url)
-    with requests.get(url) as response:
-        logger.trace('Status: {}.', response.status_code)
-        response.raise_for_status()
-        content: bytes = response.content
-        if decompress:
-            content: bytes = gzip.decompress(content)
-        if decode:
-            content: str = content.decode()
-        return content
-
-
 def get_translations() -> Dict[str, str]:
-    return json.loads(get_resource(constants.TRANSLATIONS_URL))
+    return json.load(GzipFile(fileobj=resource_stream('bestmobabot.js', 'ru.json.gz')))
 
 
 @lru_cache(maxsize=None)
 def get_library() -> dataclasses_.Library:
-    return dataclasses_.Library.parse_raw(get_resource(constants.LIBRARY_URL))
+    return dataclasses_.Library.parse_raw(decompress(resource_string('bestmobabot.js', 'lib.json.gz')))
+
+
+@lru_cache(maxsize=None)
+def get_raw_library() -> str:
+    return decompress(resource_string('bestmobabot.js', 'lib.json.gz')).decode()
 
 
 @lru_cache(maxsize=None)
 def get_heroes_js() -> str:
-    return get_resource(
-        constants.HEROES_JS_URL,
-        decompress=False,
-    ).replace('h.AS3=L;', 'h.AS3=L;window.h=h;', 1)
+    return resource_string('bestmobabot.js', 'heroes.js') \
+        .decode() \
+        .replace('h.AS3=L;', 'h.AS3=L;window.h=h;', 1)
 
 
 @lru_cache(maxsize=None)
 def get_skills_sc() -> str:
-    return json.dumps(list(get_resource(constants.SKILLS_SC_URL, decompress=False, decode=False)))
+    return json.dumps(list(resource_string('bestmobabot.js', 'skills.sc')))
 
 
 def hero_name(hero_id: str) -> str:

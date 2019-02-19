@@ -9,14 +9,6 @@ ANALYTICS_TID = 'UA-65034198-7'
 IP_URL = 'https://ipinfo.io/ip'
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.81 Safari/537.36'  # noqa
 
-# Resources.
-# FIXME: dynamically find out the latest server version. Or at least make configurable.
-# FIXME: they're moving to JavaScript with `?js=1`.
-TRANSLATIONS_URL = 'https://heroes.cdnvideo.ru/vk/v0479/locale/ru.json.gz'
-LIBRARY_URL = 'https://heroes.cdnvideo.ru/vk/v0481/lib/lib.json.gz'
-HEROES_JS_URL = 'https://heroes.cdnvideo.ru/vk/v0481/assets/heroes.js'
-SKILLS_SC_URL = 'https://heroes.cdnvideo.ru/vk/v0481/assets/hx/skills.sc?js=1'
-
 # Fundamental constants.
 TEAM_SIZE = 5  # heroes
 N_GRAND_TEAMS = 3

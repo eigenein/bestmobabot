@@ -2,6 +2,7 @@
 
 - Update resource URLs and API request headers
 - `heroes.js` interface
+- Vendored game resources
 
 # `2.4`
 

@@ -24,7 +24,7 @@ pexpect==4.6.0            # via ipython
 pickleshare==0.7.5        # via ipython
 prompt-toolkit==2.0.7     # via ipython
 ptyprocess==0.6.0         # via pexpect
-pydantic[ujson]==0.17
+pydantic[ujson]==0.20
 pygments==2.3.1           # via better-exceptions-fork, ipython
 python-dateutil==2.7.5    # via pandas
 pytz==2018.7              # via pandas
