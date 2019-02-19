@@ -14,8 +14,8 @@
     AssetStorage.battle = new BattleAssetStorage();
     AssetStorage.battle.loadEncodedCode(new Bytes(Array.from(fs.readFileSync('skills.sc'))));
     
-    h.JsPakoCompression.init();
-    pako = module.exports;
+    // h.JsPakoCompression.init();
+    // pako = module.exports;
 
     console.debug('Init data storage.');
     new DataStorage(JSON.parse(fs.readFileSync('lib.json', 'utf8')));
@@ -31,7 +31,7 @@
     play.executeBattle();
 
     console.debug('Create result.');
-    BattleLog.m.bytes.getEncodedString = function() { return this.bytes }; // Avoid infinite loop in Pako.
+    BattleLog.m.bytes.getEncodedString = function() { return this.bytes }; // Disable Pako.
     play.createResult();
     var result = play.get_result();
 
