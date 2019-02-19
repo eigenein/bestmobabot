@@ -62,7 +62,7 @@ var window = {
     },
     performance: require('perf_hooks').performance,
 };
-'''
+'''  # noqa
 
 FOOTER = '''
 (function(h) {{
@@ -86,7 +86,7 @@ FOOTER = '''
     for (var i = 0; i < battles_data.length; i++) {{
         // Disable Pako.
         BattleLog.m.bytes.getEncodedString = function() {{ return this.bytes }};
-    
+
         var play = new BattleInstantPlay(battles_data[i], presets);
 
         play.battleData.attackers.initialize(AssetStorage.battle.skillFactory.bind(AssetStorage.battle));

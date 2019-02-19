@@ -512,7 +512,8 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
                     tower, reward = self.api.skip_tower_floor()
                     reward.log()
                 else:
-                    heroes = heroes or get_hero_ids(naive_select_attackers(self.api.get_all_heroes(), count=constants.TEAM_SIZE))
+                    heroes = heroes or get_hero_ids(naive_select_attackers(
+                        self.api.get_all_heroes(), count=constants.TEAM_SIZE))
                     battle_data = self.api.start_tower_battle(heroes)
                     response, = execute_battles([battle_data], HeroesJSMode.TOWER)
                     if response['result']['stars'] == constants.RAID_N_STARS:
