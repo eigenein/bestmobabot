@@ -26,8 +26,8 @@ requirements.txt : setup.py
 	@$(PIP-COMPILE) --no-index --no-emit-trusted-host --generate-hashes --output-file requirements.txt setup.py
 
 make test :
-	@$(FLAKE8) bestmobabot tests
 	@$(PYTEST)
+	@$(FLAKE8) bestmobabot tests
 
 tag :
 	@$(eval VERSION = $(shell $(PYTHON) setup.py --version))
