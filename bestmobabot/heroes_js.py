@@ -15,7 +15,7 @@ from bestmobabot.enums import HeroesJSMode
 from bestmobabot.resources import get_heroes_js, get_raw_library, get_skills_sc
 
 
-def run_battles(battles_data: List[Any], mode: HeroesJSMode) -> Any:
+def execute_battles(battles_data: List[Any], mode: HeroesJSMode) -> Any:
     footer = FOOTER.format(
         battles_data=json.dumps(battles_data),
         skills_sc=get_skills_sc(),
@@ -41,7 +41,7 @@ def run_script(script: str) -> str:
     logger.info('Return code: {}.', process.returncode)
     if process.returncode:
         logger.error('Node.js error:\n{}', process.stderr)
-    return process.stdout
+    return process.stdout.rstrip()
 
 
 HEADER = '''
