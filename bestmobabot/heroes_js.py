@@ -5,7 +5,7 @@ Node.js & heroes.js interface.
 from __future__ import annotations
 
 import subprocess
-from typing import Any
+from typing import Any, List
 
 import ujson as json
 from loguru import logger
@@ -15,9 +15,9 @@ from bestmobabot.enums import HeroesJSMode
 from bestmobabot.resources import get_heroes_js, get_raw_library, get_skills_sc
 
 
-def run_battle(battle_data: Any, mode: HeroesJSMode) -> Any:
+def run_battles(battles_data: List[Any], mode: HeroesJSMode) -> Any:
     footer = FOOTER.format(
-        battle_data=json.dumps(battle_data),
+        battles_data=json.dumps(battles_data),
         skills_sc=get_skills_sc(),
         library=get_raw_library(),
         mode=mode.value,
@@ -81,21 +81,27 @@ FOOTER = '''
 
     var presets = new BattlePresets(false, false, true, DataStorage.battleConfig.get_{mode}(), false);
 
-    // Disable Pako.
-    BattleLog.m.bytes.getEncodedString = function() {{ return this.bytes }};
+    var results = [];
+    var battles_data = {battles_data};
+    for (var i = 0; i < battles_data.length; i++) {{
+        // Disable Pako.
+        BattleLog.m.bytes.getEncodedString = function() {{ return this.bytes }};
+    
+        var play = new BattleInstantPlay(battles_data[i], presets);
 
-    var play = new BattleInstantPlay({battle_data}, presets);
+        play.battleData.attackers.initialize(AssetStorage.battle.skillFactory.bind(AssetStorage.battle));
+        play.battleData.defenders.initialize(AssetStorage.battle.skillFactory.bind(AssetStorage.battle));
 
-    play.battleData.attackers.initialize(AssetStorage.battle.skillFactory.bind(AssetStorage.battle));
-    play.battleData.defenders.initialize(AssetStorage.battle.skillFactory.bind(AssetStorage.battle));
+        play.executeBattle();
+        play.createResult();
 
-    play.executeBattle();
-    play.createResult();
+        var result = play.get_result();
+        results.push({{
+            result: result.get_result(),
+            progress: result.get_progress(),
+        }});
+    }}
 
-    var result = play.get_result();
-    console.log(JSON.stringify({{
-        result: result.get_result(),
-        progress: result.get_progress(),
-    }}));
+    console.log(JSON.stringify(results));
 }})(window.h)
 '''
