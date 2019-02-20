@@ -503,39 +503,58 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         tower = self.api.get_tower_info()
         heroes: List[str] = []
 
+        # Yeah, it's a bit complicated…
         while tower.floor_number <= 50:
             logger.info(f'Floor #{tower.floor_number}: {tower.floor_type}.')
             if tower.is_battle:
+                # If we have the top level, then we can skip the tower entirely.
+                # But we need to go chest by chest. So go to the next chest.
                 if tower.may_full_skip:
                     tower = self.api.next_tower_chest()
+                # Maybe we can skip the floor, because of the yesterday progress.
                 elif tower.floor_number <= tower.may_skip_floor:
                     tower, reward = self.api.skip_tower_floor()
                     reward.log()
+                # Otherwise, we have to simulate the battle.
                 else:
+                    # Fetch the most powerful team, unless already done.
                     heroes = heroes or get_hero_ids(naive_select_attackers(
                         self.api.get_all_heroes(), count=constants.TEAM_SIZE))
-                    battle_data = self.api.start_tower_battle(heroes)
-                    response, = execute_battles([battle_data], HeroesJSMode.TOWER)
-                    if response['result']['stars'] == constants.RAID_N_STARS:
-                        self.api.end_tower_battle(response).log()
-                        tower = self.api.next_tower_floor()
-                    else:
+                    # We'll do 3 attempts. Because of randomness that may lead to different results.
+                    for i in range(1, 4):
+                        logger.info('Attempt #{}.', i)
+                        battle_data = self.api.start_tower_battle(heroes)
+                        response, = execute_battles([battle_data], HeroesJSMode.TOWER)
+                        if response['result']['stars'] == constants.RAID_N_STARS:
+                            # No one died, so end the battle and proceed to the next floor.
+                            self.api.end_tower_battle(response).log()
+                            tower = self.api.next_tower_floor()
+                            break
+                        # Someone has died, retry.
                         logger.warning('Battle result: {}.', response['result'])
+                    else:
+                        # No attempt was successful. Stop the tower.
                         break
             elif tower.is_chest:
+                # The simplest one. Just open a random chest.
                 reward, _ = self.api.open_tower_chest(choice([0, 1, 2]))
                 reward.log()
+                # If it was the top floor, we have to stop.
                 if tower.floor_number == 50:
                     logger.success('Finished. It was the top floor.')
                     break
+                # If we can skip the tower entirely, then go to the next chest.
                 if tower.may_full_skip:
                     tower = self.api.next_tower_chest()
+                # Otherwise, just proceed to the next floor.
                 else:
                     tower = self.api.next_tower_floor()
             elif tower.is_buff:
                 # Buffs go from the cheapest to the most expensive.
+                # So try to buy the most expensive ones first.
                 for buff in reversed(tower.floor):
                     buff_id = int(buff['id'])
+                    # Some buffs require to choose a hero. We ignore these.
                     if buff_id not in constants.TOWER_IGNORED_BUFF_IDS:
                         try:
                             self.api.buy_tower_buff(buff_id)
@@ -547,7 +566,9 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
                             logger.warning(f'Not found for buff #{buff_id}: {e.description}.')
                     else:
                         logger.debug(f'Skip buff #{buff_id}.')
+                # Then normally proceed to the next floor.
                 tower = self.api.next_tower_floor()
+            # The following should never happen.
             else:
                 logger.error('Unknown floor type.')
                 break
