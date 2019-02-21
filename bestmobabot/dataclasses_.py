@@ -1,3 +1,5 @@
+# TODO: import annotations.
+
 from datetime import datetime, timedelta, timezone, tzinfo
 from functools import total_ordering
 from typing import Any, Dict, Iterable, List, Optional, Set
@@ -291,7 +293,7 @@ class Tower(BaseModel):
     floor_number: int
     may_skip_floor: int
     may_full_skip: bool
-    floor_type: str
+    floor_type: str  # TODO: enum.
     floor: Any = []  # cannot assume any specific type because it depends on the current floor type 🤦‍
 
     class Config:
