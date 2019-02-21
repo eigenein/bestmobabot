@@ -2,7 +2,7 @@ from typing import Dict
 
 # General.
 API_TIMEOUT = 10.0
-NODEJS_TIMEOUT = 10
+NODEJS_TIMEOUT = 30
 DATABASE_NAME = 'db.sqlite3'
 ANALYTICS_URL = 'https://www.google-analytics.com/collect'
 ANALYTICS_TID = 'UA-65034198-7'

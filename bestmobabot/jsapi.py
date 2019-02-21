@@ -5,7 +5,7 @@ Node.js & heroes.js interface.
 from __future__ import annotations
 
 import subprocess
-from typing import Any, List
+from typing import Any, List, Optional
 
 import ujson as json
 from loguru import logger
@@ -23,24 +23,26 @@ def execute_battles(battles_data: List[Any], mode: HeroesJSMode) -> Any:
         mode=mode.value,
     )
     output = run_script(f'{HEADER}{get_heroes_js()}{footer}')
-    if output:
-        return json.loads(output)
-    else:
-        return None
+    return json.loads(output) if output else None
 
 
-def run_script(script: str) -> str:
+def run_script(script: str) -> Optional[str]:
     logger.info('Running Node.js…')
-    process = subprocess.run(
-        ['node'],
-        input=script,
-        encoding='utf-8',
-        timeout=NODEJS_TIMEOUT,
-        capture_output=True,
-    )
+    try:
+        process = subprocess.run(
+            ['node'],
+            input=script,
+            encoding='utf-8',
+            timeout=NODEJS_TIMEOUT,
+            capture_output=True,
+        )
+    except subprocess.TimeoutExpired:
+        logger.error('Timeout expired.')
+        return None
     logger.info('Return code: {}.', process.returncode)
     if process.returncode:
         logger.error('Node.js error:\n{}', process.stderr)
+        return None
     return process.stdout.rstrip()
 
 
