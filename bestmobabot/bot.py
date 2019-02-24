@@ -338,7 +338,6 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             n_last_battles=self.settings.bot.arena.last_battles,
         ).train()
 
-    # FIXME: refactor.
     def attack_normal_arena(self):
         """
         Совершает бой на арене.
@@ -371,7 +370,6 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         result.log()
         self.farm_quests(quests)
 
-    # FIXME: refactor.
     def attack_grand_arena(self):
         """
         Совершает бой на гранд арене.
