@@ -224,7 +224,7 @@ class API(contextlib.AbstractContextManager):
 
         if 'results' in item:
             result = Result.parse_obj(item['results'][0]['result'])
-            if result.response and 'error' in result.response:
+            if result.is_error:
                 if result.response['error'] == 'outOfRetargetDelta':
                     raise OutOfRetargetDelta()
                 raise ResponseError(result.response)
@@ -462,12 +462,31 @@ class API(contextlib.AbstractContextManager):
         result = self.call('titanArtifactChestOpen', {'amount': amount, 'free': free})
         return list_of(Reward.parse_obj, result.response['reward']), result.quests
 
+    # Runes.
+    # ------------------------------------------------------------------------------------------------------------------
+
+    def enchant_hero_rune(
+        self,
+        hero_id: str,
+        tier: str,
+        consumables: Optional[Dict[str, int]] = None,
+    ) -> Result:
+        return self.call('heroEnchantRune', {
+            'heroId': hero_id,
+            'tier': tier,
+            'items': {'consumable': consumables or {'1': 1}}},
+        )
+
 
 def list_of(constructor: Callable[[Any], T], items: Iterable) -> List[T]:
     """
     Used to protect from changing a response from list to dictionary and vice versa.
     This often happens with the game updates.
     """
+    # FIXME: accept `BaseModel` subclasses instead of `constructor`.
     if isinstance(items, dict):
+        # Equally treat lists and dictionaries. Because there're two possibilities in the responses:
+        # 1. `[{"id": "1", ...}]`
+        # 2. `{"1": {"id": "1"}, ...}`
         items = items.values()
     return [constructor(item) for item in items]

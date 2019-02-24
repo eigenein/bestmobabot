@@ -17,7 +17,7 @@ from bestmobabot.api import API, AlreadyError, InvalidResponseError, NotEnoughEr
 from bestmobabot.arena import ArenaSolver, reduce_grand_arena, reduce_normal_arena
 from bestmobabot.database import Database
 from bestmobabot.dataclasses_ import Hero, Mission, Quests, Replay, User
-from bestmobabot.enums import BattleType, HeroesJSMode
+from bestmobabot.enums import BattleType, HeroesJSMode, TowerFloorType
 from bestmobabot.helpers import find_expedition_team, get_hero_ids, get_teams_hero_ids, naive_select_attackers
 from bestmobabot.jsapi import execute_battles
 from bestmobabot.logging_ import log_rewards, logger
@@ -145,6 +145,8 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             self.tasks.append(Task(next_run_at=Task.at(hour=22, minute=0, tz=self.user.tz), execute=self.train_arena_model))  # noqa
         if self.settings.bot.arena.randomize_grand_defenders:
             self.tasks.append(Task(next_run_at=Task.at(hour=10, minute=30), execute=self.randomize_grand_defenders))
+        if self.settings.bot.enchant_rune:
+            self.tasks.append(Task(next_run_at=Task.at(hour=9, minute=0), execute=self.enchant_rune))
 
         send_event(category='bot', action='start', user_id=self.api.user_id)
 
@@ -506,7 +508,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         # Yeah, it's a bit complicated…
         while tower.floor_number <= 50:
             logger.info(f'Floor #{tower.floor_number}: {tower.floor_type}.')
-            if tower.is_battle:
+            if tower.floor_type == TowerFloorType.BATTLE:
                 # If we have the top level, then we can skip the tower entirely.
                 # But we need to go chest by chest. So go to the next chest.
                 if tower.may_full_skip:
@@ -535,7 +537,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
                     else:
                         # No attempt was successful. Stop the tower.
                         break
-            elif tower.is_chest:
+            elif tower.floor_type == TowerFloorType.CHEST:
                 # The simplest one. Just open a random chest.
                 reward, _ = self.api.open_tower_chest(choice([0, 1, 2]))
                 reward.log()
@@ -549,7 +551,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
                 # Otherwise, just proceed to the next floor.
                 else:
                     tower = self.api.next_tower_floor()
-            elif tower.is_buff:
+            elif tower.floor_type == TowerFloorType.BUFF:
                 # Buffs go from the cheapest to the most expensive.
                 # So try to buy the most expensive ones first.
                 for buff in reversed(tower.floor):
@@ -624,6 +626,18 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         hero_ids = get_hero_ids(heroes)
         shuffle(hero_ids)
         self.api.set_grand_heroes([hero_ids[0:5], hero_ids[5:10], hero_ids[10:15]])
+
+    def enchant_rune(self):
+        """
+        Зачаровать руну.
+        """
+        logger.info('Enchant rune…')
+        result = self.api.enchant_hero_rune(
+            self.settings.bot.enchant_rune.hero_id,
+            self.settings.bot.enchant_rune.tier,
+        )
+        logger.success('Response: {}.', result.response)
+        self.farm_quests(result.quests)
 
     # noinspection PyMethodMayBeStatic
     def i_am_alive(self):

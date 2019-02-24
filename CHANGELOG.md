@@ -1,6 +1,7 @@
 # `latest`
 
 - **Automatic tower**
+- Auto-enchant rune
 - `heroes.js` interface
 - Vendored game resources
 

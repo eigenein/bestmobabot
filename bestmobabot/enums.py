@@ -9,3 +9,10 @@ class BattleType(Enum):
 class HeroesJSMode(Enum):
     TITAN = 'titan'
     TOWER = 'tower'
+
+
+class TowerFloorType(Enum):
+    BATTLE = 'battle'
+    BUFF = 'buff'
+    CHEST = 'chest'
+    UNKNOWN = 'unknown'

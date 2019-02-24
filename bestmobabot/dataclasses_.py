@@ -1,4 +1,4 @@
-# TODO: import annotations.
+from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone, tzinfo
 from functools import total_ordering
@@ -10,6 +10,7 @@ from pydantic.validators import _VALIDATORS
 
 from bestmobabot import resources
 from bestmobabot.constants import COLORS, RAID_N_STARS
+from bestmobabot.enums import TowerFloorType
 
 _VALIDATORS.append((tzinfo, [lambda value: timezone(timedelta(hours=value))]))
 
@@ -293,7 +294,7 @@ class Tower(BaseModel):
     floor_number: int
     may_skip_floor: int
     may_full_skip: bool
-    floor_type: str  # TODO: enum.
+    floor_type: TowerFloorType
     floor: Any = []  # cannot assume any specific type because it depends on the current floor type 🤦‍
 
     class Config:
@@ -305,21 +306,12 @@ class Tower(BaseModel):
         }
 
     # noinspection PyMethodParameters
-    @validator('floor_type')
-    def lower_floor_type(cls, value: str) -> str:
-        return value.lower()
-
-    @property
-    def is_battle(self) -> bool:
-        return self.floor_type == 'battle'
-
-    @property
-    def is_buff(self) -> bool:
-        return self.floor_type == 'buff'
-
-    @property
-    def is_chest(self):
-        return self.floor_type == 'chest'
+    @validator('floor_type', pre=True)
+    def lower_floor_type(cls, value: str) -> TowerFloorType:
+        try:
+            return TowerFloorType[value.lower()]
+        except KeyError:
+            return TowerFloorType.UNKNOWN
 
 
 class Cost(BaseModel):
@@ -394,6 +386,10 @@ class Result(BaseModel):
 
     response: Any
     quests: List[Quest] = []
+
+    @property
+    def is_error(self) -> bool:
+        return self.response and isinstance(self.response, dict) and 'error' in self.response
 
 
 Quests = List[Quest]

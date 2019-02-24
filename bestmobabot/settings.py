@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 from datetime import timedelta
 from typing import List, Optional, Set, Type, TypeVar
@@ -40,6 +42,11 @@ class ArenaSettings(BaseModel):
     randomize_grand_defenders: bool = False
 
 
+class EnchantRuneSettings(BaseModel):
+    hero_id: str
+    tier: str
+
+
 # noinspection PyMethodParameters
 class BotSettings(BaseModel):
     no_experience: bool = False  # don't farm experience quests
@@ -47,6 +54,7 @@ class BotSettings(BaseModel):
     raid_missions: Set[str] = []  # mission names to raid
     shops: Set[str] = []  # bought item names
     friend_ids: List[str] = []  # friend IDs for gifts
+    enchant_rune: Optional[EnchantRuneSettings] = None
     arena: ArenaSettings
 
     @validator('raid_missions')
