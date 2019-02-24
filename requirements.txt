@@ -18,7 +18,7 @@ ipython==7.3.0
 jedi==0.13.2              # via ipython
 loguru==0.2.5
 numpy==1.16.1
-pandas==0.24.0
+pandas==0.24.1
 parso==0.3.1              # via jedi
 pexpect==4.6.0            # via ipython
 pickleshare==0.7.5        # via ipython
@@ -31,7 +31,7 @@ pytz==2018.7              # via pandas
 pyyaml==3.13
 requests==2.21.0
 scikit-learn==0.20.2
-scipy==1.2.0
+scipy==1.2.1
 six==1.12.0               # via prompt-toolkit, python-dateutil, traitlets
 traitlets==4.3.2          # via ipython
 ujson==1.35
