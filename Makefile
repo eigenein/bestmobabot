@@ -45,3 +45,6 @@ publish/docker : docker
 	@docker tag 'eigenein/bestmobabot:latest' 'eigenein/bestmobabot:$(VERSION)'
 	@docker push 'eigenein/bestmobabot:latest'
 	@docker push 'eigenein/bestmobabot:$(VERSION)'
+
+publish/docker/latest : docker
+	@docker push 'eigenein/bestmobabot:latest'
