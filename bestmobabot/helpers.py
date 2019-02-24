@@ -1,20 +1,12 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from datetime import datetime
 from itertools import combinations
 from operator import attrgetter
-from typing import Generic, Iterable, List, Optional, Sequence, TypeVar
+from typing import Iterable, List, Optional, Sequence
 
 from bestmobabot import constants
 from bestmobabot.dataclasses_ import Hero
-
-T = TypeVar('T')
-
-
-@dataclass
-class KnapsackSolution(Generic[T]):
-    items: List[T]
-    value: int
 
 
 def get_hero_ids(team: Iterable[Hero]) -> List[str]:
@@ -49,3 +41,7 @@ def find_expedition_team(heroes: Iterable[Hero], min_power: int) -> Optional[Seq
             best_team = team
 
     return best_team
+
+
+def now():
+    return datetime.now().astimezone()

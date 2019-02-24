@@ -12,7 +12,7 @@ from random import choice, shuffle
 from time import sleep
 from typing import Dict, Iterable, List, Optional, Tuple
 
-from bestmobabot import constants
+from bestmobabot import constants, helpers
 from bestmobabot.api import API, AlreadyError, InvalidResponseError, NotEnoughError, NotFoundError, OutOfRetargetDelta
 from bestmobabot.arena import ArenaSolver, reduce_grand_arena, reduce_normal_arena
 from bestmobabot.database import Database
@@ -152,8 +152,8 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
 
     def run(self):
         logger.debug('Initialising task queue.')
-        now = self.now()
-        schedule = [task.next_run_at(now).astimezone() for task in self.tasks]
+        now_ = helpers.now()
+        schedule = [task.next_run_at(now_).astimezone() for task in self.tasks]
 
         logger.debug('Running task queue.')
         while True:
@@ -162,19 +162,15 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             task = self.tasks[index]
             logger.info(f'Next is {task} at {run_at:%d-%m %H:%M:%S}.{os.linesep}')
             # Sleep until the execution time.
-            sleep_time = (run_at - self.now()).total_seconds()
+            sleep_time = (run_at - helpers.now()).total_seconds()
             if sleep_time >= 0.0:
                 sleep(sleep_time)
             # Execute the task.
-            next_run_at = self.execute(task) or task.next_run_at(max(self.now(), run_at + timedelta(seconds=1)))
+            next_run_at = self.execute(task) or task.next_run_at(max(helpers.now(), run_at + timedelta(seconds=1)))
             next_run_at = next_run_at.astimezone()  # keeping them in the local time zone
             # Update its execution time.
             logger.info(f'Next run at {next_run_at:%d-%m %H:%M:%S}.{os.linesep}')
             schedule[index] = next_run_at
-
-    @staticmethod
-    def now():
-        return datetime.now().astimezone()
 
     def execute(self, task: Task) -> Optional[datetime]:
         send_event(category='bot', action=task.execute.__name__, user_id=self.api.user_id)
@@ -229,12 +225,12 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         """
         Собирает награду с экспедиций в дирижабле.
         """
-        now = self.now()
+        now_ = helpers.now()
 
         logger.info('Farming expeditions…')
         expeditions = self.api.list_expeditions()
         for expedition in expeditions:
-            if expedition.is_started and expedition.end_time < now:
+            if expedition.is_started and expedition.end_time < now_:
                 self.api.farm_expedition(expedition.id).log()
 
         return self.send_expeditions()  # farm expeditions once finished
