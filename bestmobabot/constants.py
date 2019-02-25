@@ -18,7 +18,7 @@ N_GRAND_HEROES = N_GRAND_TEAMS * TEAM_SIZE  # heroes
 MAX_OPEN_ARTIFACT_CHESTS = 10
 
 # Tower control.
-TOWER_IGNORED_BUFF_IDS = {13, 14, 17, 18, 19}  # These buffs require a hero ID.
+TOWER_IGNORED_BUFF_IDS = {13, 14, 15, 17, 18, 19, 23}  # These buffs require a hero ID.
 
 # Arena model training control.
 MODEL_SCORING = 'accuracy'
