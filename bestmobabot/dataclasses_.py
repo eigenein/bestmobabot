@@ -309,8 +309,8 @@ class Tower(BaseModel):
     @validator('floor_type', pre=True)
     def lower_floor_type(cls, value: str) -> TowerFloorType:
         try:
-            return TowerFloorType[value.lower()]
-        except KeyError:
+            return TowerFloorType(value.lower())
+        except ValueError:
             return TowerFloorType.UNKNOWN
 
 
