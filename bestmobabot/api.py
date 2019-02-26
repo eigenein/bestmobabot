@@ -189,7 +189,7 @@ class API(contextlib.AbstractContextManager):
         send_event(category='api', action=name, user_id=self.user_id)
 
         calls = [{'ident': name, 'name': name, 'args': arguments or {}}]
-        data = orjson.dumps({"session": None, "calls": calls})
+        data = orjson.dumps({"session": None, "calls": calls}).decode()
         headers = {
             'User-Agent': constants.USER_AGENT,
             'X-Auth-Application-Id': '5327745',

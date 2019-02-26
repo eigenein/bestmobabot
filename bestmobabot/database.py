@@ -57,7 +57,7 @@ class Database(AbstractContextManager, MutableMapping[str, Any]):
             cursor.execute('''
                 INSERT OR REPLACE INTO `default` (`key`, `value`)
                 VALUES (?, ?)
-            ''', (key, orjson.dumps(value)))
+            ''', (key, orjson.dumps(value).decode()))
 
     def __len__(self) -> int:
         raise NotImplementedError()

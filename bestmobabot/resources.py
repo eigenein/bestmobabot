@@ -38,7 +38,7 @@ def get_heroes_js() -> str:
 
 @lru_cache(maxsize=None)
 def get_skills_sc() -> str:
-    return orjson.dumps(list(resource_string('bestmobabot.js', 'skills.sc')))
+    return orjson.dumps(list(resource_string('bestmobabot.js', 'skills.sc'))).decode()
 
 
 def hero_name(hero_id: str) -> str:
