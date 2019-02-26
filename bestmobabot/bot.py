@@ -127,7 +127,6 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             Task(next_run_at=Task.every_n_hours(4), execute=self.farm_expeditions),
             Task(next_run_at=Task.every_n_hours(8), execute=self.get_arena_replays),
             Task(next_run_at=Task.every_n_hours(4), execute=self.raid_missions),
-            Task(next_run_at=Task.every_n_hours(1), execute=self.i_am_alive),
 
             # One time a day.
             Task(next_run_at=Task.at(hour=6, minute=0), execute=self.skip_tower),
@@ -632,10 +631,3 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         )
         logger.success('Response: {}.', result.response)
         self.farm_quests(result.quests)
-
-    # noinspection PyMethodMayBeStatic
-    def i_am_alive(self):
-        """
-        Диагностика фризов и падений бота.
-        """
-        logger.info("I'm alive.")
