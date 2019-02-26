@@ -11,8 +11,32 @@ TExecute = Callable[..., Any]
 class Scheduler:
     def __init__(self, db: MutableMapping, prefix: str):
         self.db = db
-        self.prefix = str
+        self.prefix = prefix
         self.tasks: List[Task] = []
+
+    def add_task(self, name: str) -> Task:
+        task = Task(name=name)
+        self.tasks.append(task)
+        return task
+
+    def run_pending(self, tz: tzinfo):
+        now = datetime.now().astimezone(tz)
+        for task in self.tasks:
+            last_executed_key = f'{self.prefix}:{task.name}:last_executed_at'
+            try:
+                last_executed_at = ...
+            except KeyError:
+                # It was never executed before. Initialise last execution time.
+                self.db[last_executed_key] = now.timestamp()
+                continue
+            ...  # TODO
+
+
+@dataclass
+class Task:
+    name: str
+    is_pending: TIsPending = lambda: False
+    execute: TExecute = lambda: None
 
     def between(self, earliest: time, latest: time) -> Task:
         if earliest.tzinfo:
@@ -21,35 +45,22 @@ class Scheduler:
             raise ValueError('offset-aware time is not allowed here')
 
         def _is_pending(last_executed_at: datetime, now: datetime) -> bool:
-            return is_pending(last_executed_at, replace(now, earliest), replace(now, latest), now)
-        return Task(self, _is_pending)
+            # TODO: randomise between earliest and latest.
+            return last_executed_at < replace(now, earliest) <= now < replace(now, latest)
+
+        self.is_pending = _is_pending
+        return self
 
     def every(self, min_: timedelta, max_: timedelta) -> Task:
         def _is_pending(last_executed_at: datetime, now: datetime) -> bool:
-            return is_pending(last_executed_at, last_executed_at + min_, last_executed_at + max_, now)
-        return Task(self, _is_pending)
+            # TODO: randomise between `last_executed_at + min_` and `last_executed_at + max_`.
+            return last_executed_at < last_executed_at + min_ <= now
 
-    def run_pending(self, tz: tzinfo):
-        now = datetime.now().astimezone(tz)
-        ...  # TODO
-
-
-@dataclass
-class Task:
-    scheduler: Scheduler
-    is_pending: TIsPending
-    execute: TExecute = lambda: None
+        self.is_pending = _is_pending
+        return self
 
     def do(self, execute: TExecute):
-        if execute.__name__ == (lambda: None).__name__:
-            raise ValueError('lambda is not allowed here')
         self.execute = execute
-        self.scheduler.tasks.append(self)
-
-
-def is_pending(last_executed_at: datetime, earliest: datetime, latest: datetime, now: datetime) -> bool:
-    # TODO: randomize time between earliest and latest, should be equally distributed.
-    return last_executed_at < earliest <= now < latest
 
 
 def replace(datetime_: datetime, time_: time) -> datetime:
