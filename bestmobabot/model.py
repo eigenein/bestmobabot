@@ -66,7 +66,10 @@ class Trainer:
             logger.trace(f'Feature {column}: {importance:.7f}')
 
         logger.info('Saving model…')
-        self.db['bot:model'] = b85encode(pickle.dumps(Model(estimator, list(x.columns))))
+        self.db['bot:model'] = b85encode(pickle.dumps(
+            Model(estimator, list(x.columns)),
+            protocol=pickle.HIGHEST_PROTOCOL,
+        )).decode()
 
         logger.info('Optimizing database…')
         self.db.vacuum()
