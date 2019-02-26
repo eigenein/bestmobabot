@@ -5,18 +5,18 @@ Loads and extracts useful constants from the game resources.
 from __future__ import annotations
 
 from functools import lru_cache
-from gzip import GzipFile, decompress
+from gzip import decompress
 from typing import Dict, Set
 
-import ujson as json
-from pkg_resources import resource_stream, resource_string
+import orjson
+from pkg_resources import resource_string
 
 from bestmobabot import dataclasses_
 
 
 @lru_cache(maxsize=None)
 def get_translations() -> Dict[str, str]:
-    return json.load(GzipFile(fileobj=resource_stream('bestmobabot.js', 'ru.json.gz')))
+    return orjson.loads(decompress(resource_string('bestmobabot.js', 'ru.json.gz')))
 
 
 @lru_cache(maxsize=None)
@@ -38,7 +38,7 @@ def get_heroes_js() -> str:
 
 @lru_cache(maxsize=None)
 def get_skills_sc() -> str:
-    return json.dumps(list(resource_string('bestmobabot.js', 'skills.sc')))
+    return orjson.dumps(list(resource_string('bestmobabot.js', 'skills.sc')))
 
 
 def hero_name(hero_id: str) -> str:

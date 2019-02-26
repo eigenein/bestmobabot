@@ -1,5 +1,9 @@
 # `latest`
 
+- Use `orjson`
+
+# `3.0b0`
+
 - **Automatic tower**
 - Auto-enchant rune
 - `heroes.js` interface

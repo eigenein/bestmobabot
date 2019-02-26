@@ -11,8 +11,8 @@ from datetime import datetime
 from time import sleep, time
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, TypeVar
 
+import orjson
 import requests
-import ujson as json
 from loguru import logger
 from requests.adapters import HTTPAdapter
 
@@ -144,7 +144,7 @@ class API(contextlib.AbstractContextManager):
             # Look for params variable in the script.
             match = re.search(r'var params\s?=\s?({[^\}]+\})', app_page)
             assert match, 'params not found'
-            params = json.loads(match.group(1))
+            params = orjson.loads(match.group(1))
             logger.trace('params: {}', params)
 
             # Load the proxy page and look for Hero Wars authentication token.
@@ -189,7 +189,7 @@ class API(contextlib.AbstractContextManager):
         send_event(category='api', action=name, user_id=self.user_id)
 
         calls = [{'ident': name, 'name': name, 'args': arguments or {}}]
-        data = json.dumps({"session": None, "calls": calls})
+        data = orjson.dumps({"session": None, "calls": calls})
         headers = {
             'User-Agent': constants.USER_AGENT,
             'X-Auth-Application-Id': '5327745',

@@ -18,13 +18,14 @@ ipython==7.3.0
 jedi==0.13.2              # via ipython
 loguru==0.2.5
 numpy==1.16.1
+orjson==2.0.1
 pandas==0.24.1
 parso==0.3.1              # via jedi
 pexpect==4.6.0            # via ipython
 pickleshare==0.7.5        # via ipython
 prompt-toolkit==2.0.7     # via ipython
 ptyprocess==0.6.0         # via pexpect
-pydantic[ujson]==0.20
+pydantic==0.20
 pygments==2.3.1           # via better-exceptions-fork, ipython
 python-dateutil==2.7.5    # via pandas
 pytz==2018.7              # via pandas
@@ -34,6 +35,5 @@ scikit-learn==0.20.2
 scipy==1.2.1
 six==1.12.0               # via prompt-toolkit, python-dateutil, traitlets
 traitlets==4.3.2          # via ipython
-ujson==1.35
 urllib3==1.24.1           # via requests
 wcwidth==0.1.7            # via prompt-toolkit

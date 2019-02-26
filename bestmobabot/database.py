@@ -6,7 +6,7 @@ import sqlite3
 from contextlib import AbstractContextManager, closing
 from typing import Any, Iterable, Iterator, MutableMapping, Tuple, TypeVar
 
-from ujson import dumps, loads
+import orjson
 
 from loguru import logger
 
@@ -31,7 +31,7 @@ class Database(AbstractContextManager, MutableMapping[str, Any]):
         """
         with closing(self.connection.cursor()) as cursor:  # type: sqlite3.Cursor
             cursor.execute("SELECT `key`, `value` FROM `default` WHERE `key` LIKE ? || '%'", (prefix,))
-            return ((key, loads(value)) for key, value in cursor.fetchall())
+            return ((key, orjson.loads(value)) for key, value in cursor.fetchall())
 
     def vacuum(self):
         with closing(self.connection.cursor()) as cursor:  # type: sqlite3.Cursor
@@ -49,7 +49,7 @@ class Database(AbstractContextManager, MutableMapping[str, Any]):
             row = cursor.fetchone()
             if not row:
                 raise KeyError(key)
-            return loads(row[0])
+            return orjson.loads(row[0])
 
     def __setitem__(self, key: str, value: Any) -> None:
         logger.trace('set {}', key)
@@ -57,7 +57,7 @@ class Database(AbstractContextManager, MutableMapping[str, Any]):
             cursor.execute('''
                 INSERT OR REPLACE INTO `default` (`key`, `value`)
                 VALUES (?, ?)
-            ''', (key, dumps(value)))
+            ''', (key, orjson.dumps(value)))
 
     def __len__(self) -> int:
         raise NotImplementedError()

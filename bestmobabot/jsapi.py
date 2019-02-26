@@ -7,7 +7,7 @@ from __future__ import annotations
 import subprocess
 from typing import Any, List, Optional
 
-import ujson as json
+import orjson
 from loguru import logger
 
 from bestmobabot.constants import NODEJS_TIMEOUT
@@ -17,13 +17,13 @@ from bestmobabot.resources import get_heroes_js, get_raw_library, get_skills_sc
 
 def execute_battles(battles_data: List[Any], mode: HeroesJSMode) -> Any:
     footer = FOOTER.format(
-        battles_data=json.dumps(battles_data),
+        battles_data=orjson.dumps(battles_data),
         skills_sc=get_skills_sc(),
         library=get_raw_library(),
         mode=mode.value,
     )
     output = run_script(f'{HEADER}{get_heroes_js()}{footer}')
-    return json.loads(output) if output else None
+    return orjson.loads(output) if output else None
 
 
 def run_script(script: str) -> Optional[str]:
