@@ -30,69 +30,7 @@ from bestmobabot.trainer import Trainer
 from bestmobabot.vk import VK
 
 
-class BotHelperMixin:
-    """
-    Helper methods.
-    """
-    user: User
-    db: Database
-    api: API
-    settings: Settings
-
-    def get_model(self) -> Optional[Model]:
-        """
-        Loads a predictive model from the database.
-        """
-        logger.info('Loading model…')
-        return pickle.loads(b85decode(self.db['bot:model']))
-
-    def check_arena(self, n_heroes: int) -> Tuple[Model, List[Hero]]:
-        """
-        Checks pre-conditions for arena.
-        """
-        model = self.get_model()
-        if not model:
-            raise TaskNotAvailable('model is not ready yet')
-        logger.trace('Model: {}.', model)
-
-        heroes = self.api.get_all_heroes()
-        if len(heroes) < n_heroes:
-            raise TaskNotAvailable(f'not enough heroes: {n_heroes} needed, you have {len(heroes)}')
-
-        self.user = self.api.get_user_info()  # refresh clan ID
-        return model, heroes
-
-    def get_raid_mission_ids(self) -> Iterable[str]:
-        missions: Dict[str, Mission] = {
-            mission.id: mission
-            for mission in self.api.get_all_missions()
-            if mission.is_raid_available and mission_name(mission.id).lower() in self.settings.bot.raid_missions
-        }
-
-        # Get heroic mission IDs.
-        heroic_mission_ids = get_heroic_mission_ids()
-
-        # First, yield heroic missions.
-        raided_heroic_mission_ids = list(missions.keys() & heroic_mission_ids)
-        shuffle(raided_heroic_mission_ids)  # shuffle in order to distribute stamina evenly
-        logger.info(f'Raided heroic missions: {raided_heroic_mission_ids}.')
-        for mission_id in raided_heroic_mission_ids:
-            tries_left = constants.RAID_N_HEROIC_TRIES - missions[mission_id].tries_spent
-            logger.info(f'Mission #{mission_id}: {tries_left} tries left.')
-            for _ in range(tries_left):
-                yield mission_id
-
-        # Then, randomly choose non-heroic missions infinitely.
-        non_heroic_mission_ids = list(missions.keys() - heroic_mission_ids)
-        logger.info(f'Raided non-heroic missions: {non_heroic_mission_ids}.')
-        if not non_heroic_mission_ids:
-            logger.info('No raided non-heroic missions.')
-            return
-        while True:
-            yield choice(non_heroic_mission_ids)
-
-
-class Bot(contextlib.AbstractContextManager, BotHelperMixin):
+class Bot(contextlib.AbstractContextManager):
     def __init__(self, db: Database, api: API, vk: VK, settings: Settings):
         self.db = db
         self.api = api
@@ -194,6 +132,61 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         else:
             logger.success('Well done.')
             return next_run_at
+
+    # Helpers.
+    # ------------------------------------------------------------------------------------------------------------------
+
+    def get_model(self) -> Optional[Model]:
+        """
+        Loads a predictive model from the database.
+        """
+        logger.info('Loading model…')
+        return pickle.loads(b85decode(self.db['bot:model']))
+
+    def check_arena(self, n_heroes: int) -> Tuple[Model, List[Hero]]:
+        """
+        Checks pre-conditions for arena.
+        """
+        model = self.get_model()
+        if not model:
+            raise TaskNotAvailable('model is not ready yet')
+        logger.trace('Model: {}.', model)
+
+        heroes = self.api.get_all_heroes()
+        if len(heroes) < n_heroes:
+            raise TaskNotAvailable(f'not enough heroes: {n_heroes} needed, you have {len(heroes)}')
+
+        self.user = self.api.get_user_info()  # refresh clan ID
+        return model, heroes
+
+    def get_raid_mission_ids(self) -> Iterable[str]:
+        missions: Dict[str, Mission] = {
+            mission.id: mission
+            for mission in self.api.get_all_missions()
+            if mission.is_raid_available and mission_name(mission.id).lower() in self.settings.bot.raid_missions
+        }
+
+        # Get heroic mission IDs.
+        heroic_mission_ids = get_heroic_mission_ids()
+
+        # First, yield heroic missions.
+        raided_heroic_mission_ids = list(missions.keys() & heroic_mission_ids)
+        shuffle(raided_heroic_mission_ids)  # shuffle in order to distribute stamina evenly
+        logger.info(f'Raided heroic missions: {raided_heroic_mission_ids}.')
+        for mission_id in raided_heroic_mission_ids:
+            tries_left = constants.RAID_N_HEROIC_TRIES - missions[mission_id].tries_spent
+            logger.info(f'Mission #{mission_id}: {tries_left} tries left.')
+            for _ in range(tries_left):
+                yield mission_id
+
+        # Then, randomly choose non-heroic missions infinitely.
+        non_heroic_mission_ids = list(missions.keys() - heroic_mission_ids)
+        logger.info(f'Raided non-heroic missions: {non_heroic_mission_ids}.')
+        if not non_heroic_mission_ids:
+            logger.info('No raided non-heroic missions.')
+            return
+        while True:
+            yield choice(non_heroic_mission_ids)
 
     # Tasks.
     # ------------------------------------------------------------------------------------------------------------------
