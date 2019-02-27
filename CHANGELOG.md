@@ -10,7 +10,7 @@
 - **Task retries are now persisted**
 - `heroes.js` interface
 - Vendored game resources
-- Refactored scheduler
+- New scheduler
 
 # `2.4`
 

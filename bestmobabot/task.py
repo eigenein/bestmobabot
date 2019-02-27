@@ -19,16 +19,12 @@ class Task:
     def name(self) -> str:
         return self.execute.__name__
 
-    def next_runs(self, since: datetime) -> Iterable[datetime]:
-        # TODO: unit tests.
-        for time_ in self.at:
-            upcoming = since.astimezone(time_.tzinfo).replace(
-                hour=time_.hour,
-                minute=time_.minute,
-                second=time_.second,
-                microsecond=time_.microsecond,
-            ) + self.offset
-            yield upcoming if upcoming > since else upcoming + timedelta(days=1)
+    def is_pending(self, at: datetime) -> bool:
+        """
+        Gets whether the task is pending at the time.
+        """
+        at = at + self.offset
+        return any(at.astimezone(entry.tzinfo).time().replace(tzinfo=entry.tzinfo) == entry for entry in self.at)
 
 
 class TaskNotAvailable(Exception):

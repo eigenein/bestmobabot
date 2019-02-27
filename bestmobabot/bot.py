@@ -3,14 +3,15 @@ The bot logic.
 """
 
 import contextlib
-import os
 import pickle
 from base64 import b85decode
-from datetime import datetime, time, timezone
+from collections import defaultdict
+from datetime import datetime, time, timedelta, timezone
+from itertools import count
 from operator import attrgetter
 from random import choice, shuffle
 from time import sleep
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import Dict, Iterable, List, Optional, Tuple, DefaultDict
 
 from bestmobabot import constants
 from bestmobabot.api import API, AlreadyError, NotEnoughError, NotFoundError, OutOfRetargetDelta, ResponseError
@@ -121,7 +122,7 @@ class Bot(contextlib.AbstractContextManager):
                 time(hour=16, minute=0, tzinfo=self.user.tz),
             ], execute=self.shop))
         if self.settings.bot.is_trainer:
-            self.tasks.append(Task(at=[time(hour=22, minute=0)], execute=self.train_arena_model))  # noqa
+            self.tasks.append(Task(at=[time(hour=22, minute=0)], execute=self.train_arena_model))
         if self.settings.bot.arena.randomize_grand_defenders:
             self.tasks.append(Task(at=[time(hour=10, minute=30)], execute=self.randomize_grand_defenders))
         if self.settings.bot.enchant_rune:
@@ -130,41 +131,25 @@ class Bot(contextlib.AbstractContextManager):
         send_event(category='bot', action='start', user_id=self.api.user_id)
 
     def run(self):
-        # TODO: perhaps I have to know more about how cron is implemented.
-        # TODO: do not put this to production yet.
-        wakeup_time = now()
-
         logger.debug('Running scheduler.')
-        while True:
-            # Make schedule from the last wakeup moment.
-            logger.trace('Scheduler wakeup: {}.', wakeup_time)
-            schedule = [(run_at, task) for task in self.tasks for run_at in task.next_runs(wakeup_time)]
+        retries: DefaultDict[datetime, List[Task]] = defaultdict(list)
 
-            # Retrieve persisted retries.
-            for task in self.tasks:
-                retry_timestamp = self.db.get(f'{self.user.id}:{task.name}:retry_at')
-                if retry_timestamp:
-                    logger.trace('{} retry is scheduled at {}.', task.name, retry_timestamp)
-                    schedule.append((datetime.fromtimestamp(retry_timestamp, self.user.tz), task))
+        for at in iterate_seconds(now().replace(microsecond=0)):
+            # Wait until the tick comes in the real world.
+            while at > now():
+                sleep(0.5)
+            logger.trace('Tick: {:%d-%m %H:%M:%S %Z}.', at)
 
-            # Sleep until the soonest run, safety interval 1 second.
-            run_at = min(run_at for run_at, _ in schedule)
-            logger.info(f'Sleeping until {run_at:%d-%m %H:%M:%S %Z}.{os.linesep}')
-            sleep(max((run_at - now()).total_seconds(), 1.0))
+            # Collect all tasks pending in the tick.
+            pending = [task for task in self.tasks if task.is_pending(at)] + retries.pop(int(at.timestamp()), [])
 
-            # We should count tasks that may become pending before the next iteration.
-            wakeup_time = now()
-
-            # Execute pending tasks.
-            for run_at, task in schedule:
-                if run_at > wakeup_time:
-                    continue
+            # Execute the tasks.
+            for task in pending:
                 logger.info('Running {}…', task.name)
-                self.db[f'{self.user.id}:{task.name}:retry_at'] = None
                 retry_at = self.execute(task)
                 if retry_at:
-                    logger.info('Retry scheduled at {:%d-%m %H:%M:%S %Z}.', retry_at)
-                    self.db[f'{self.user.id}:{task.name}:retry_at'] = retry_at.timestamp()
+                    logger.info('Task will be retried at {:%d-%m %H:%M:%S %Z}.', retry_at)
+                    retries[int(retry_at.timestamp())].append(task)  # TODO: persistence.
 
     def execute(self, task: Task) -> Optional[datetime]:
         send_event(category='bot', action=task.execute.__name__, user_id=self.api.user_id)
@@ -253,7 +238,8 @@ class Bot(contextlib.AbstractContextManager):
         Отладочная задача.
         """
         logger.info(text)
-        sleep(1.0)
+        sleep(5)
+        return now() + timedelta(seconds=5)
 
     def register(self):
         """
@@ -697,3 +683,8 @@ class Bot(contextlib.AbstractContextManager):
 
 def now():
     return datetime.now(timezone.utc)
+
+
+def iterate_seconds(since: datetime) -> Iterable[datetime]:
+    for seconds in count():
+        yield since + timedelta(seconds=seconds)
