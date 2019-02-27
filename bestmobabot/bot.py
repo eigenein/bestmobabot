@@ -133,6 +133,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             Task(next_run_at=Task.at(hour=7, minute=30), execute=self.raid_bosses),
             Task(next_run_at=Task.at(hour=8, minute=0), execute=self.farm_daily_bonus),
             Task(next_run_at=Task.at(hour=8, minute=30), execute=self.buy_chest),
+            Task(next_run_at=Task.at(hour=8, minute=45), execute=self.level_up_titan_hero_gift),
             Task(next_run_at=Task.at(hour=9, minute=0), execute=self.send_daily_gift),
             Task(next_run_at=Task.at(hour=9, minute=15), execute=self.open_titan_artifact_chest),
             Task(next_run_at=Task.at(hour=9, minute=30), execute=self.farm_offers),
@@ -631,6 +632,18 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         )
         logger.success('Response: {}.', result.response)
         self.farm_quests(result.quests)
+
+    def level_up_titan_hero_gift(self):
+        """
+        Вложить и сбросить искры самому слабому герою.
+        """
+        logger.info('Level up and drop titan hero gift…')
+        hero = min(self.api.get_all_heroes(), key=attrgetter('power'))
+        logger.info('Hero: {}.', hero)
+        self.farm_quests(self.api.level_up_titan_hero_gift(hero.id))
+        reward, quests = self.api.drop_titan_hero_gift(hero.id)
+        reward.log()
+        self.farm_quests(quests)
 
 
 def now():

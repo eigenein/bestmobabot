@@ -473,6 +473,16 @@ class API(contextlib.AbstractContextManager):
             'items': {'consumable': consumables or {'1': 1}}},
         )
 
+    # Hero titan gifts
+    # ------------------------------------------------------------------------------------------------------------------
+
+    def level_up_titan_hero_gift(self, hero_id: str) -> Quests:
+        return self.call('heroTitanGiftLevelUp', {'heroId': hero_id}).quests
+
+    def drop_titan_hero_gift(self, hero_id: str) -> Tuple[Reward, Quests]:
+        result = self.call('heroTitanGiftDrop', {'heroId': hero_id})
+        return Reward.parse_obj(result.response), result.quests
+
 
 TModel = TypeVar('TModel', bound=BaseModel)
 

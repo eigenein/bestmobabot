@@ -5,7 +5,8 @@
 # `3.0b0`
 
 - **Automatic tower**
-- Auto-enchant rune
+- **Auto-enchant rune**
+- **Automatically level up and drop titan hero gift**
 - `heroes.js` interface
 - Vendored game resources
 
