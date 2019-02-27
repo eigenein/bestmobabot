@@ -173,12 +173,10 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
 
     def execute(self, task: Task) -> Optional[datetime]:
         send_event(category='bot', action=task.execute.__name__, user_id=self.api.user_id)
-        self.db[f'{self.api.user_id}:{task.execute.__name__}:last_executed_at'] = now().timestamp()
         self.api.last_responses.clear()
         try:
             next_run_at = task.execute()
         except TaskNotAvailable as e:
-            # FIXME: deprecated.
             logger.warning(f'Task unavailable: {e}.')
         except AlreadyError as e:
             logger.error(f'Already done: {e.description}.')
@@ -189,7 +187,6 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         except ResponseError as e:
             logger.opt(exception=e).error('API response error.')
         except Exception as e:
-            # TODO: this has to stay in this class, `try ... except` should wrap `scheduler.run_pending()`.
             logger.opt(exception=e).critical('Uncaught error.')
             for result in self.api.last_responses:
                 logger.critical('API result: {}', result)
@@ -637,5 +634,4 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
 
 
 def now():
-    # FIXME: deprecated.
     return datetime.now(timezone.utc)
