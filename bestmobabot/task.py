@@ -17,7 +17,7 @@ class Task:
     execute: Callable[[], Optional[datetime]]
 
     @staticmethod
-    def at(*times: time) -> NextRunAtCallable:
+    def at(*times_: time) -> NextRunAtCallable:
         def next_run_at(since: datetime) -> datetime:
             upcoming = [
                 since.astimezone(time_.tzinfo).replace(
@@ -26,27 +26,13 @@ class Task:
                     second=time_.second,
                     microsecond=time_.microsecond,
                 )
-                for time_ in times
+                for time_ in times_
             ]
             return min(
                 upcoming_ if upcoming_ > since else upcoming_ + timedelta(days=1)
                 for upcoming_ in upcoming
             )
         return next_run_at
-
-    @staticmethod
-    def every_n_seconds(seconds: float, offset: timedelta = timedelta()) -> NextRunAtCallable:
-        def next_run_at(since: datetime) -> datetime:
-            return since + timedelta(seconds=(seconds - (since.timestamp() - offset.total_seconds()) % seconds))
-        return next_run_at
-
-    @staticmethod
-    def every_n_minutes(minutes: float, offset: timedelta = timedelta()) -> NextRunAtCallable:
-        return Task.every_n_seconds(minutes * 60.0, offset)
-
-    @staticmethod
-    def every_n_hours(hours: float, offset: timedelta = timedelta()) -> NextRunAtCallable:
-        return Task.every_n_minutes(hours * 60.0, offset)
 
 
 class TaskNotAvailable(Exception):
