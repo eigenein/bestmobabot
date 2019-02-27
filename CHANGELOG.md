@@ -9,6 +9,7 @@
 - **Automatically level up and drop titan hero gift**
 - `heroes.js` interface
 - Vendored game resources
+- Refactored scheduler
 
 # `2.4`
 

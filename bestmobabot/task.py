@@ -6,33 +6,26 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, time, timedelta
-from typing import Callable, Optional
-
-NextRunAtCallable = Callable[[datetime], datetime]
+from typing import Callable, Iterable, Optional
 
 
 @dataclass
 class Task:
-    next_run_at: NextRunAtCallable
+    at: Iterable[time]
     execute: Callable[[], Optional[datetime]]
 
-    @staticmethod
-    def at(*times_: time) -> NextRunAtCallable:
-        def next_run_at(since: datetime) -> datetime:
-            upcoming = [
-                since.astimezone(time_.tzinfo).replace(
-                    hour=time_.hour,
-                    minute=time_.minute,
-                    second=time_.second,
-                    microsecond=time_.microsecond,
-                )
-                for time_ in times_
-            ]
-            return min(
-                upcoming_ if upcoming_ > since else upcoming_ + timedelta(days=1)
-                for upcoming_ in upcoming
+    def next_run_at(self, since: datetime) -> datetime:
+        return min(self.yield_upcoming(since))
+
+    def yield_upcoming(self, since: datetime) -> Iterable[datetime]:
+        for time_ in self.at:
+            upcoming = since.astimezone(time_.tzinfo).replace(
+                hour=time_.hour,
+                minute=time_.minute,
+                second=time_.second,
+                microsecond=time_.microsecond,
             )
-        return next_run_at
+            yield upcoming if upcoming > since else upcoming + timedelta(days=1)
 
 
 class TaskNotAvailable(Exception):

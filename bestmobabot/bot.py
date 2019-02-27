@@ -52,85 +52,85 @@ class Bot(contextlib.AbstractContextManager):
 
         self.tasks = [
             # These tasks depend on player's time zone.
-            Task(next_run_at=Task.at(time(hour=8, minute=0, tzinfo=self.user.tz)), execute=self.register),
-            Task(next_run_at=Task.at(
+            Task(at=[time(hour=8, minute=0, tzinfo=self.user.tz)], execute=self.register),
+            Task(at=[
                 time(hour=9, minute=30, tzinfo=self.user.tz),
                 time(hour=14, minute=30, tzinfo=self.user.tz),
                 time(hour=21, minute=30, tzinfo=self.user.tz),
-            ), execute=self.farm_quests),
+            ], execute=self.farm_quests),
 
             # Recurring tasks.
             # FIXME: `self.settings.bot.arena.schedule_offset`.
-            Task(next_run_at=Task.at(
+            Task(at=[
                 time(hour=0, minute=0, tzinfo=self.user.tz),
                 time(hour=4, minute=48, tzinfo=self.user.tz),
                 time(hour=9, minute=36, tzinfo=self.user.tz),
                 time(hour=14, minute=24, tzinfo=self.user.tz),
                 time(hour=19, minute=12, tzinfo=self.user.tz),
-            ), execute=self.attack_normal_arena),
-            Task(next_run_at=Task.at(
+            ], execute=self.attack_normal_arena),
+            Task(at=[
                 time(hour=0, minute=0, tzinfo=self.user.tz),
                 time(hour=4, minute=48, tzinfo=self.user.tz),
                 time(hour=9, minute=36, tzinfo=self.user.tz),
                 time(hour=14, minute=24, tzinfo=self.user.tz),
                 time(hour=19, minute=12, tzinfo=self.user.tz),
-            ), execute=self.attack_grand_arena),
-            Task(next_run_at=Task.at(
+            ], execute=self.attack_grand_arena),
+            Task(at=[
                 time(hour=0, minute=0, tzinfo=self.user.tz),
                 time(hour=6, minute=0, tzinfo=self.user.tz),
                 time(hour=12, minute=0, tzinfo=self.user.tz),
                 time(hour=18, minute=0, tzinfo=self.user.tz),
-            ), execute=self.farm_mail),
-            Task(next_run_at=Task.at(
+            ], execute=self.farm_mail),
+            Task(at=[
                 time(hour=0, minute=0, tzinfo=self.user.tz),
                 time(hour=6, minute=0, tzinfo=self.user.tz),
                 time(hour=12, minute=0, tzinfo=self.user.tz),
                 time(hour=18, minute=0, tzinfo=self.user.tz),
-            ), execute=self.check_freebie),
-            Task(next_run_at=Task.at(
+            ], execute=self.check_freebie),
+            Task(at=[
                 time(hour=0, minute=0, tzinfo=self.user.tz),
                 time(hour=4, minute=0, tzinfo=self.user.tz),
                 time(hour=8, minute=0, tzinfo=self.user.tz),
                 time(hour=12, minute=0, tzinfo=self.user.tz),
                 time(hour=16, minute=0, tzinfo=self.user.tz),
                 time(hour=20, minute=0, tzinfo=self.user.tz),
-            ), execute=self.farm_expeditions),
-            Task(next_run_at=Task.at(
+            ], execute=self.farm_expeditions),
+            Task(at=[
                 time(hour=0, minute=0, tzinfo=self.user.tz),
                 time(hour=12, minute=0, tzinfo=self.user.tz),
-            ), execute=self.get_arena_replays),
-            Task(next_run_at=Task.at(
+            ], execute=self.get_arena_replays),
+            Task(at=[
                 time(hour=0, minute=0, tzinfo=self.user.tz),
                 time(hour=4, minute=0, tzinfo=self.user.tz),
                 time(hour=8, minute=0, tzinfo=self.user.tz),
                 time(hour=12, minute=0, tzinfo=self.user.tz),
                 time(hour=16, minute=0, tzinfo=self.user.tz),
                 time(hour=20, minute=0, tzinfo=self.user.tz),
-            ), execute=self.raid_missions),
+            ], execute=self.raid_missions),
 
             # One time a day.
-            Task(next_run_at=Task.at(time(hour=6, minute=0)), execute=self.skip_tower),
-            Task(next_run_at=Task.at(time(hour=7, minute=30)), execute=self.raid_bosses),
-            Task(next_run_at=Task.at(time(hour=8, minute=0)), execute=self.farm_daily_bonus),
-            Task(next_run_at=Task.at(time(hour=8, minute=30)), execute=self.buy_chest),
-            Task(next_run_at=Task.at(time(hour=8, minute=45)), execute=self.level_up_titan_hero_gift),
-            Task(next_run_at=Task.at(time(hour=9, minute=0)), execute=self.send_daily_gift),
-            Task(next_run_at=Task.at(time(hour=9, minute=15)), execute=self.open_titan_artifact_chest),
-            Task(next_run_at=Task.at(time(hour=9, minute=30)), execute=self.farm_offers),
-            Task(next_run_at=Task.at(time(hour=10, minute=0)), execute=self.farm_zeppelin_gift),
+            Task(at=[time(hour=6, minute=0)], execute=self.skip_tower),
+            Task(at=[time(hour=7, minute=30)], execute=self.raid_bosses),
+            Task(at=[time(hour=8, minute=0)], execute=self.farm_daily_bonus),
+            Task(at=[time(hour=8, minute=30)], execute=self.buy_chest),
+            Task(at=[time(hour=8, minute=45)], execute=self.level_up_titan_hero_gift),
+            Task(at=[time(hour=9, minute=0)], execute=self.send_daily_gift),
+            Task(at=[time(hour=9, minute=15)], execute=self.open_titan_artifact_chest),
+            Task(at=[time(hour=9, minute=30)], execute=self.farm_offers),
+            Task(at=[time(hour=10, minute=0)], execute=self.farm_zeppelin_gift),
         ]
         if self.settings.bot.shops:
-            self.tasks.append(Task(next_run_at=Task.at(
+            self.tasks.append(Task(at=[
                 time(hour=0, minute=0, tzinfo=self.user.tz),
                 time(hour=8, minute=0, tzinfo=self.user.tz),
                 time(hour=16, minute=0, tzinfo=self.user.tz),
-            ), execute=self.shop))
+            ], execute=self.shop))
         if self.settings.bot.is_trainer:
-            self.tasks.append(Task(next_run_at=Task.at(time(hour=22, minute=0)), execute=self.train_arena_model))  # noqa
+            self.tasks.append(Task(at=[time(hour=22, minute=0)], execute=self.train_arena_model))  # noqa
         if self.settings.bot.arena.randomize_grand_defenders:
-            self.tasks.append(Task(next_run_at=Task.at(time(hour=10, minute=30)), execute=self.randomize_grand_defenders))
+            self.tasks.append(Task(at=[time(hour=10, minute=30)], execute=self.randomize_grand_defenders))
         if self.settings.bot.enchant_rune:
-            self.tasks.append(Task(next_run_at=Task.at(time(hour=9, minute=0)), execute=self.enchant_rune))
+            self.tasks.append(Task(at=[time(hour=9, minute=0)], execute=self.enchant_rune))
 
         send_event(category='bot', action='start', user_id=self.api.user_id)
 
