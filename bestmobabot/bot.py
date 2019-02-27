@@ -173,6 +173,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
 
     def execute(self, task: Task) -> Optional[datetime]:
         send_event(category='bot', action=task.execute.__name__, user_id=self.api.user_id)
+        self.db[f'{self.api.user_id}:{task.execute.__name__}:last_executed_at'] = now().timestamp()
         self.api.last_responses.clear()
         try:
             next_run_at = task.execute()
