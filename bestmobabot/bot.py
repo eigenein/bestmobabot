@@ -7,7 +7,7 @@ import os
 import pickle
 from base64 import b85decode
 from datetime import datetime, time, timezone
-from operator import attrgetter, itemgetter
+from operator import attrgetter
 from random import choice, shuffle
 from time import sleep
 from typing import Dict, Iterable, List, Optional, Tuple
@@ -130,37 +130,41 @@ class Bot(contextlib.AbstractContextManager):
         send_event(category='bot', action='start', user_id=self.api.user_id)
 
     def run(self):
-        logger.debug('Initialising task queue.')
+        # TODO: perhaps I have to know more about how cron is implemented.
+        # TODO: do not put this to production yet.
+        wakeup_time = now()
 
-        logger.debug('Running task queue.')
+        logger.debug('Running scheduler.')
         while True:
-            now_ = now()
-
-            # Retrieve all scheduled runs.
-            runs = [(run_at, task) for task in self.tasks for run_at in task.next_runs(now_)]
+            # Make schedule from the last wakeup moment.
+            logger.trace('Scheduler wakeup: {}.', wakeup_time)
+            schedule = [(run_at, task) for task in self.tasks for run_at in task.next_runs(wakeup_time)]
 
             # Retrieve persisted retries.
             for task in self.tasks:
                 retry_timestamp = self.db.get(f'{self.user.id}:{task.name}:retry_at')
                 if retry_timestamp:
                     logger.trace('{} retry is scheduled at {}.', task.name, retry_timestamp)
-                    runs.append((datetime.fromtimestamp(retry_timestamp, self.user.tz), task))
+                    schedule.append((datetime.fromtimestamp(retry_timestamp, self.user.tz), task))
 
-            # Find the earliest task.
-            run_at, task = min(runs, key=itemgetter(0))
-            logger.info(f'Next is {task.name} at {run_at:%d-%m %H:%M:%S %Z}.{os.linesep}')
+            # Sleep until the soonest run, safety interval 1 second.
+            run_at = min(run_at for run_at, _ in schedule)
+            logger.info(f'Sleeping until {run_at:%d-%m %H:%M:%S %Z}.{os.linesep}')
+            sleep(max((run_at - now()).total_seconds(), 1.0))
 
-            # Sleep until the execution time.
-            sleep_time = (run_at - now()).total_seconds()
-            if sleep_time >= 0.0:
-                sleep(sleep_time)
+            # We should count tasks that may become pending before the next iteration.
+            wakeup_time = now()
 
-            # Execute the task.
-            self.db[f'{self.user.id}:{task.name}:retry_at'] = None
-            retry_at = self.execute(task)
-            if retry_at:
-                logger.info('Retry scheduled at {:%d-%m %H:%M:%S %Z}.', retry_at)
-                self.db[f'{self.user.id}:{task.name}:retry_at'] = retry_at.timestamp()
+            # Execute pending tasks.
+            for run_at, task in schedule:
+                if run_at > wakeup_time:
+                    continue
+                logger.info('Running {}…', task.name)
+                self.db[f'{self.user.id}:{task.name}:retry_at'] = None
+                retry_at = self.execute(task)
+                if retry_at:
+                    logger.info('Retry scheduled at {:%d-%m %H:%M:%S %Z}.', retry_at)
+                    self.db[f'{self.user.id}:{task.name}:retry_at'] = retry_at.timestamp()
 
     def execute(self, task: Task) -> Optional[datetime]:
         send_event(category='bot', action=task.execute.__name__, user_id=self.api.user_id)
