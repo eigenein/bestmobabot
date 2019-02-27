@@ -5,7 +5,7 @@ Represents a scheduled bot task.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timedelta, tzinfo
+from datetime import datetime, time, timedelta
 from typing import Callable, Optional
 
 NextRunAtCallable = Callable[[datetime], datetime]
@@ -17,10 +17,15 @@ class Task:
     execute: Callable[[], Optional[datetime]]
 
     @staticmethod
-    def at(*, hour: int, minute: int, tz: Optional[tzinfo] = None) -> NextRunAtCallable:
+    def at(time_: time) -> NextRunAtCallable:
         def next_run_at(since: datetime) -> datetime:
-            since = since.astimezone(tz)
-            upcoming = since.replace(hour=hour, minute=minute, second=0, microsecond=0)
+            since = since.astimezone(time_.tzinfo)
+            upcoming = since.replace(
+                hour=time_.hour,
+                minute=time_.minute,
+                second=time_.second,
+                microsecond=time_.microsecond,
+            )
             return upcoming if upcoming > since else upcoming + timedelta(days=1)
         return next_run_at
 

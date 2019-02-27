@@ -6,7 +6,7 @@ import contextlib
 import os
 import pickle
 from base64 import b85decode
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, time
 from operator import attrgetter
 from random import choice, shuffle
 from time import sleep
@@ -52,10 +52,10 @@ class Bot(contextlib.AbstractContextManager):
 
         self.tasks = [
             # These tasks depend on player's time zone.
-            Task(next_run_at=Task.at(hour=8, minute=0, tz=self.user.tz), execute=self.register),
-            Task(next_run_at=Task.at(hour=9, minute=30, tz=self.user.tz), execute=self.farm_quests),
-            Task(next_run_at=Task.at(hour=14, minute=30, tz=self.user.tz), execute=self.farm_quests),
-            Task(next_run_at=Task.at(hour=21, minute=30, tz=self.user.tz), execute=self.farm_quests),
+            Task(next_run_at=Task.at(time(hour=8, minute=0, tzinfo=self.user.tz)), execute=self.register),
+            Task(next_run_at=Task.at(time(hour=9, minute=30, tzinfo=self.user.tz)), execute=self.farm_quests),
+            Task(next_run_at=Task.at(time(hour=14, minute=30, tzinfo=self.user.tz)), execute=self.farm_quests),
+            Task(next_run_at=Task.at(time(hour=21, minute=30, tzinfo=self.user.tz)), execute=self.farm_quests),
 
             # Recurring tasks.
             Task(next_run_at=Task.every_n_minutes(24 * 60 // 5, self.settings.bot.arena.schedule_offset), execute=self.attack_normal_arena),  # noqa
@@ -67,24 +67,24 @@ class Bot(contextlib.AbstractContextManager):
             Task(next_run_at=Task.every_n_hours(4), execute=self.raid_missions),
 
             # One time a day.
-            Task(next_run_at=Task.at(hour=6, minute=0), execute=self.skip_tower),
-            Task(next_run_at=Task.at(hour=7, minute=30), execute=self.raid_bosses),
-            Task(next_run_at=Task.at(hour=8, minute=0), execute=self.farm_daily_bonus),
-            Task(next_run_at=Task.at(hour=8, minute=30), execute=self.buy_chest),
-            Task(next_run_at=Task.at(hour=8, minute=45), execute=self.level_up_titan_hero_gift),
-            Task(next_run_at=Task.at(hour=9, minute=0), execute=self.send_daily_gift),
-            Task(next_run_at=Task.at(hour=9, minute=15), execute=self.open_titan_artifact_chest),
-            Task(next_run_at=Task.at(hour=9, minute=30), execute=self.farm_offers),
-            Task(next_run_at=Task.at(hour=10, minute=0), execute=self.farm_zeppelin_gift),
+            Task(next_run_at=Task.at(time(hour=6, minute=0)), execute=self.skip_tower),
+            Task(next_run_at=Task.at(time(hour=7, minute=30)), execute=self.raid_bosses),
+            Task(next_run_at=Task.at(time(hour=8, minute=0)), execute=self.farm_daily_bonus),
+            Task(next_run_at=Task.at(time(hour=8, minute=30)), execute=self.buy_chest),
+            Task(next_run_at=Task.at(time(hour=8, minute=45)), execute=self.level_up_titan_hero_gift),
+            Task(next_run_at=Task.at(time(hour=9, minute=0)), execute=self.send_daily_gift),
+            Task(next_run_at=Task.at(time(hour=9, minute=15)), execute=self.open_titan_artifact_chest),
+            Task(next_run_at=Task.at(time(hour=9, minute=30)), execute=self.farm_offers),
+            Task(next_run_at=Task.at(time(hour=10, minute=0)), execute=self.farm_zeppelin_gift),
         ]
         if self.settings.bot.shops:
             self.tasks.append(Task(next_run_at=Task.every_n_hours(8), execute=self.shop))
         if self.settings.bot.is_trainer:
-            self.tasks.append(Task(next_run_at=Task.at(hour=22, minute=0, tz=self.user.tz), execute=self.train_arena_model))  # noqa
+            self.tasks.append(Task(next_run_at=Task.at(time(hour=22, minute=0)), execute=self.train_arena_model))  # noqa
         if self.settings.bot.arena.randomize_grand_defenders:
-            self.tasks.append(Task(next_run_at=Task.at(hour=10, minute=30), execute=self.randomize_grand_defenders))
+            self.tasks.append(Task(next_run_at=Task.at(time(hour=10, minute=30)), execute=self.randomize_grand_defenders))
         if self.settings.bot.enchant_rune:
-            self.tasks.append(Task(next_run_at=Task.at(hour=9, minute=0), execute=self.enchant_rune))
+            self.tasks.append(Task(next_run_at=Task.at(time(hour=9, minute=0)), execute=self.enchant_rune))
 
         send_event(category='bot', action='start', user_id=self.api.user_id)
 
@@ -98,7 +98,7 @@ class Bot(contextlib.AbstractContextManager):
             # Find the earliest task.
             run_at, index = min((run_at, index) for index, run_at in enumerate(schedule))
             task = self.tasks[index]
-            logger.info(f'Next is {task} at {run_at:%d-%m %H:%M:%S}.{os.linesep}')
+            logger.info(f'Next is {task.execute.__name__} at {run_at:%d-%m %H:%M:%S}.{os.linesep}')
             # Sleep until the execution time.
             sleep_time = (run_at - now()).total_seconds()
             if sleep_time >= 0.0:
