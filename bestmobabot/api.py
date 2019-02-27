@@ -9,11 +9,12 @@ import re
 import string
 from datetime import datetime
 from time import sleep, time
-from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, TypeVar
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Type, TypeVar
 
 import orjson
 import requests
 from loguru import logger
+from pydantic import BaseModel
 from requests.adapters import HTTPAdapter
 
 from bestmobabot import constants
@@ -40,8 +41,6 @@ from bestmobabot.dataclasses_ import (
 from bestmobabot.enums import BattleType
 from bestmobabot.settings import Settings
 from bestmobabot.tracking import send_event
-
-T = TypeVar('T')
 
 
 class ApiError(Exception):
@@ -274,7 +273,7 @@ class API(contextlib.AbstractContextManager):
         return User.parse_obj(self.call('userGetInfo').response)
 
     def get_all_heroes(self, random_sleep=True) -> List[Hero]:
-        return list_of(Hero.parse_obj, self.call('heroGetAll', random_sleep=random_sleep).response)
+        return list_of(Hero, self.call('heroGetAll', random_sleep=random_sleep).response)
 
     # Daily bonus.
     # ------------------------------------------------------------------------------------------------------------------
@@ -286,7 +285,7 @@ class API(contextlib.AbstractContextManager):
     # ------------------------------------------------------------------------------------------------------------------
 
     def list_expeditions(self) -> List[Expedition]:
-        return list_of(Expedition.parse_obj, self.call('expeditionGet').response)
+        return list_of(Expedition, self.call('expeditionGet').response)
 
     def farm_expedition(self, expedition_id: str) -> Reward:
         return Reward.parse_obj(self.call('expeditionFarm', {'expeditionId': expedition_id}).response)
@@ -299,7 +298,7 @@ class API(contextlib.AbstractContextManager):
     # ------------------------------------------------------------------------------------------------------------------
 
     def get_all_quests(self) -> Quests:
-        return list_of(Quest.parse_obj, self.call('questGetAll').response)
+        return list_of(Quest, self.call('questGetAll').response)
 
     def farm_quest(self, quest_id: str) -> Reward:
         return Reward.parse_obj(self.call('questFarm', {'questId': quest_id}).response)
@@ -308,7 +307,7 @@ class API(contextlib.AbstractContextManager):
     # ------------------------------------------------------------------------------------------------------------------
 
     def get_all_mail(self) -> List[Letter]:
-        return list_of(Letter.parse_obj, self.call('mailGetAll').response['letters'])
+        return list_of(Letter, self.call('mailGetAll').response['letters'])
 
     def farm_mail(self, letter_ids: Iterable[str]) -> Dict[str, Reward]:
         result = self.call('mailFarm', {'letterIds': list(letter_ids)})
@@ -319,7 +318,7 @@ class API(contextlib.AbstractContextManager):
 
     def buy_chest(self, is_free=True, chest='town', is_pack=False) -> List[Reward]:
         result = self.call('chestBuy', {'free': is_free, 'chest': chest, 'pack': is_pack})
-        return list_of(Reward.parse_obj, result.response['rewards'])
+        return list_of(Reward, result.response['rewards'])
 
     # Daily gift.
     # ------------------------------------------------------------------------------------------------------------------
@@ -331,7 +330,7 @@ class API(contextlib.AbstractContextManager):
     # ------------------------------------------------------------------------------------------------------------------
 
     def find_arena_enemies(self) -> List[ArenaEnemy]:
-        return list_of(ArenaEnemy.parse_obj, self.call('arenaFindEnemies').response)
+        return list_of(ArenaEnemy, self.call('arenaFindEnemies').response)
 
     def attack_arena(self, user_id: str, hero_ids: Iterable[str]) -> Tuple[ArenaResult, Quests]:
         result = self.call('arenaAttack', {'userId': user_id, 'heroes': list(hero_ids)})
@@ -339,7 +338,7 @@ class API(contextlib.AbstractContextManager):
 
     def find_grand_enemies(self) -> List[GrandArenaEnemy]:
         # Random sleep is turned off because model prediction takes some time already.
-        return list_of(GrandArenaEnemy.parse_obj, self.call('grandFindEnemies', random_sleep=False).response)
+        return list_of(GrandArenaEnemy, self.call('grandFindEnemies', random_sleep=False).response)
 
     def attack_grand(self, user_id: str, hero_ids: List[List[str]]) -> Tuple[ArenaResult, Quests]:
         result = self.call('grandAttack', {'userId': user_id, 'heroes': hero_ids})
@@ -369,14 +368,14 @@ class API(contextlib.AbstractContextManager):
 
     def open_artifact_chest(self, amount=1, is_free=True) -> List[Reward]:
         response = self.call('artifactChestOpen', {'amount': amount, 'free': is_free}).response
-        return list_of(Reward.parse_obj, response['chestReward'])
+        return list_of(Reward, response['chestReward'])
 
     # Battles.
     # ------------------------------------------------------------------------------------------------------------------
 
     def get_battle_by_type(self, battle_type: BattleType, offset=0, limit=20) -> List[Replay]:
         response = self.call('battleGetByType', {'type': battle_type.value, 'offset': offset, 'limit': limit}).response
-        return list_of(Replay.parse_obj, response['replays'])
+        return list_of(Replay, response['replays'])
 
     # Raids.
     # https://github.com/eigenein/bestmobabot/wiki/Raids
@@ -384,31 +383,31 @@ class API(contextlib.AbstractContextManager):
 
     def raid_mission(self, mission_id: str, times=1) -> List[Reward]:
         response = self.call('missionRaid', {'times': times, 'id': mission_id}).response
-        return list_of(Reward.parse_obj, response)
+        return list_of(Reward, response)
 
     def get_all_missions(self) -> List[Mission]:
-        return list_of(Mission.parse_obj, self.call('missionGetAll').response)
+        return list_of(Mission, self.call('missionGetAll').response)
 
     # Boss.
     # https://github.com/eigenein/bestmobabot/wiki/Boss
     # ------------------------------------------------------------------------------------------------------------------
 
     def get_all_bosses(self) -> List[Boss]:
-        return list_of(Boss.parse_obj, self.call('bossGetAll').response)
+        return list_of(Boss, self.call('bossGetAll').response)
 
     def raid_boss(self, boss_id: str) -> Reward:
         return Reward.parse_obj(self.call('bossRaid', {'bossId': boss_id}).response['everyWinReward'])
 
     def open_boss_chest(self, boss_id: str) -> Tuple[List[Reward], Quests]:
         result = self.call('bossOpenChest', {'bossId': boss_id, 'starmoney': 0, 'amount': 1})
-        return list_of(Reward.parse_obj, result.response['rewards']['free']), result.quests
+        return list_of(Reward, result.response['rewards']['free']), result.quests
 
     # Shop.
     # ------------------------------------------------------------------------------------------------------------------
 
     def get_shop(self, shop_id: str) -> List[ShopSlot]:
         response = self.call('shopGet', {'shopId': shop_id}).response
-        return list_of(ShopSlot.parse_obj, response['slots'])
+        return list_of(ShopSlot, response['slots'])
 
     def shop(self, *, slot_id: str, shop_id: str) -> Reward:
         return Reward.parse_obj(self.call('shopBuy', {'slot': slot_id, 'shopId': shop_id}).response)
@@ -447,7 +446,7 @@ class API(contextlib.AbstractContextManager):
     # ------------------------------------------------------------------------------------------------------------------
 
     def get_all_offers(self) -> List[Offer]:
-        return list_of(Offer.parse_obj, self.call('offerGetAll').response)
+        return list_of(Offer, self.call('offerGetAll').response)
 
     def farm_offer_reward(self, offer_id: str) -> Reward:
         return Reward.parse_obj(self.call('offerFarmReward', {'offerId': offer_id}).response)
@@ -457,7 +456,7 @@ class API(contextlib.AbstractContextManager):
 
     def open_titan_artifact_chest(self, amount: int, free: bool = True) -> Tuple[List[Reward], Quests]:
         result = self.call('titanArtifactChestOpen', {'amount': amount, 'free': free})
-        return list_of(Reward.parse_obj, result.response['reward']), result.quests
+        return list_of(Reward, result.response['reward']), result.quests
 
     # Runes.
     # ------------------------------------------------------------------------------------------------------------------
@@ -475,15 +474,17 @@ class API(contextlib.AbstractContextManager):
         )
 
 
-def list_of(constructor: Callable[[Any], T], items: Iterable) -> List[T]:
+TModel = TypeVar('TModel', bound=BaseModel)
+
+
+def list_of(type_: Type[TModel], items: Iterable) -> List[TModel]:
     """
     Used to protect from changing a response from list to dictionary and vice versa.
     This often happens with the game updates.
     """
-    # FIXME: accept `BaseModel` subclasses instead of `constructor`, that would fix the linter warnings.
     if isinstance(items, dict):
         # Equally treat lists and dictionaries. Because there're two possibilities in the responses:
         # 1. `[{"id": "1", ...}]`
         # 2. `{"1": {"id": "1"}, ...}`
         items = items.values()
-    return [constructor(item) for item in items]
+    return [type_(**item) for item in items]
