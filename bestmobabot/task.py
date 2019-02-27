@@ -2,18 +2,19 @@
 Represents a scheduled bot task.
 """
 
+from __future__ import annotations
+
+from dataclasses import dataclass
 from datetime import datetime, timedelta, tzinfo
-from typing import Callable, NamedTuple, Optional
+from typing import Callable, Optional
 
 NextRunAtCallable = Callable[[datetime], datetime]
 
 
-class Task(NamedTuple):
+@dataclass
+class Task:
     next_run_at: NextRunAtCallable
     execute: Callable[[], Optional[datetime]]
-
-    def __str__(self):
-        return f'{self.execute.__name__}'
 
     @staticmethod
     def at(*, hour: int, minute: int, tz: Optional[tzinfo] = None) -> NextRunAtCallable:
@@ -36,15 +37,6 @@ class Task(NamedTuple):
     @staticmethod
     def every_n_hours(hours: float, offset: timedelta = timedelta()) -> NextRunAtCallable:
         return Task.every_n_minutes(hours * 60.0, offset)
-
-    @staticmethod
-    def asap() -> NextRunAtCallable:
-        """
-        Executes task as soon as possible. Only used for development.
-        """
-        def next_run_at(since: datetime) -> datetime:
-            return since
-        return next_run_at
 
 
 class TaskNotAvailable(Exception):
