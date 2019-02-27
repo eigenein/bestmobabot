@@ -1,7 +1,12 @@
 FROM python:3.7
 MAINTAINER Pavel Perestoronin <eigenein@gmail.com>
 
-ENV LC_ALL=C.UTF-8 LANG=C.UTF-8 PYTHONIOENCODING=utf-8 PYTHONOPTIMIZE=2
+ENV \
+    LC_ALL=C.UTF-8 \
+    LANG=C.UTF-8 \
+    PYTHONIOENCODING=utf-8 \
+    PYTHONOPTIMIZE=2 \
+    IPYTHONDIR=/app/.ipython
 
 RUN curl -sL https://deb.nodesource.com/setup_11.x | bash -
 RUN apt-get install -y nodejs
