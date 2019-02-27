@@ -53,9 +53,11 @@ class Bot(contextlib.AbstractContextManager):
         self.tasks = [
             # These tasks depend on player's time zone.
             Task(next_run_at=Task.at(time(hour=8, minute=0, tzinfo=self.user.tz)), execute=self.register),
-            Task(next_run_at=Task.at(time(hour=9, minute=30, tzinfo=self.user.tz)), execute=self.farm_quests),
-            Task(next_run_at=Task.at(time(hour=14, minute=30, tzinfo=self.user.tz)), execute=self.farm_quests),
-            Task(next_run_at=Task.at(time(hour=21, minute=30, tzinfo=self.user.tz)), execute=self.farm_quests),
+            Task(next_run_at=Task.at(
+                time(hour=9, minute=30, tzinfo=self.user.tz),
+                time(hour=14, minute=30, tzinfo=self.user.tz),
+                time(hour=21, minute=30, tzinfo=self.user.tz),
+            ), execute=self.farm_quests),
 
             # Recurring tasks.
             Task(next_run_at=Task.every_n_minutes(24 * 60 // 5, self.settings.bot.arena.schedule_offset), execute=self.attack_normal_arena),  # noqa

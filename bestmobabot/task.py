@@ -17,16 +17,21 @@ class Task:
     execute: Callable[[], Optional[datetime]]
 
     @staticmethod
-    def at(time_: time) -> NextRunAtCallable:
+    def at(*times: time) -> NextRunAtCallable:
         def next_run_at(since: datetime) -> datetime:
-            since = since.astimezone(time_.tzinfo)
-            upcoming = since.replace(
-                hour=time_.hour,
-                minute=time_.minute,
-                second=time_.second,
-                microsecond=time_.microsecond,
+            upcoming = [
+                since.astimezone(time_.tzinfo).replace(
+                    hour=time_.hour,
+                    minute=time_.minute,
+                    second=time_.second,
+                    microsecond=time_.microsecond,
+                )
+                for time_ in times
+            ]
+            return min(
+                upcoming_ if upcoming_ > since else upcoming_ + timedelta(days=1)
+                for upcoming_ in upcoming
             )
-            return upcoming if upcoming > since else upcoming + timedelta(days=1)
         return next_run_at
 
     @staticmethod
