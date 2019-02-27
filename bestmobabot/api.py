@@ -75,15 +75,13 @@ class ArgumentError(ApiError):
     pass
 
 
+# FIXME: try to inherit it from `ApiError`.
 class OutOfRetargetDelta(Exception):
     pass
 
 
+# FIXME: try to inherit it from `ApiError`.
 class ResponseError(ValueError):
-    pass
-
-
-class InvalidResponseError(ResponseError):
     pass
 
 
@@ -220,7 +218,7 @@ class API(contextlib.AbstractContextManager):
             except ValueError:
                 if response.text == 'Invalid signature':
                     raise InvalidSignatureError(response.text)
-                raise InvalidResponseError(response.text)
+                raise ResponseError(response.text)
 
         if 'results' in item:
             result = Result.parse_obj(item['results'][0]['result'])
@@ -264,8 +262,7 @@ class API(contextlib.AbstractContextManager):
     @classmethod
     def make_exception(cls, error: Dict) -> 'ApiError':
         name = error.get('name')
-        description = error.get('description')
-        return cls.exception_classes.get(name, ApiError)(name, description)
+        return cls.exception_classes.get(name, ApiError)(name, error.get('description'))
 
     # User.
     # ------------------------------------------------------------------------------------------------------------------
@@ -483,7 +480,7 @@ def list_of(constructor: Callable[[Any], T], items: Iterable) -> List[T]:
     Used to protect from changing a response from list to dictionary and vice versa.
     This often happens with the game updates.
     """
-    # FIXME: accept `BaseModel` subclasses instead of `constructor`.
+    # FIXME: accept `BaseModel` subclasses instead of `constructor`, that would fix the linter warnings.
     if isinstance(items, dict):
         # Equally treat lists and dictionaries. Because there're two possibilities in the responses:
         # 1. `[{"id": "1", ...}]`

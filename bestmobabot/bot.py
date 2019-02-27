@@ -6,14 +6,14 @@ import contextlib
 import os
 import pickle
 from base64 import b85decode
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from operator import attrgetter
 from random import choice, shuffle
 from time import sleep
 from typing import Dict, Iterable, List, Optional, Tuple
 
-from bestmobabot import constants, helpers
-from bestmobabot.api import API, AlreadyError, InvalidResponseError, NotEnoughError, NotFoundError, OutOfRetargetDelta
+from bestmobabot import constants
+from bestmobabot.api import API, AlreadyError, NotEnoughError, NotFoundError, OutOfRetargetDelta, ResponseError
 from bestmobabot.arena import ArenaSolver, reduce_grand_arena, reduce_normal_arena
 from bestmobabot.database import Database
 from bestmobabot.dataclasses_ import Hero, Mission, Quests, Replay, User
@@ -151,7 +151,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
 
     def run(self):
         logger.debug('Initialising task queue.')
-        now_ = helpers.now()
+        now_ = now()
         schedule = [task.next_run_at(now_).astimezone() for task in self.tasks]
 
         logger.debug('Running task queue.')
@@ -161,11 +161,11 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             task = self.tasks[index]
             logger.info(f'Next is {task} at {run_at:%d-%m %H:%M:%S}.{os.linesep}')
             # Sleep until the execution time.
-            sleep_time = (run_at - helpers.now()).total_seconds()
+            sleep_time = (run_at - now()).total_seconds()
             if sleep_time >= 0.0:
                 sleep(sleep_time)
             # Execute the task.
-            next_run_at = self.execute(task) or task.next_run_at(max(helpers.now(), run_at + timedelta(seconds=1)))
+            next_run_at = self.execute(task) or task.next_run_at(max(now(), run_at + timedelta(seconds=1)))
             next_run_at = next_run_at.astimezone()  # keeping them in the local time zone
             # Update its execution time.
             logger.info(f'Next run at {next_run_at:%d-%m %H:%M:%S}.{os.linesep}')
@@ -177,6 +177,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         try:
             next_run_at = task.execute()
         except TaskNotAvailable as e:
+            # FIXME: deprecated.
             logger.warning(f'Task unavailable: {e}.')
         except AlreadyError as e:
             logger.error(f'Already done: {e.description}.')
@@ -184,9 +185,10 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
             logger.error(f'Not enough: {e.description}.')
         except OutOfRetargetDelta:
             logger.error(f'Out of retarget delta.')
-        except InvalidResponseError as e:
-            logger.opt(exception=e).error('API returned something bad.')
+        except ResponseError as e:
+            logger.opt(exception=e).error('API response error.')
         except Exception as e:
+            # TODO: this has to stay in this class, `try ... except` should wrap `scheduler.run_pending()`.
             logger.opt(exception=e).critical('Uncaught error.')
             for result in self.api.last_responses:
                 logger.critical('API result: {}', result)
@@ -224,7 +226,7 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         """
         Собирает награду с экспедиций в дирижабле.
         """
-        now_ = helpers.now()
+        now_ = now()
 
         logger.info('Farming expeditions…')
         expeditions = self.api.list_expeditions()
@@ -631,3 +633,8 @@ class Bot(contextlib.AbstractContextManager, BotHelperMixin):
         )
         logger.success('Response: {}.', result.response)
         self.farm_quests(result.quests)
+
+
+def now():
+    # FIXME: deprecated.
+    return datetime.now(timezone.utc)

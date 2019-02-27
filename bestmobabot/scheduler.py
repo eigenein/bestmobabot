@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, time, timedelta, tzinfo
+from datetime import datetime, time, timedelta, timezone, tzinfo
 from typing import Any, Callable, List, MutableMapping
 
-TIsPending = Callable[[datetime, datetime], bool]
+from loguru import logger
+
+from bestmobabot.api import AlreadyError, NotEnoughError, OutOfRetargetDelta, ResponseError
+
 TExecute = Callable[..., Any]
 
 
@@ -14,59 +17,63 @@ class Scheduler:
         self.prefix = prefix
         self.tasks: List[Task] = []
 
-    def add_task(self, name: str) -> Task:
-        task = Task(name=name)
+    def set_defaults(self):
+        last_executed_at = datetime.now(timezone.utc).timestamp()
+        for task in self.tasks:
+            self.db.setdefault(f'{self.prefix}:{task.name}:last_executed_at', last_executed_at)
+
+    def add_task(self, task: Task) -> Scheduler:
         self.tasks.append(task)
-        return task
+        return self
 
     def run_pending(self, tz: tzinfo):
-        now = datetime.now().astimezone(tz)
+        now_ = datetime.now(tz)
         for task in self.tasks:
+            # TODO: retries.
             last_executed_key = f'{self.prefix}:{task.name}:last_executed_at'
-            try:
-                last_executed_at = ...
-            except KeyError:
-                # It was never executed before. Initialise last execution time.
-                self.db[last_executed_key] = now.timestamp()
+            last_executed_at = datetime.fromtimestamp(self.db[last_executed_key], timezone.utc)
+            if not task.is_pending(last_executed_at, now_):
+                logger.trace('{} is not pending.', task.name)
                 continue
-            ...  # TODO
+            logger.info('{} is pending.', task.name)
+            self.db[last_executed_key] = now_.timestamp()
+            try:
+                task.execute()
+            except AlreadyError as e:
+                logger.error(f'Already done: {e.description}.')
+            except NotEnoughError as e:
+                logger.error(f'Not enough: {e.description}.')
+            except OutOfRetargetDelta:
+                logger.error('Out of retarget delta.')
+            except ResponseError as e:
+                logger.opt(exception=e).error('API response error.')
+            else:
+                logger.success('Well done.')
 
 
 @dataclass
 class Task:
     name: str
-    is_pending: TIsPending = lambda: False
     execute: TExecute = lambda: None
 
-    def between(self, earliest: time, latest: time) -> Task:
-        if earliest.tzinfo:
-            raise ValueError('offset-aware time is not allowed here')
-        if latest.tzinfo:
-            raise ValueError('offset-aware time is not allowed here')
-
-        def _is_pending(last_executed_at: datetime, now: datetime) -> bool:
-            # TODO: randomise between earliest and latest.
-            return last_executed_at < replace(now, earliest) <= now < replace(now, latest)
-
-        self.is_pending = _is_pending
-        return self
-
-    def every(self, min_: timedelta, max_: timedelta) -> Task:
-        def _is_pending(last_executed_at: datetime, now: datetime) -> bool:
-            # TODO: randomise between `last_executed_at + min_` and `last_executed_at + max_`.
-            return last_executed_at < last_executed_at + min_ <= now
-
-        self.is_pending = _is_pending
-        return self
-
-    def do(self, execute: TExecute):
-        self.execute = execute
+    def is_pending(self, last_executed_at: datetime, now_: datetime) -> bool:
+        logger.warning('Task {} is never executed.', self.name)
+        return False
 
 
-def replace(datetime_: datetime, time_: time) -> datetime:
-    return datetime_.replace(
-        hour=time_.hour,
-        minute=time_.minute,
-        second=time_.second,
-        microsecond=time_.microsecond,
-    )
+class EverydayTask(Task):
+    earliest: time  # inclusive
+    latest: time  # exclusive
+
+    def is_pending(self, last_executed_at: datetime, now_: datetime) -> bool:
+        # TODO: randomise between `earliest` and `latest`.
+        return last_executed_at < now_ and self.earliest <= now_.time() < self.latest
+
+
+class PeriodicTask(Task):
+    min_: timedelta  # inclusive
+    max_: timedelta  # exclusive
+
+    def is_pending(self, last_executed_at: datetime, now_: datetime) -> bool:
+        # TODO: randomise between `min_` and `max_`.
+        return self.min_ <= now_ - last_executed_at

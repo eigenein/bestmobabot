@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from datetime import datetime
 from itertools import combinations
 from operator import attrgetter
 from typing import Iterable, List, Optional, Sequence
@@ -41,7 +40,3 @@ def find_expedition_team(heroes: Iterable[Hero], min_power: int) -> Optional[Seq
             best_team = team
 
     return best_team
-
-
-def now():
-    return datetime.now().astimezone()
