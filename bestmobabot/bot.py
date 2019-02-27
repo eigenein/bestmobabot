@@ -51,15 +51,6 @@ class Bot(contextlib.AbstractContextManager):
         self.user = self.api.get_user_info()
 
         self.tasks: List[Task] = [
-            # These tasks depend on player's time zone.
-            Task(at=[time(hour=8, minute=0, tzinfo=self.user.tz)], execute=self.register),
-            Task(at=[
-                time(hour=9, minute=30, tzinfo=self.user.tz),
-                time(hour=14, minute=30, tzinfo=self.user.tz),
-                time(hour=21, minute=30, tzinfo=self.user.tz),
-            ], execute=self.farm_quests),
-
-            # Recurring tasks.
             Task(at=[
                 time(hour=0, minute=0, tzinfo=self.user.tz),
                 time(hour=4, minute=48, tzinfo=self.user.tz),
@@ -106,10 +97,15 @@ class Bot(contextlib.AbstractContextManager):
                 time(hour=16, minute=0, tzinfo=self.user.tz),
                 time(hour=20, minute=0, tzinfo=self.user.tz),
             ], execute=self.raid_missions),
+            Task(at=[
+                time(hour=9, minute=30, tzinfo=self.user.tz),
+                time(hour=14, minute=30, tzinfo=self.user.tz),
+                time(hour=21, minute=30, tzinfo=self.user.tz),
+            ], execute=self.farm_quests),
 
-            # One time a day.
             Task(at=[time(hour=6, minute=0)], execute=self.skip_tower),
             Task(at=[time(hour=7, minute=30)], execute=self.raid_bosses),
+            Task(at=[time(hour=8, minute=0, tzinfo=self.user.tz)], execute=self.register),
             Task(at=[time(hour=8, minute=0)], execute=self.farm_daily_bonus),
             Task(at=[time(hour=8, minute=30)], execute=self.buy_chest),
             Task(at=[time(hour=8, minute=45)], execute=self.level_up_titan_hero_gift),
