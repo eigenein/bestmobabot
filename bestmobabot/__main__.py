@@ -45,8 +45,8 @@ def main(settings: Settings, verbosity: int, shell: bool):
         if settings.telegram and settings.telegram.token and settings.telegram.chat_id:
             logger.info('Adding Telegram logging handler.')
             logger.add(TelegramHandler(settings.telegram, bot.user.name), level='INFO', format=LOGURU_TELEGRAM_FORMAT)
-        logger.info(f'Welcome «{bot.user.name}»! Your game time is {datetime.now(bot.user.tz):%H:%M:%S}.')
-        logger.info('Next day starts at {:%H:%M:%S}.', bot.user.next_day.astimezone(bot.user.tz))
+        logger.info(f'Welcome «{bot.user.name}»! Your game time is {datetime.now(bot.user.tz):%H:%M:%S %Z}.')
+        logger.info('Next day starts at {:%H:%M:%S %Z}.', bot.user.next_day.astimezone(bot.user.tz))
         if not shell:
             bot.run()
         else:

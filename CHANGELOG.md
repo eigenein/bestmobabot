@@ -7,6 +7,7 @@
 - **Automatic tower**
 - **Auto-enchant rune**
 - **Automatically level up and drop titan hero gift**
+- **Task retries are now persisted**
 - `heroes.js` interface
 - Vendored game resources
 - Refactored scheduler

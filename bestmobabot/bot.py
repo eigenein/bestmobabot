@@ -6,8 +6,8 @@ import contextlib
 import os
 import pickle
 from base64 import b85decode
-from datetime import datetime, timedelta, timezone, time
-from operator import attrgetter
+from datetime import datetime, time, timezone
+from operator import attrgetter, itemgetter
 from random import choice, shuffle
 from time import sleep
 from typing import Dict, Iterable, List, Optional, Tuple
@@ -50,7 +50,7 @@ class Bot(contextlib.AbstractContextManager):
     def start(self):
         self.user = self.api.get_user_info()
 
-        self.tasks = [
+        self.tasks: List[Task] = [
             # These tasks depend on player's time zone.
             Task(at=[time(hour=8, minute=0, tzinfo=self.user.tz)], execute=self.register),
             Task(at=[
@@ -60,21 +60,20 @@ class Bot(contextlib.AbstractContextManager):
             ], execute=self.farm_quests),
 
             # Recurring tasks.
-            # FIXME: `self.settings.bot.arena.schedule_offset`.
             Task(at=[
                 time(hour=0, minute=0, tzinfo=self.user.tz),
                 time(hour=4, minute=48, tzinfo=self.user.tz),
                 time(hour=9, minute=36, tzinfo=self.user.tz),
                 time(hour=14, minute=24, tzinfo=self.user.tz),
                 time(hour=19, minute=12, tzinfo=self.user.tz),
-            ], execute=self.attack_normal_arena),
+            ], execute=self.attack_normal_arena, offset=self.settings.bot.arena.schedule_offset),
             Task(at=[
                 time(hour=0, minute=0, tzinfo=self.user.tz),
                 time(hour=4, minute=48, tzinfo=self.user.tz),
                 time(hour=9, minute=36, tzinfo=self.user.tz),
                 time(hour=14, minute=24, tzinfo=self.user.tz),
                 time(hour=19, minute=12, tzinfo=self.user.tz),
-            ], execute=self.attack_grand_arena),
+            ], execute=self.attack_grand_arena, offset=self.settings.bot.arena.schedule_offset),
             Task(at=[
                 time(hour=0, minute=0, tzinfo=self.user.tz),
                 time(hour=6, minute=0, tzinfo=self.user.tz),
@@ -136,25 +135,36 @@ class Bot(contextlib.AbstractContextManager):
 
     def run(self):
         logger.debug('Initialising task queue.')
-        now_ = now()
-        schedule = [task.next_run_at(now_).astimezone() for task in self.tasks]
 
         logger.debug('Running task queue.')
         while True:
+            now_ = now()
+
+            # Retrieve all scheduled runs.
+            runs = [(run_at, task) for task in self.tasks for run_at in task.next_runs(now_)]
+
+            # Retrieve persisted retries.
+            for task in self.tasks:
+                retry_timestamp = self.db.get(f'{self.user.id}:{task.name}:retry_at')
+                if retry_timestamp:
+                    logger.trace('{} retry is scheduled at {}.', task.name, retry_timestamp)
+                    runs.append((datetime.fromtimestamp(retry_timestamp, self.user.tz), task))
+
             # Find the earliest task.
-            run_at, index = min((run_at, index) for index, run_at in enumerate(schedule))
-            task = self.tasks[index]
-            logger.info(f'Next is {task.execute.__name__} at {run_at:%d-%m %H:%M:%S}.{os.linesep}')
+            run_at, task = min(runs, key=itemgetter(0))
+            logger.info(f'Next is {task.name} at {run_at:%d-%m %H:%M:%S %Z}.{os.linesep}')
+
             # Sleep until the execution time.
             sleep_time = (run_at - now()).total_seconds()
             if sleep_time >= 0.0:
                 sleep(sleep_time)
+
             # Execute the task.
-            next_run_at = self.execute(task) or task.next_run_at(max(now(), run_at + timedelta(seconds=1)))
-            next_run_at = next_run_at.astimezone()  # keeping them in the local time zone
-            # Update its execution time.
-            logger.info(f'Next run at {next_run_at:%d-%m %H:%M:%S}.{os.linesep}')
-            schedule[index] = next_run_at
+            self.db[f'{self.user.id}:{task.name}:retry_at'] = None
+            retry_at = self.execute(task)
+            if retry_at:
+                logger.info('Retry scheduled at {:%d-%m %H:%M:%S %Z}.', retry_at)
+                self.db[f'{self.user.id}:{task.name}:retry_at'] = retry_at.timestamp()
 
     def execute(self, task: Task) -> Optional[datetime]:
         send_event(category='bot', action=task.execute.__name__, user_id=self.api.user_id)

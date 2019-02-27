@@ -13,18 +13,21 @@ from typing import Callable, Iterable, Optional
 class Task:
     at: Iterable[time]
     execute: Callable[[], Optional[datetime]]
+    offset: timedelta = timedelta()
 
-    def next_run_at(self, since: datetime) -> datetime:
-        return min(self.yield_upcoming(since))
+    @property
+    def name(self) -> str:
+        return self.execute.__name__
 
-    def yield_upcoming(self, since: datetime) -> Iterable[datetime]:
+    def next_runs(self, since: datetime) -> Iterable[datetime]:
+        # TODO: unit tests.
         for time_ in self.at:
             upcoming = since.astimezone(time_.tzinfo).replace(
                 hour=time_.hour,
                 minute=time_.minute,
                 second=time_.second,
                 microsecond=time_.microsecond,
-            )
+            ) + self.offset
             yield upcoming if upcoming > since else upcoming + timedelta(days=1)
 
 
