@@ -1,17 +1,17 @@
 # `latest`
 
+- **Automatically level up and drop titan hero gift**
+- **Task retries are now persisted**
+- **Retry arena if estimated win probability is too low**
 - Use `orjson`
+- New scheduler
 
 # `3.0b0`
 
 - **Automatic tower**
 - **Auto-enchant rune**
-- **Automatically level up and drop titan hero gift**
-- **Task retries are now persisted**
-- **Retry arena if estimated win probability is too low**
 - `heroes.js` interface
 - Vendored game resources
-- New scheduler
 
 # `2.4`
 
