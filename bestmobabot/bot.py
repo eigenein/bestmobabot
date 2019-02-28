@@ -5,8 +5,7 @@ The bot logic.
 import contextlib
 import pickle
 from base64 import b85decode
-from datetime import datetime, time, timedelta, timezone
-from itertools import count
+from datetime import datetime, time, timedelta
 from operator import attrgetter
 from random import choice, shuffle
 from time import sleep
@@ -23,7 +22,7 @@ from bestmobabot.jsapi import execute_battles
 from bestmobabot.logging_ import log_rewards, logger
 from bestmobabot.model import Model
 from bestmobabot.resources import get_heroic_mission_ids, mission_name, shop_name
-from bestmobabot.scheduler import Scheduler, Task, TaskNotAvailable
+from bestmobabot.scheduler import Scheduler, Task, TaskNotAvailable, now
 from bestmobabot.settings import Settings
 from bestmobabot.tracking import send_event
 from bestmobabot.trainer import Trainer
@@ -38,7 +37,7 @@ class Bot(contextlib.AbstractContextManager):
         self.settings = settings
 
         self.user: User = None
-        self.scheduler = Scheduler(api)
+        self.scheduler = Scheduler(db, api)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.api.__exit__(exc_type, exc_val, exc_tb)
@@ -200,7 +199,7 @@ class Bot(contextlib.AbstractContextManager):
         """
         logger.info(text)
         sleep(5)
-        return now() + timedelta(seconds=5)
+        return now() + timedelta(seconds=15)
 
     def register(self):
         """
@@ -640,12 +639,3 @@ class Bot(contextlib.AbstractContextManager):
         reward, quests = self.api.drop_titan_hero_gift(hero.id)
         reward.log()
         self.farm_quests(quests)
-
-
-def now():
-    return datetime.now(timezone.utc)
-
-
-def iterate_seconds(since: datetime) -> Iterable[datetime]:
-    for seconds in count():
-        yield since + timedelta(seconds=seconds)

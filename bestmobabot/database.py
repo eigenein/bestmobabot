@@ -52,7 +52,7 @@ class Database(AbstractContextManager, MutableMapping[str, Any]):
             return orjson.loads(row[0])
 
     def __setitem__(self, key: str, value: Any) -> None:
-        logger.trace('set {}', key)
+        logger.trace('set {} = {!s:.40}…', key, value)
         with closing(self.connection.cursor()) as cursor:  # type: sqlite3.Cursor
             cursor.execute('''
                 INSERT OR REPLACE INTO `default` (`key`, `value`)
