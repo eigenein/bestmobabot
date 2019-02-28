@@ -34,9 +34,9 @@ class TelegramHandler(logging.Handler):
     def emit(self, record: logging.LogRecord):
         message = record.getMessage()
         self.messages.append(message)
-        if not message.endswith(os.linesep) and time() - self.last_emit_time < 5:
+        if message and time() - self.last_emit_time < 5:
             # Quick and dirty rate limiter.
-            # Emit messages if 5 seconds have elapsed or if the last message ends with '\n'.
+            # Emit messages if 5 seconds have elapsed or if the last message is empty.
             return
         with suppress(Exception):
             session.post(f'https://api.telegram.org/bot{self.token}/sendMessage', json={

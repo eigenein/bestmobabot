@@ -49,6 +49,7 @@ class EnchantRuneSettings(BaseModel):
 
 # noinspection PyMethodParameters
 class BotSettings(BaseModel):
+    debug: bool = False
     no_experience: bool = False  # don't farm experience quests
     is_trainer: bool = False  # train the model
     raid_missions: Set[str] = []  # mission names to raid

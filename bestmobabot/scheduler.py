@@ -32,7 +32,10 @@ class Task:
         Gets whether the task is pending at the time.
         """
         at = at + self.offset
-        return any(at.astimezone(entry.tzinfo).time().replace(tzinfo=entry.tzinfo) == entry for entry in self.at)
+        return any(
+            at.astimezone(entry.tzinfo).time().replace(tzinfo=entry.tzinfo) == entry.replace(microsecond=0)
+            for entry in self.at
+        )
 
 
 class TaskNotAvailable(Exception):
@@ -45,6 +48,7 @@ class Scheduler:
     def __init__(self, api: API):
         self.api = api
         self.tasks: Dict[str, Task] = {}
+        self.retries: DefaultDict[int, List[str]] = defaultdict(list)  # TODO: persistence.
 
     def add_task(self, task: Task):
         if task.name in self.tasks:
@@ -57,7 +61,6 @@ class Scheduler:
 
     def run(self) -> NoReturn:
         logger.debug('Running scheduler.')
-        retries: DefaultDict[datetime, List[Task]] = defaultdict(list)
 
         for at in iterate_seconds(now().replace(microsecond=0)):
             # Wait until the tick comes in the real world.
@@ -66,7 +69,8 @@ class Scheduler:
             logger.trace('Tick: {:%b %d %H:%M:%S %Z}.', at)
 
             # Collect all tasks pending in the tick.
-            pending = [task for task in self.tasks.values() if task.is_pending(at)] + retries.pop(int(at.timestamp()), [])
+            pending = [task for task in self.tasks.values() if task.is_pending(at)]
+            pending.extend(self.tasks[name] for name in self.retries.pop(int(at.timestamp()), []))
 
             # Execute the tasks.
             for task in pending:
@@ -74,7 +78,8 @@ class Scheduler:
                 retry_at = self.execute(task)
                 if retry_at:
                     logger.info('Task will be retried at {:%b %d %H:%M:%S %Z}.', retry_at)
-                    retries[int(retry_at.timestamp())].append(task)  # TODO: persistence.
+                    self.retries[int(retry_at.timestamp())].append(task.name)
+                logger.info('')  # just a visual separator
 
     def execute(self, task: Task) -> Optional[datetime]:
         send_event(category='bot', action=task.execute.__name__, user_id=self.api.user_id)

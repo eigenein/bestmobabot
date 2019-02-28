@@ -126,6 +126,9 @@ class Bot(contextlib.AbstractContextManager):
             self.scheduler.add_task(Task(at=[time(hour=10, minute=30)], execute=self.randomize_grand_defenders))
         if self.settings.bot.enchant_rune:
             self.scheduler.add_task(Task(at=[time(hour=9, minute=0)], execute=self.enchant_rune))
+        if self.settings.bot.debug:
+            logger.warning('Running in debug mode.')
+            self.scheduler.add_task(Task(at=[(datetime.now() + timedelta(seconds=15)).time()], execute=self.quack))
 
         send_event(category='bot', action='start', user_id=self.api.user_id)
 
