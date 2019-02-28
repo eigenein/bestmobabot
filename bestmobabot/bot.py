@@ -5,16 +5,15 @@ The bot logic.
 import contextlib
 import pickle
 from base64 import b85decode
-from collections import defaultdict
 from datetime import datetime, time, timedelta, timezone
 from itertools import count
 from operator import attrgetter
 from random import choice, shuffle
 from time import sleep
-from typing import DefaultDict, Dict, Iterable, List, Optional, Tuple
+from typing import Dict, Iterable, List, Optional, Tuple
 
 from bestmobabot import constants
-from bestmobabot.api import API, AlreadyError, NotEnoughError, NotFoundError, OutOfRetargetDelta, ResponseError
+from bestmobabot.api import API, AlreadyError, NotEnoughError, NotFoundError
 from bestmobabot.arena import ArenaSolver, reduce_grand_arena, reduce_normal_arena
 from bestmobabot.database import Database
 from bestmobabot.dataclasses_ import Hero, Mission, Quests, Replay, User
@@ -24,7 +23,7 @@ from bestmobabot.jsapi import execute_battles
 from bestmobabot.logging_ import log_rewards, logger
 from bestmobabot.model import Model
 from bestmobabot.resources import get_heroic_mission_ids, mission_name, shop_name
-from bestmobabot.scheduler import Task, TaskNotAvailable
+from bestmobabot.scheduler import Scheduler, Task, TaskNotAvailable
 from bestmobabot.settings import Settings
 from bestmobabot.tracking import send_event
 from bestmobabot.trainer import Trainer
@@ -39,7 +38,7 @@ class Bot(contextlib.AbstractContextManager):
         self.settings = settings
 
         self.user: User = None
-        self.tasks: List[Task] = []
+        self.scheduler = Scheduler(api)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.api.__exit__(exc_type, exc_val, exc_tb)
@@ -51,7 +50,7 @@ class Bot(contextlib.AbstractContextManager):
     def start(self):
         self.user = self.api.get_user_info()
 
-        self.tasks: List[Task] = [
+        self.scheduler.add_tasks([
             Task(at=[
                 time(hour=0, minute=0, tzinfo=self.user.tz),
                 time(hour=4, minute=48, tzinfo=self.user.tz),
@@ -114,65 +113,24 @@ class Bot(contextlib.AbstractContextManager):
             Task(at=[time(hour=9, minute=15)], execute=self.open_titan_artifact_chest),
             Task(at=[time(hour=9, minute=30)], execute=self.farm_offers),
             Task(at=[time(hour=10, minute=0)], execute=self.farm_zeppelin_gift),
-        ]
+        ])
         if self.settings.bot.shops:
-            self.tasks.append(Task(at=[
+            self.scheduler.add_task(Task(at=[
                 time(hour=0, minute=0, tzinfo=self.user.tz),
                 time(hour=8, minute=0, tzinfo=self.user.tz),
                 time(hour=16, minute=0, tzinfo=self.user.tz),
             ], execute=self.shop))
         if self.settings.bot.is_trainer:
-            self.tasks.append(Task(at=[time(hour=22, minute=0)], execute=self.train_arena_model))
+            self.scheduler.add_task(Task(at=[time(hour=22, minute=0)], execute=self.train_arena_model))
         if self.settings.bot.arena.randomize_grand_defenders:
-            self.tasks.append(Task(at=[time(hour=10, minute=30)], execute=self.randomize_grand_defenders))
+            self.scheduler.add_task(Task(at=[time(hour=10, minute=30)], execute=self.randomize_grand_defenders))
         if self.settings.bot.enchant_rune:
-            self.tasks.append(Task(at=[time(hour=9, minute=0)], execute=self.enchant_rune))
+            self.scheduler.add_task(Task(at=[time(hour=9, minute=0)], execute=self.enchant_rune))
 
         send_event(category='bot', action='start', user_id=self.api.user_id)
 
     def run(self):
-        logger.debug('Running scheduler.')
-        retries: DefaultDict[datetime, List[Task]] = defaultdict(list)
-
-        for at in iterate_seconds(now().replace(microsecond=0)):
-            # Wait until the tick comes in the real world.
-            while at > now():
-                sleep(0.5)
-            logger.trace('Tick: {:%d-%m %H:%M:%S %Z}.', at)
-
-            # Collect all tasks pending in the tick.
-            pending = [task for task in self.tasks if task.is_pending(at)] + retries.pop(int(at.timestamp()), [])
-
-            # Execute the tasks.
-            for task in pending:
-                logger.info('Running {}…', task.name)
-                retry_at = self.execute(task)
-                if retry_at:
-                    logger.info('Task will be retried at {:%d-%m %H:%M:%S %Z}.', retry_at)
-                    retries[int(retry_at.timestamp())].append(task)  # TODO: persistence.
-
-    def execute(self, task: Task) -> Optional[datetime]:
-        send_event(category='bot', action=task.execute.__name__, user_id=self.api.user_id)
-        self.api.last_responses.clear()
-        try:
-            next_run_at = task.execute()
-        except TaskNotAvailable as e:
-            logger.warning(f'Task unavailable: {e}.')
-        except AlreadyError as e:
-            logger.error(f'Already done: {e.description}.')
-        except NotEnoughError as e:
-            logger.error(f'Not enough: {e.description}.')
-        except OutOfRetargetDelta:
-            logger.error(f'Out of retarget delta.')
-        except ResponseError as e:
-            logger.opt(exception=e).error('API response error.')
-        except Exception as e:
-            logger.opt(exception=e).critical('Uncaught error.')
-            for result in self.api.last_responses:
-                logger.critical('API result: {}', result)
-        else:
-            logger.success('Well done.')
-            return next_run_at
+        self.scheduler.run()
 
     # Helpers.
     # ------------------------------------------------------------------------------------------------------------------
