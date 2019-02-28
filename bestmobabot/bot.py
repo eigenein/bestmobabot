@@ -11,7 +11,7 @@ from itertools import count
 from operator import attrgetter
 from random import choice, shuffle
 from time import sleep
-from typing import Dict, Iterable, List, Optional, Tuple, DefaultDict
+from typing import DefaultDict, Dict, Iterable, List, Optional, Tuple
 
 from bestmobabot import constants
 from bestmobabot.api import API, AlreadyError, NotEnoughError, NotFoundError, OutOfRetargetDelta, ResponseError
@@ -24,8 +24,8 @@ from bestmobabot.jsapi import execute_battles
 from bestmobabot.logging_ import log_rewards, logger
 from bestmobabot.model import Model
 from bestmobabot.resources import get_heroic_mission_ids, mission_name, shop_name
+from bestmobabot.scheduler import Task, TaskNotAvailable
 from bestmobabot.settings import Settings
-from bestmobabot.task import Task, TaskNotAvailable
 from bestmobabot.tracking import send_event
 from bestmobabot.trainer import Trainer
 from bestmobabot.vk import VK
