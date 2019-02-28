@@ -354,6 +354,11 @@ class Bot(contextlib.AbstractContextManager):
         ).solve()
         solution.log()
 
+        # Retry if win probability is too low.
+        if solution.probability < constants.ARENA_MIN_PROBABILITY:
+            logger.warning('Win probability is too low.')
+            return now() + constants.ARENA_RETRY_INTERVAL
+
         # Attack!
         result, quests = self.api.attack_arena(solution.enemy.user_id, get_hero_ids(solution.attackers[0]))
 
@@ -385,6 +390,11 @@ class Bot(contextlib.AbstractContextManager):
             reduce_probabilities=reduce_grand_arena,
         ).solve()
         solution.log()
+
+        # Retry if win probability is too low.
+        if solution.probability < constants.ARENA_MIN_PROBABILITY:
+            logger.warning('Win probability is too low.')
+            return now() + constants.ARENA_RETRY_INTERVAL
 
         # Attack!
         result, quests = self.api.attack_grand(solution.enemy.user_id, get_teams_hero_ids(solution.attackers))

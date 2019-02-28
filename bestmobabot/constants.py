@@ -1,3 +1,4 @@
+from datetime import timedelta
 from typing import Dict
 
 # General.
@@ -30,6 +31,10 @@ MODEL_PARAM_GRID = {
     'criterion': ['entropy', 'gini'],
 }
 MODEL_N_LAST_BATTLES = 20000
+
+# Arena retries.
+ARENA_MIN_PROBABILITY = 0.5
+ARENA_RETRY_INTERVAL = timedelta(hours=1)
 
 # Raids.
 RAID_N_HEROIC_TRIES = 3
