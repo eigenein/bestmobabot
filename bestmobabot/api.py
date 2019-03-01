@@ -210,7 +210,7 @@ class API(contextlib.AbstractContextManager):
 
         with self.session.post(self.API_URL, data=data, headers=headers, timeout=constants.API_TIMEOUT) as response:
             self.last_responses.append(response.text.strip())
-            logger.info(f'#{self.request_id}: status {response.status_code}.')
+            logger.trace(f'#{self.request_id}: status {response.status_code}.')
             response.raise_for_status()
             try:
                 item = response.json()
