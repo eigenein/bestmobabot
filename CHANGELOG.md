@@ -1,4 +1,10 @@
-# `3.0b1`
+# Changelog
+
+## `latest`
+
+- Tweak bosses and shops task times
+
+## `3.0b1`
 
 - **Automatically level up and drop titan hero gift**
 - **Task retries are now persisted**
@@ -6,14 +12,14 @@
 - Use `orjson`
 - New scheduler
 
-# `3.0b0`
+## `3.0b0`
 
 - **Automatic tower**
 - **Auto-enchant rune**
 - `heroes.js` interface
 - Vendored game resources
 
-# `2.4`
+## `2.4`
 
 - Fix critical error in `send_expeditions`
 - Set timeout on VK.com API
@@ -23,26 +29,26 @@
 - Update `User-Agent`
 - Add `i_am_alive` recurring task
 
-# `2.4b11`
+## `2.4b11`
 
 * fix: improve logging for `send_expeditions`
 * feat: set `PYTHONOPTIMIZE=2` for the Python interpreter
 * Upgrade `loguru`
 
-# `2.4b10`
+## `2.4b10`
 
 * **Send multiple expeditions at once**
 
-# `2.4b9`
+## `2.4b9`
 
 * Fix storing arena enemies in the database
 
-# `2.4b7`
+## `2.4b7`
 
 * Change `Database` interface. The model must be re-trained after deployment
 * Store heroes of arena enemies in the database
 
-# `2.4b6`
+## `2.4b6`
 
 * Merge `index` and `key` columns in the database. Manual upgrade script:
 
@@ -62,28 +68,28 @@ ALTER TABLE `default` RENAME TO `backup`;
 ALTER TABLE `new` RENAME TO `default`;
 ```
 
-# `2.4b5`
+## `2.4b5`
 
 * **Hot fix for grand arena enemies at places under 100**
 
-# `2.4b4`
+## `2.4b4`
 
 * **Print arena win rating**
 
-# `2.4b3`
+## `2.4b3`
 
 * **Unified arena solver for arenas**
 
-# `2.4b2`
+## `2.4b2`
 
 * Fix critical bug in `bestmobabot.dataclasses_.ShopSlot`
 
-# `2.4b1`
+## `2.4b1`
 
 * **Unified arena solver for arenas, work in progress**
 * Fix critical bug in `bestmobabot.dataclasses_.Tower`
 
-# `2.4b0`
+## `2.4b0`
 
 * **Send logging messages to Telegram (experimental)**
 * **Support tower full skip for the 130th level**
@@ -94,14 +100,14 @@ ALTER TABLE `new` RENAME TO `default`;
 * Use `loguru` for logging and improve testing
 * Set default settings filename
 
-# `2.3`
+## `2.3`
 
 * Fix possible bug with grand arena enemy selection and/or logging
 * Use last `N` battles for training
 * Update `User-Agent`
 * Upgrade `click` package
 
-# `2.2`
+## `2.2`
 
 * **Buy things by their names**
 * **Raid missions by their names**
@@ -116,7 +122,7 @@ ALTER TABLE `new` RENAME TO `default`;
 * Refresh clan ID before running arena
 * Improve arena logging
 
-# `2.1`
+## `2.1`
 
 * **Option to randomize grand arena defenders**
 * **Add `grand_generate_solutions` and `grand_keep_solutions` options**
@@ -128,7 +134,7 @@ ALTER TABLE `new` RENAME TO `default`;
 * Change `open_titan_artifact_chest` time
 * Make `secretary_max` choose better _or equal_
 
-# `2.0`
+## `2.0`
 
 **Breaking change.** As I keep adding more and more configuration options, I decided to move them out from the command line and environment variables to a separate configuration file. If you upgraded to this version, make sure you properly move your settings.
 
@@ -137,7 +143,7 @@ ALTER TABLE `new` RENAME TO `default`;
 * **Configure the model hyper-parameters**
 * Distribute stamina evenly between heroic missions
 
-# `2.0b`
+## `2.0b`
 
 * **Fix forever cached user info**
 * **Farm shops #8 and #10**
@@ -148,12 +154,12 @@ ALTER TABLE `new` RENAME TO `default`;
 * Upgrade game resources
 * Improve parameters validation
 
-# `1.2`
+## `1.2`
 
 * **Raid bosses**
 * Fix offer farming
 
-# `1.1`
+## `1.1`
 
 * Farm offers
 * Simplify expeditions code
@@ -161,7 +167,7 @@ ALTER TABLE `new` RENAME TO `default`;
 * Gracefully handle offer farm error
 * Update resources
 
-# `1.0` «It's 1.0»
+## `1.0` «It's 1.0»
 
 * **Completely redesign raids – spend all stamina**
 * Optimise grand arena by keeping the best solutions during the entire search process
@@ -170,7 +176,7 @@ ALTER TABLE `new` RENAME TO `default`;
 * Add `SPAM` logging level
 * Allow stopping the hyper-parameters search process with Command+C
 
-# `0.5` «Playground»
+## `0.5` «Playground»
 
 ![](resources/strongford.jpg)
 
@@ -185,11 +191,11 @@ ALTER TABLE `new` RENAME TO `default`;
 * Vacuum the database after training
 * Delete `test` branch
 
-# `v0.4.1`
+## `v0.4.1`
 
 * Stability improvements and game translations update
 
-# `v0.4` «Arena Time»
+## `v0.4` «Arena Time»
 
 ![](resources/gw_arena_heroes.jpg)
 
@@ -207,23 +213,23 @@ ALTER TABLE `new` RENAME TO `default`;
 * Shift raid schedules over day
 * Add mirrored battles to the training data set
 
-# `v0.3.1`
+## `v0.3.1`
 
 * Stability improvements and model updates
 
-# `v0.3`
+## `v0.3`
 
 * Grand arena with predictive model
 * Trainer command
 * Shopping
 * Stability improvements
 
-# `v0.2` «Machine Learning»
+## `v0.2` «Machine Learning»
 
 ![](resources/arena.png)
 
 * Bot is able to use the prediction model to attack the best arena enemy
 
-# `v0.1`
+## `v0.1`
 
 * The first pre-release that is more or less stable and performs common everyday tasks

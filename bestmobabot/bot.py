@@ -5,7 +5,7 @@ The bot logic.
 import contextlib
 import pickle
 from base64 import b85decode
-from datetime import datetime, time, timedelta
+from datetime import datetime, time, timedelta, timezone
 from operator import attrgetter
 from random import choice, shuffle
 from time import sleep
@@ -102,22 +102,27 @@ class Bot(contextlib.AbstractContextManager):
                 time(hour=21, minute=30, tzinfo=self.user.tz),
             ], execute=self.farm_quests),
 
-            Task(at=[time(hour=6, minute=0)], execute=self.skip_tower),
-            Task(at=[time(hour=7, minute=30)], execute=self.raid_bosses),
+            # This allows to finish 1-day event quests before the player's new day actually starts.
+            # Because an event day starts at 2:00 UTC for everyone.
+            Task(at=[time(hour=2, minute=30, tzinfo=timezone.utc)], execute=self.raid_bosses),
+
+            Task(at=[time(hour=6, minute=0, tzinfo=self.user.tz)], execute=self.skip_tower),
             Task(at=[time(hour=8, minute=0, tzinfo=self.user.tz)], execute=self.register),
-            Task(at=[time(hour=8, minute=0)], execute=self.farm_daily_bonus),
-            Task(at=[time(hour=8, minute=30)], execute=self.buy_chest),
-            Task(at=[time(hour=8, minute=45)], execute=self.level_up_titan_hero_gift),
-            Task(at=[time(hour=9, minute=0)], execute=self.send_daily_gift),
-            Task(at=[time(hour=9, minute=15)], execute=self.open_titan_artifact_chest),
-            Task(at=[time(hour=9, minute=30)], execute=self.farm_offers),
-            Task(at=[time(hour=10, minute=0)], execute=self.farm_zeppelin_gift),
+            Task(at=[time(hour=8, minute=15, tzinfo=self.user.tz)], execute=self.farm_daily_bonus),
+            Task(at=[time(hour=8, minute=30, tzinfo=self.user.tz)], execute=self.buy_chest),
+            Task(at=[time(hour=8, minute=45, tzinfo=self.user.tz)], execute=self.level_up_titan_hero_gift),
+            Task(at=[time(hour=9, minute=0, tzinfo=self.user.tz)], execute=self.send_daily_gift),
+            Task(at=[time(hour=9, minute=15, tzinfo=self.user.tz)], execute=self.open_titan_artifact_chest),
+            Task(at=[time(hour=9, minute=30, tzinfo=self.user.tz)], execute=self.farm_offers),
+            Task(at=[time(hour=10, minute=0, tzinfo=self.user.tz)], execute=self.farm_zeppelin_gift),
         ])
         if self.settings.bot.shops:
             self.scheduler.add_task(Task(at=[
-                time(hour=0, minute=0, tzinfo=self.user.tz),
-                time(hour=8, minute=0, tzinfo=self.user.tz),
-                time(hour=16, minute=0, tzinfo=self.user.tz),
+                # First shopping time should be later than usual event start time (2:00 UTC).
+                # Every 8 hours afterwards.
+                time(hour=2, minute=15, tzinfo=timezone.utc),
+                time(hour=10, minute=15, tzinfo=timezone.utc),
+                time(hour=18, minute=15, tzinfo=timezone.utc),
             ], execute=self.shop))
         if self.settings.bot.is_trainer:
             self.scheduler.add_task(Task(at=[time(hour=22, minute=0)], execute=self.train_arena_model))
