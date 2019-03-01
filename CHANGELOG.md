@@ -1,4 +1,4 @@
-# `latest`
+# `3.0b1`
 
 - **Automatically level up and drop titan hero gift**
 - **Task retries are now persisted**
