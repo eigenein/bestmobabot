@@ -102,13 +102,10 @@ class Bot(contextlib.AbstractContextManager):
                 time(hour=21, minute=30, tzinfo=self.user.tz),
             ], execute=self.farm_quests),
 
-            # This allows to finish 1-day event quests before the player's new day actually starts.
-            # Because an event day starts at 2:00 UTC for everyone.
-            Task(at=[time(hour=2, minute=30, tzinfo=timezone.utc)], execute=self.raid_bosses),
-
             Task(at=[time(hour=6, minute=0, tzinfo=self.user.tz)], execute=self.skip_tower),
             Task(at=[time(hour=8, minute=0, tzinfo=self.user.tz)], execute=self.register),
             Task(at=[time(hour=8, minute=15, tzinfo=self.user.tz)], execute=self.farm_daily_bonus),
+            Task(at=[time(hour=8, minute=20, tzinfo=timezone.utc)], execute=self.raid_bosses),
             Task(at=[time(hour=8, minute=30, tzinfo=self.user.tz)], execute=self.buy_chest),
             Task(at=[time(hour=8, minute=45, tzinfo=self.user.tz)], execute=self.level_up_titan_hero_gift),
             Task(at=[time(hour=9, minute=0, tzinfo=self.user.tz)], execute=self.send_daily_gift),
