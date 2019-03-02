@@ -139,11 +139,11 @@ class ArenaSolver:
         Filter out "bad" enemies and enemies from the friendly clans.
         """
         for enemy in enemies:
-            if len(enemy.teams) < self.n_required_teams:
-                logger.warning('Enemy has unknown teams: {}.', enemy.user)
-                continue
             if enemy.user is None:
                 logger.debug('Skipped empty user #{}.', enemy.user_id)
+                continue
+            if len(enemy.teams) < self.n_required_teams:
+                logger.warning('Enemy has unknown teams: {}.', enemy.user)
                 continue
             self.store_enemy(enemy)
             if self.user_clan_id and enemy.user.is_from_clans((self.user_clan_id,)):
