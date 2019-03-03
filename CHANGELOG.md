@@ -2,6 +2,7 @@
 
 ## `latest`
 
+- Add dungeon APIs
 - Add `dungeon_activity` reward
 
 ## `3.0b2`

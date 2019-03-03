@@ -10,7 +10,7 @@ from pydantic.validators import _VALIDATORS
 
 from bestmobabot import resources
 from bestmobabot.constants import COLORS, RAID_N_STARS
-from bestmobabot.enums import TowerFloorType
+from bestmobabot.enums import DungeonDefenderType, DungeonFloorType, TowerFloorType
 
 _VALIDATORS.append((tzinfo, [lambda value: timezone(timedelta(hours=value))]))
 
@@ -19,6 +19,7 @@ class Reward(BaseModel):
     artifact_fragment: Dict[str, int] = {}
     coin: Dict[str, str] = {}
     consumable: Dict[str, int] = {}
+    dungeon_activity: int = 0
     experience: int = 0
     gear: Dict[str, int] = {}
     gear_fragment: Dict[str, int] = {}
@@ -28,8 +29,8 @@ class Reward(BaseModel):
     stamina: int = 0
     star_money: int = 0
     titan_artifact_fragment: Dict[str, int] = {}
+    titan_fragment: Dict[str, int] = {}
     tower_point: int = 0
-    dungeon_activity: int = 0
 
     class Config:
         fields = {
@@ -40,6 +41,7 @@ class Reward(BaseModel):
             'scroll_fragment': 'fragmentScroll',
             'star_money': 'starmoney',
             'titan_artifact_fragment': 'fragmentTitanArtifact',
+            'titan_fragment': 'fragmentTitan',
             'tower_point': 'towerPoint',
         }
 
@@ -60,10 +62,12 @@ class Reward(BaseModel):
             logger.success(f'{self.gold} × gold.')
         if self.experience:
             logger.success(f'{self.experience} × experience.')
-        for consumable_id, value in self.consumable.items():
-            logger.success(f'{value} × «{resources.consumable_name(consumable_id)}» consumable.')
         if self.star_money:
             logger.success(f'{self.star_money} × star money.')
+        if self.dungeon_activity:
+            logger.success(f'{self.dungeon_activity} × dungeon activity.')
+        for consumable_id, value in self.consumable.items():
+            logger.success(f'{value} × «{resources.consumable_name(consumable_id)}» consumable.')
         for coin_id, value in self.coin.items():
             logger.success(f'{value} × «{resources.coin_name(coin_id)}» coin.')
         for hero_id, value in self.hero_fragment.items():
@@ -78,8 +82,8 @@ class Reward(BaseModel):
             logger.success(f'{value} × «{resources.scroll_name(scroll_id)}» scroll fragment.')
         for artifact_id, value in self.titan_artifact_fragment.items():
             logger.success(f'{value} × «{resources.titan_artifact_name(artifact_id)}» titan artifact fragment.')
-        if self.dungeon_activity:
-            logger.success(f'{self.dungeon_activity} × dungeon activity.')
+        for hero_id, value in self.titan_fragment.items():
+            logger.success(f'{value} × «{resources.hero_name(hero_id)}» titan fragment.')
 
 
 class LibraryMission(BaseModel):
@@ -309,14 +313,6 @@ class Tower(BaseModel):
             'floor_type': 'floorType',
         }
 
-    # noinspection PyMethodParameters
-    @validator('floor_type', pre=True)
-    def lower_floor_type(cls, value: str) -> TowerFloorType:
-        try:
-            return TowerFloorType(value.lower())
-        except ValueError:
-            return TowerFloorType.UNKNOWN
-
 
 class Cost(BaseModel):
     star_money: int = 0
@@ -381,6 +377,54 @@ class Quest(BaseModel):
     @property
     def is_reward_available(self) -> bool:
         return self.state == 2
+
+
+class DungeonUserData(BaseModel):
+    defender_type: DungeonDefenderType
+    attacker_type: DungeonDefenderType
+
+    class Config:
+        fields = {
+            'attacker_type': 'attackerType',
+            'defender_type': 'defenderType',
+        }
+
+
+class DungeonFloor(BaseModel):
+    user_data: List[DungeonUserData]
+
+    class Config:
+        fields = {
+            'user_data': 'userData',
+        }
+
+
+class Dungeon(BaseModel):
+    floor_number: int
+    floor_type: DungeonFloorType
+    floor: DungeonFloor
+
+    class Config:
+        fields = {
+            'floor_number': 'floorNumber',
+            'floor_type': 'floorType',
+        }
+
+
+class EndDungeonBattleResponse(BaseModel):
+    reward: Reward
+    reward_multiplier: int
+    activity: int
+    dungeon: Optional[Dungeon]
+
+    class Config:
+        fields = {
+            'reward_multiplier': 'rewardMultiplier',
+            'activity': 'dungeonActivity',
+        }
+
+
+# TODO: `SaveDungeonProgressResponse`.
 
 
 class Result(BaseModel):

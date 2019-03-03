@@ -7,7 +7,6 @@ from contextlib import AbstractContextManager, closing
 from typing import Any, Iterable, Iterator, MutableMapping, Tuple, TypeVar
 
 import orjson
-
 from loguru import logger
 
 T = TypeVar('T')

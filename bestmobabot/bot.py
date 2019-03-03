@@ -571,10 +571,6 @@ class Bot(contextlib.AbstractContextManager):
                         logger.debug(f'Skip buff #{buff_id}.')
                 # Then normally proceed to the next floor.
                 tower = self.api.next_tower_floor()
-            # The following should never happen.
-            else:
-                logger.error('Unknown floor type.')
-                break
 
     def farm_offers(self):
         """

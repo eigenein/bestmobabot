@@ -99,6 +99,14 @@
 {"calls":[{"name":"dungeonStartBattle","args":{"heroes":[39,25,35,13,29],"teamNum":0},"ident":"body"}]}
 ```
 
+```json
+{"name":"dungeonStartBattle","args":{"heroes":[4021,4022,4020],"teamNum":0},"ident":"group_1_body"}
+```
+
+```json
+{"name":"dungeonStartBattle","args":{"heroes":[4021,4022,4020],"teamNum":1},"ident":"group_1_body"}
+```
+
 ## `dungeonEndBattle`
 
 ```json
@@ -354,6 +362,348 @@
                         "reward": {
                             "coin": {
                                 "13": "2"
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}
+```
+
+```json
+{
+    "date": 1551630357.287681,
+    "results": [
+        {
+            "ident": "body",
+            "result": {
+                "response": {
+                    "reward": {
+                        "dungeonActivity": 10,
+                        "fragmentTitan": {
+                            "4021": 2
+                        }
+                    },
+                    "rewardMultiplier": 2,
+                    "states": {
+                        "titans": {
+                            "4011": {
+                                "hp": 51226,
+                                "energy": 600,
+                                "isDead": false,
+                                "maxHp": 51226
+                            },
+                            "4010": {
+                                "hp": 669236,
+                                "energy": 1000,
+                                "isDead": false,
+                                "maxHp": 730477
+                            },
+                            "4013": {
+                                "hp": 706524,
+                                "energy": 200,
+                                "isDead": false,
+                                "maxHp": 706524
+                            },
+                            "4012": {
+                                "hp": 862389,
+                                "energy": 700,
+                                "isDead": false,
+                                "maxHp": 862389
+                            },
+                            "4021": {
+                                "hp": 17045,
+                                "energy": 1000,
+                                "isDead": false,
+                                "maxHp": 17045
+                            },
+                            "4022": {
+                                "hp": 109001,
+                                "energy": 1000,
+                                "isDead": false,
+                                "maxHp": 109001
+                            },
+                            "4020": {
+                                "hp": 1326222,
+                                "energy": 500,
+                                "isDead": false,
+                                "maxHp": 1554744
+                            },
+                            "4002": {
+                                "hp": 243568,
+                                "energy": 200,
+                                "isDead": false,
+                                "maxHp": 243568
+                            },
+                            "4001": {
+                                "hp": 967440,
+                                "energy": 1000,
+                                "isDead": false,
+                                "maxHp": 967440
+                            },
+                            "4000": {
+                                "hp": 382462,
+                                "energy": 861,
+                                "isDead": false,
+                                "maxHp": 525315
+                            }
+                        }
+                    },
+                    "dungeonActivity": 624
+                },
+                "quests": [
+                    {
+                        "id": 10021,
+                        "state": 2,
+                        "progress": 90,
+                        "reward": {
+                            "coin": {
+                                "13": "1"
+                            }
+                        }
+                    },
+                    {
+                        "id": 10022,
+                        "state": 1,
+                        "progress": 90,
+                        "reward": {
+                            "coin": {
+                                "13": "2"
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}
+```
+
+## `dungeonSaveProgress`
+
+```json
+{"calls":[{"name":"dungeonSaveProgress","args":{},"ident":"body"}]}
+```
+
+```json
+{
+    "date": 1551630539.122356,
+    "results": [
+        {
+            "ident": "body",
+            "result": {
+                "response": {
+                    "reward": {
+                        "gold": 17200
+                    },
+                    "dungeon": {
+                        "userId": "833061",
+                        "elements": {
+                            "prime": "fire",
+                            "nonprime": [
+                                "water",
+                                "earth"
+                            ]
+                        },
+                        "respawnFloor": "231",
+                        "floorNumber": 241,
+                        "floorType": "battle",
+                        "states": {
+                            "titans": {
+                                "4011": {
+                                    "hp": 51226,
+                                    "energy": 600,
+                                    "isDead": false,
+                                    "maxHp": 51226
+                                },
+                                "4010": {
+                                    "hp": 669236,
+                                    "energy": 1000,
+                                    "isDead": false,
+                                    "maxHp": 730477
+                                },
+                                "4013": {
+                                    "hp": 706524,
+                                    "energy": 200,
+                                    "isDead": false,
+                                    "maxHp": 706524
+                                },
+                                "4012": {
+                                    "hp": 862389,
+                                    "energy": 700,
+                                    "isDead": false,
+                                    "maxHp": 862389
+                                },
+                                "4021": {
+                                    "hp": 17045,
+                                    "energy": 1000,
+                                    "isDead": false,
+                                    "maxHp": 17045
+                                },
+                                "4022": {
+                                    "hp": 109001,
+                                    "energy": 1000,
+                                    "isDead": false,
+                                    "maxHp": 109001
+                                },
+                                "4020": {
+                                    "hp": 1326222,
+                                    "energy": 500,
+                                    "isDead": false,
+                                    "maxHp": 1554744
+                                },
+                                "4002": {
+                                    "hp": 243568,
+                                    "energy": 200,
+                                    "isDead": false,
+                                    "maxHp": 243568
+                                },
+                                "4001": {
+                                    "hp": 967440,
+                                    "energy": 1000,
+                                    "isDead": false,
+                                    "maxHp": 967440
+                                },
+                                "4000": {
+                                    "hp": 382462,
+                                    "energy": 861,
+                                    "isDead": false,
+                                    "maxHp": 525315
+                                }
+                            }
+                        },
+                        "floor": {
+                            "userData": [
+                                {
+                                    "defenderType": "hero",
+                                    "chance": 1,
+                                    "arenaHeroesPacked": "p:[{\"id\":2,\"level\":48,\"color\":6,\"star\":1},{\"id\":20,\"level\":49,\"color\":6,\"star\":1},{\"id\":4,\"level\":50,\"color\":6,\"star\":2},{\"id\":6,\"level\":50,\"color\":6,\"star\":1},{\"id\":7,\"level\":50,\"color\":6,\"star\":2}]",
+                                    "userId": "851135",
+                                    "team": [
+                                        {
+                                            "id": 2,
+                                            "level": 48,
+                                            "color": 6,
+                                            "star": 1
+                                        },
+                                        {
+                                            "id": 20,
+                                            "level": 49,
+                                            "color": 6,
+                                            "star": 1
+                                        },
+                                        {
+                                            "id": 4,
+                                            "level": 50,
+                                            "color": 6,
+                                            "star": 2
+                                        },
+                                        {
+                                            "id": 6,
+                                            "level": 50,
+                                            "color": 6,
+                                            "star": 1
+                                        },
+                                        {
+                                            "id": 7,
+                                            "level": 50,
+                                            "color": 6,
+                                            "star": 2
+                                        }
+                                    ],
+                                    "delta": 785,
+                                    "needPower": 26177,
+                                    "power": "25462",
+                                    "attackerType": "hero"
+                                }
+                            ],
+                            "defenders": [],
+                            "state": 1
+                        },
+                        "reward": [],
+                        "maxFloorReached": 241
+                    }
+                },
+                "quests": [
+                    {
+                        "id": 329,
+                        "state": 3,
+                        "progress": 240,
+                        "reward": {
+                            "coin": {
+                                "13": "1"
+                            }
+                        }
+                    },
+                    {
+                        "id": 330,
+                        "state": 3,
+                        "progress": 240,
+                        "reward": {
+                            "coin": {
+                                "13": "1"
+                            }
+                        }
+                    },
+                    {
+                        "id": 331,
+                        "state": 3,
+                        "progress": 240,
+                        "reward": {
+                            "coin": {
+                                "13": "1"
+                            }
+                        }
+                    },
+                    {
+                        "id": 332,
+                        "state": 3,
+                        "progress": 240,
+                        "reward": {
+                            "coin": {
+                                "13": "1"
+                            }
+                        }
+                    },
+                    {
+                        "id": 333,
+                        "state": 1,
+                        "progress": 240,
+                        "reward": {
+                            "coin": {
+                                "13": "1"
+                            }
+                        }
+                    },
+                    {
+                        "id": 10034,
+                        "state": 3,
+                        "progress": 240,
+                        "reward": {
+                            "consumable": {
+                                "81": "5"
+                            }
+                        }
+                    },
+                    {
+                        "id": 10035,
+                        "state": 1,
+                        "progress": 240,
+                        "reward": {
+                            "consumable": {
+                                "81": "5"
+                            }
+                        }
+                    },
+                    {
+                        "id": 10036,
+                        "state": 1,
+                        "progress": 240,
+                        "reward": {
+                            "consumable": {
+                                "81": "5"
                             }
                         }
                     }

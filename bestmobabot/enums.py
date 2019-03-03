@@ -15,4 +15,15 @@ class TowerFloorType(Enum):
     BATTLE = 'battle'
     BUFF = 'buff'
     CHEST = 'chest'
-    UNKNOWN = 'unknown'
+
+
+class DungeonFloorType(Enum):
+    BATTLE = 'battle'
+
+
+class DungeonDefenderType(Enum):
+    EARTH = 'earth'
+    FIRE = 'fire'
+    HERO = 'hero'
+    NEUTRAL = 'neutral'
+    WATER = 'water'
