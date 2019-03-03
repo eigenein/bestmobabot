@@ -1,8 +1,8 @@
 # Changelog
 
-## `latest`
+## `3.0b2`
 
-- Tweak bosses and shops task times
+- First check if enemy user is `None`
 
 ## `3.0b1`
 
