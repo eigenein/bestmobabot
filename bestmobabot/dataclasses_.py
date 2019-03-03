@@ -111,7 +111,7 @@ class Hero(BaseModel):
     level: int
     color: int
     star: int
-    power: Optional[int] = None
+    power: Optional[int] = None  # TODO: move out to a common base for `Hero` and `Titan`.
 
     @property
     def features(self) -> Dict[str, float]:
@@ -392,11 +392,16 @@ class DungeonUserData(BaseModel):
 
 class DungeonFloor(BaseModel):
     user_data: List[DungeonUserData]
+    state: int
 
     class Config:
         fields = {
             'user_data': 'userData',
         }
+
+    @property
+    def should_save_progress(self) -> bool:
+        return self.state == 2
 
 
 class Dungeon(BaseModel):
@@ -424,7 +429,9 @@ class EndDungeonBattleResponse(BaseModel):
         }
 
 
-# TODO: `SaveDungeonProgressResponse`.
+class SaveDungeonProgressResponse(BaseModel):
+    reward: Reward
+    dungeon: Dungeon
 
 
 class Result(BaseModel):

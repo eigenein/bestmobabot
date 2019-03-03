@@ -1,5 +1,21 @@
 # Dungeon
 
+## `clanGetActivityStat`
+
+```json
+{"name":"clanGetActivityStat","args":{},"ident":"group_1_body"}
+```
+
+```json
+{"clanActivity":8918,"dungeonActivity":842,"stat":{"todayActivity":148,"activitySum":148,"dungeonActivitySum":150,"todayRaid":[],"todayItemsActivity":0,"todayDungeonActivity":150,"activityForRuneAvailable":false}}
+```
+
+## `titanGetAll`
+
+```json
+{"ident":"titanGetAll","result":{"response":{"4001":{"id":4001,"xp":30420,"level":54,"star":4,"skills":{"4003":54},"power":12648,"artifacts":[{"level":34,"star":2},{"level":1,"star":1},{"level":1,"star":1}],"scale":0.80000000000000004},"4020":{"id":4020,"xp":32210,"level":55,"star":4,"skills":{"4019":55},"power":14063,"artifacts":[{"level":43,"star":2},{"level":4,"star":2},{"level":10,"star":1}],"scale":0.80000000000000004},"4002":{"id":4002,"xp":6580,"level":29,"star":3,"skills":{"4005":29},"power":3333,"artifacts":[{"level":1,"star":0},{"level":1,"star":0},{"level":1,"star":0}],"scale":0.80000000000000004},"4010":{"id":4010,"xp":32210,"level":55,"star":3,"skills":{"4010":55},"power":11042,"artifacts":[{"level":42,"star":1},{"level":10,"star":1},{"level":1,"star":1}],"scale":0.80000000000000004},"4012":{"id":4012,"xp":30420,"level":54,"star":4,"skills":{"4014":54},"power":12653,"artifacts":[{"level":28,"star":3},{"level":3,"star":1},{"level":2,"star":1}],"scale":0.80000000000000004},"4011":{"id":4011,"xp":2310,"level":15,"star":2,"skills":{"4012":15},"power":1015,"artifacts":[{"level":1,"star":0},{"level":1,"star":0},{"level":1,"star":0}],"scale":0.80000000000000004},"4022":{"id":4022,"xp":3060,"level":18,"star":2,"skills":{"4023":18},"power":1290,"artifacts":[{"level":1,"star":0},{"level":1,"star":0},{"level":1,"star":0}],"scale":0.80000000000000004},"4000":{"id":4000,"xp":19200,"level":46,"star":3,"skills":{"4001":46},"power":8545,"artifacts":[{"level":37,"star":1},{"level":7,"star":1},{"level":2,"star":1}],"scale":0.80000000000000004},"4013":{"id":4013,"xp":32210,"level":55,"star":3,"skills":{"4016":55,"4017":55},"power":11260,"artifacts":[{"level":37,"star":3},{"level":7,"star":1},{"level":1,"star":1}],"scale":0.80000000000000004},"4021":{"id":4021,"xp":0,"level":1,"star":2,"skills":{"4021":1},"power":162,"artifacts":[{"level":1,"star":0},{"level":1,"star":0},{"level":1,"star":0}],"scale":0.80000000000000004}}}}
+```
+
 ## `dungeonGetInfo`
 
 ```json
@@ -86,6 +102,154 @@
                     },
                     "reward": [],
                     "maxFloorReached": "230"
+                }
+            }
+        }
+    ]
+}
+```
+
+```json
+{
+    "date": 1551651295.916583,
+    "results": [
+        {
+            "ident": "body",
+            "result": {
+                "response": {
+                    "userId": "833061",
+                    "elements": {
+                        "prime": "fire",
+                        "nonprime": [
+                            "water",
+                            "earth"
+                        ]
+                    },
+                    "respawnFloor": "231",
+                    "floorNumber": "250",
+                    "floorType": "battle",
+                    "states": {
+                        "titans": {
+                            "4011": {
+                                "hp": 70340,
+                                "energy": 200,
+                                "isDead": false,
+                                "maxHp": 70340
+                            },
+                            "4010": {
+                                "hp": 639100,
+                                "energy": 629,
+                                "isDead": false,
+                                "maxHp": 750366
+                            },
+                            "4013": {
+                                "hp": 706524,
+                                "energy": 600,
+                                "isDead": false,
+                                "maxHp": 706524
+                            },
+                            "4012": {
+                                "hp": 862389,
+                                "energy": 1000,
+                                "isDead": false,
+                                "maxHp": 862389
+                            },
+                            "4021": {
+                                "hp": 17559,
+                                "energy": 600,
+                                "isDead": false,
+                                "maxHp": 17559
+                            },
+                            "4022": {
+                                "hp": 151766,
+                                "energy": 800,
+                                "isDead": false,
+                                "maxHp": 151766
+                            },
+                            "4020": {
+                                "hp": 1258064,
+                                "energy": 709,
+                                "isDead": false,
+                                "maxHp": 1554744
+                            },
+                            "4002": {
+                                "hp": 326806,
+                                "energy": 400,
+                                "isDead": false,
+                                "maxHp": 326806
+                            },
+                            "4001": {
+                                "hp": 967440,
+                                "energy": 200,
+                                "isDead": false,
+                                "maxHp": 967440
+                            },
+                            "4000": {
+                                "hp": 436523,
+                                "energy": 941,
+                                "isDead": false,
+                                "maxHp": 708451
+                            }
+                        }
+                    },
+                    "floor": {
+                        "userData": [
+                            {
+                                "defenderType": "water",
+                                "chance": 50,
+                                "team": [
+                                    {
+                                        "id": 4002,
+                                        "level": 26,
+                                        "star": 2
+                                    },
+                                    {
+                                        "id": 4000,
+                                        "level": 27,
+                                        "star": 2
+                                    }
+                                ],
+                                "userId": -1000915,
+                                "power": 4377,
+                                "attackerType": "earth"
+                            },
+                            {
+                                "defenderType": "fire",
+                                "chance": 50,
+                                "team": [
+                                    {
+                                        "id": 4012,
+                                        "level": 26,
+                                        "star": 2,
+                                        "buffs": {
+                                            "hp": 3480.3921568627447,
+                                            "physicalAttack": 261.02941176470586
+                                        }
+                                    },
+                                    {
+                                        "id": 4010,
+                                        "level": 26,
+                                        "star": 2,
+                                        "buffs": {
+                                            "hp": 3480.3921568627447,
+                                            "physicalAttack": 261.02941176470586
+                                        }
+                                    }
+                                ],
+                                "userId": -2000890,
+                                "power": 4330,
+                                "attackerType": "water"
+                            }
+                        ],
+                        "defenders": {
+                            "1": [
+                                []
+                            ]
+                        },
+                        "state": 2
+                    },
+                    "reward": [],
+                    "maxFloorReached": "250"
                 }
             }
         }

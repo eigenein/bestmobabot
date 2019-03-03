@@ -36,6 +36,7 @@ from bestmobabot.dataclasses_ import (
     Replay,
     Result,
     Reward,
+    SaveDungeonProgressResponse,
     ShopSlot,
     Tower,
     User,
@@ -45,34 +46,34 @@ from bestmobabot.settings import Settings
 from bestmobabot.tracking import send_event
 
 
-class ApiError(Exception):
+class APIError(Exception):
     def __init__(self, name: Optional[str], description: Optional[str]):
         super().__init__(name, description)
         self.name = name
         self.description = description
 
 
-class AlreadyError(ApiError):
+class AlreadyError(APIError):
     pass
 
 
-class InvalidSessionError(ApiError):
+class InvalidSessionError(APIError):
     pass
 
 
-class NotEnoughError(ApiError):
+class NotEnoughError(APIError):
     pass
 
 
-class NotAvailableError(ApiError):
+class NotAvailableError(APIError):
     pass
 
 
-class NotFoundError(ApiError):
+class NotFoundError(APIError):
     pass
 
 
-class ArgumentError(ApiError):
+class ArgumentError(APIError):
     pass
 
 
@@ -168,6 +169,7 @@ class API(contextlib.AbstractContextManager):
         }
 
     def call(self, name: str, arguments: Optional[Dict[str, Any]] = None, random_sleep=True) -> Result:
+        # TODO: perhaps, accept a return response type and return a typed response.
         try:
             return self._call(name, arguments=arguments, random_sleep=random_sleep)
         except (InvalidSessionError, InvalidSignatureError) as e:
@@ -261,9 +263,9 @@ class API(contextlib.AbstractContextManager):
     }
 
     @classmethod
-    def make_exception(cls, error: Dict) -> 'ApiError':
+    def make_exception(cls, error: Dict) -> APIError:
         name = error.get('name')
-        return cls.exception_classes.get(name, ApiError)(name, error.get('description'))
+        return cls.exception_classes.get(name, APIError)(name, error.get('description'))
 
     # User.
     # ------------------------------------------------------------------------------------------------------------------
@@ -497,7 +499,8 @@ class API(contextlib.AbstractContextManager):
     def end_dungeon_battle(self, arguments: Dict[str, Any]) -> EndDungeonBattleResponse:
         return EndDungeonBattleResponse.parse_obj(self.call('dungeonEndBattle', arguments).response)
 
-    # TODO: `save_dungeon_progress`
+    def save_dungeon_progress(self) -> SaveDungeonProgressResponse:
+        return SaveDungeonProgressResponse.parse_obj(self.call('dungeonSaveProgress').response)
 
 
 TModel = TypeVar('TModel', bound=BaseModel)

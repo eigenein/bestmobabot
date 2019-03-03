@@ -15,7 +15,7 @@ from bestmobabot import constants
 from bestmobabot.api import API, AlreadyError, NotEnoughError, NotFoundError
 from bestmobabot.arena import ArenaSolver, reduce_grand_arena, reduce_normal_arena
 from bestmobabot.database import Database
-from bestmobabot.dataclasses_ import Hero, Mission, Quests, Replay, User
+from bestmobabot.dataclasses_ import Dungeon, Hero, Mission, Quests, Replay, User
 from bestmobabot.enums import BattleType, HeroesJSMode, TowerFloorType
 from bestmobabot.helpers import find_expedition_team, get_hero_ids, get_teams_hero_ids, naive_select_attackers
 from bestmobabot.jsapi import execute_battles
@@ -647,3 +647,18 @@ class Bot(contextlib.AbstractContextManager):
         reward, quests = self.api.drop_titan_hero_gift(hero.id)
         reward.log()
         self.farm_quests(quests)
+
+    def clean_dungeon(self):
+        """
+        Подземелье.
+        """
+        dungeon: Optional[Dungeon] = self.api.get_dungeon_info()
+        naive_select_attackers(self.api.get_all_heroes())  # TODO
+        # TODO: `titanGetAll`.
+
+        # Clean the dungeon until the first save point.
+        while dungeon is not None and not dungeon.floor.should_save_progress:
+            ...  # TODO: battle.
+
+        # Save progress.
+        self.api.save_dungeon_progress().reward.log()
