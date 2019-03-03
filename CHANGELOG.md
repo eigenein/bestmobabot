@@ -1,5 +1,9 @@
 # Changelog
 
+## `latest`
+
+- Add `dungeon_activity` reward
+
 ## `3.0b2`
 
 - First check if enemy user is `None`

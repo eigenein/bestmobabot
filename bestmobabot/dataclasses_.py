@@ -29,10 +29,12 @@ class Reward(BaseModel):
     star_money: int = 0
     titan_artifact_fragment: Dict[str, int] = {}
     tower_point: int = 0
+    dungeon_activity: int = 0
 
     class Config:
         fields = {
             'artifact_fragment': 'fragmentArtifact',
+            'dungeon_activity': 'dungeonActivity',
             'gear_fragment': 'fragmentGear',
             'hero_fragment': 'fragmentHero',
             'scroll_fragment': 'fragmentScroll',
@@ -76,6 +78,8 @@ class Reward(BaseModel):
             logger.success(f'{value} × «{resources.scroll_name(scroll_id)}» scroll fragment.')
         for artifact_id, value in self.titan_artifact_fragment.items():
             logger.success(f'{value} × «{resources.titan_artifact_name(artifact_id)}» titan artifact fragment.')
+        if self.dungeon_activity:
+            logger.success(f'{self.dungeon_activity} × dungeon activity.')
 
 
 class LibraryMission(BaseModel):
