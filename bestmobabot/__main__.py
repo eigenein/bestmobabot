@@ -2,6 +2,8 @@ from datetime import datetime
 
 import IPython
 from click import command, option
+from requests import Session
+from requests.adapters import HTTPAdapter
 
 from bestmobabot import constants
 from bestmobabot.api import API
@@ -39,14 +41,28 @@ def main(settings: Settings, verbosity: int, shell: bool):
     install_logging(verbosity)
     logger.info(f'Bot is starting. Version: {get_version()}.')
 
-    with Database(constants.DATABASE_NAME) as db, API(db, settings) as api, Bot(db, api, VK(settings), settings) as bot:
-        api.start()
-        bot.start()
+    with Session() as session, Database(constants.DATABASE_NAME) as db:
+        session.mount('https://', HTTPAdapter(max_retries=5))
+
+        api = API(session, db, settings)
+        bot = Bot(db, api, VK(session, settings), settings)
+
+        api.prepare()
+        bot.prepare()
+
         if settings.telegram and settings.telegram.token and settings.telegram.chat_id:
+            # Deprecated in favor of explicit notifications.
             logger.info('Adding Telegram logging handler.')
-            logger.add(TelegramHandler(settings.telegram, bot.user.name), level='INFO', format=LOGURU_TELEGRAM_FORMAT)
-        logger.info(f'Welcome «{bot.user.name}»! Your game time is {datetime.now(bot.user.tz):%H:%M:%S %Z}.')
+            logger.add(
+                TelegramHandler(settings.telegram, bot.user.name),
+                level='INFO',
+                format=LOGURU_TELEGRAM_FORMAT,
+            )
+
+        logger.info('Welcome «{}»!', bot.user.name)
+        logger.info('Game time: {:%H:%M:%S %Z}', datetime.now(bot.user.tz))
         logger.info('Next day starts at {:%H:%M:%S %Z}.', bot.user.next_day.astimezone(bot.user.tz))
+
         if not shell:
             bot.run()
         else:

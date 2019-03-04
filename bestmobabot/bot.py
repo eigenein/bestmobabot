@@ -2,7 +2,6 @@
 The bot logic.
 """
 
-import contextlib
 import pickle
 from base64 import b85decode
 from datetime import datetime, time, timedelta, timezone
@@ -29,7 +28,7 @@ from bestmobabot.trainer import Trainer
 from bestmobabot.vk import VK
 
 
-class Bot(contextlib.AbstractContextManager):
+class Bot:
     def __init__(self, db: Database, api: API, vk: VK, settings: Settings):
         self.db = db
         self.api = api
@@ -39,14 +38,10 @@ class Bot(contextlib.AbstractContextManager):
         self.user: User = None
         self.scheduler = Scheduler(db, self)
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.api.__exit__(exc_type, exc_val, exc_tb)
-        self.vk.__exit__(exc_type, exc_val, exc_tb)
-
     # Task engine.
     # ------------------------------------------------------------------------------------------------------------------
 
-    def start(self):
+    def prepare(self):
         self.user = self.api.get_user_info()
 
         self.scheduler.add_tasks([
@@ -207,7 +202,7 @@ class Bot(contextlib.AbstractContextManager):
         """
         Заново заходит в игру, это нужно для появления ежедневных задач в событиях.
         """
-        self.api.start(invalidate_session=True)
+        self.api.prepare(invalidate_session=True)
         self.api.register()
         self.user = self.api.get_user_info()
 

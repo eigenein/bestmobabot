@@ -2,7 +2,6 @@
 Game API wrapper.
 """
 
-import contextlib
 import hashlib
 import random
 import re
@@ -15,7 +14,7 @@ import orjson
 import requests
 from loguru import logger
 from pydantic import BaseModel
-from requests.adapters import HTTPAdapter
+from requests import Session
 
 from bestmobabot import constants
 from bestmobabot.database import Database
@@ -91,28 +90,24 @@ class InvalidSignatureError(ResponseError):
     pass
 
 
-class API(contextlib.AbstractContextManager):
+class API:
     GAME_URL = 'https://vk.com/app5327745'
     IFRAME_URL = 'https://i-heroes-vk.nextersglobal.com/iframe/vkontakte/iframe.new.php'
     API_URL = 'https://heroes-vk.nextersglobal.com/api/'
 
-    def __init__(self, db: Database, settings: Settings):
+    def __init__(self, session: Session, db: Database, settings: Settings):
         self.db = db
         self.remixsid = settings.vk.remixsid
         self.auth_token: str = None
         self.user_id: str = None
         self.request_id: int = None
         self.session_id: str = None
-        self.session = requests.Session()
-        self.session.mount('https://', HTTPAdapter(max_retries=5))
+        self.session = session
 
         # Store last API results for debugging.
         self.last_responses: List[str] = []
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.session.__exit__(exc_type, exc_val, exc_tb)
-
-    def start(self, invalidate_session: bool = False):
+    def prepare(self, invalidate_session: bool = False):
         if not invalidate_session:
             try:
                 state: Dict[str, Any] = self.db[f'api:{self.remixsid}:state']
@@ -174,7 +169,7 @@ class API(contextlib.AbstractContextManager):
             return self._call(name, arguments=arguments, random_sleep=random_sleep)
         except (InvalidSessionError, InvalidSignatureError) as e:
             logger.warning('Invalid session: {}.', e)
-            self.start(invalidate_session=True)
+            self.prepare(invalidate_session=True)
             logger.info('Retrying the call…')
             return self._call(name, arguments=arguments, random_sleep=random_sleep)
 
