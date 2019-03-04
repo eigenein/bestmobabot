@@ -1,7 +1,3 @@
-"""
-Represents a scheduled bot task.
-"""
-
 from __future__ import annotations
 
 from collections import defaultdict
@@ -13,7 +9,8 @@ from typing import Any, Callable, DefaultDict, Dict, Iterable, List, MutableMapp
 
 from loguru import logger
 
-from bestmobabot.api import API, AlreadyError, NotEnoughError, OutOfRetargetDelta, ResponseError
+from bestmobabot.api import AlreadyError, NotEnoughError, OutOfRetargetDelta, ResponseError
+from bestmobabot.bot import Bot
 from bestmobabot.tracking import send_event
 
 
@@ -45,9 +42,9 @@ class TaskNotAvailable(Exception):
 
 
 class Scheduler:
-    def __init__(self, db: MutableMapping[str, Any], api: API):
+    def __init__(self, db: MutableMapping[str, Any], bot: Bot):
         self.db = db
-        self.api = api
+        self.bot = bot
         self.tasks: Dict[str, Task] = {}
         self.retries: DefaultDict[int, List[str]] = defaultdict(list)
 
@@ -67,13 +64,13 @@ class Scheduler:
         now_ = now().timestamp()
         self.retries.update(
             (timestamp, name)
-            for timestamp, name in self.db.get(f'{self.api.user_id}:retries', [])
+            for timestamp, name in self.db.get(f'{self.bot.user.id}:retries', [])
             if timestamp > now_
         )
         logger.debug('{} retries retrieved.', len(self.retries))
 
         # Main task loop, never ending.
-        for at in iterate_seconds(now().replace(microsecond=0)):
+        for at in iterate_seconds(now(self.bot.user.tz).replace(microsecond=0)):
             # Wait until the tick comes in the real world.
             while at > now():
                 sleep(0.5)
@@ -94,11 +91,11 @@ class Scheduler:
 
             # Store the retries if something was executed.
             if pending:
-                self.db[f'{self.api.user_id}:retries'] = list(self.retries.items())
+                self.db[f'{self.bot.user.id}:retries'] = list(self.retries.items())
 
     def execute(self, task: Task) -> Optional[datetime]:
-        send_event(category='bot', action=task.execute.__name__, user_id=self.api.user_id)
-        self.api.last_responses.clear()
+        send_event(category='bot', action=task.execute.__name__, user_id=self.bot.user.id)
+        self.bot.api.last_responses.clear()
         try:
             next_run_at = task.execute()
         except TaskNotAvailable as e:
@@ -113,15 +110,15 @@ class Scheduler:
             logger.opt(exception=e).error('API response error.')
         except Exception as e:
             logger.opt(exception=e).critical('Uncaught error.')
-            for result in self.api.last_responses:
+            for result in self.bot.api.last_responses:
                 logger.critical('API result: {}', result)
         else:
             logger.success('Well done.')
             return next_run_at
 
 
-def now():
-    return datetime.now(timezone.utc)
+def now(tz=timezone.utc):
+    return datetime.now(tz)
 
 
 def iterate_seconds(since: datetime) -> Iterable[datetime]:

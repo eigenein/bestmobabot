@@ -4,6 +4,7 @@
 
 - Add dungeon APIs
 - Add `dungeon_activity` reward
+- Improve timezone logging
 
 ## `3.0b2`
 
