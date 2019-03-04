@@ -90,8 +90,8 @@ class Scheduler:
                 if retry_at:
                     logger.info('{} will be retried at {:%b %d %H:%M:%S %Z}.', task.name, retry_at)
                     self.retries[int(retry_at.timestamp())].append(task.name)
-                    self.bot.notifier.reset()
-                    self.bot.notifier.notify(f'⏰ *{self.user_name}* попробует снова в *{retry_at:%b %d %H:%M:%S %Z}*.')
+                    self.bot.notifier.reset().notify(
+                        f'⏰ *{self.user_name}* попробует снова в *{retry_at:%b %d %H:%M:%S %Z}*.')
 
             # Store the retries if something was executed.
             if pending:

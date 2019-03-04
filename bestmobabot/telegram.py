@@ -49,16 +49,18 @@ class Notifier(AbstractContextManager):
         self.telegram = telegram
         self.message_id: Optional[int] = None
 
-    def __enter__(self):
+    def __enter__(self) -> Notifier:
         self.reset()
+        return self
 
     def __exit__(self, exc_type, exc_value, traceback):
         pass
 
-    def reset(self):
+    def reset(self) -> Notifier:
         self.message_id = None
+        return self
 
-    def notify(self, text: str):
+    def notify(self, text: str) -> Notifier:
         if self.telegram:
             logger.trace('Message ID: {}.', self.message_id)
             with suppress(Exception):
@@ -66,3 +68,4 @@ class Notifier(AbstractContextManager):
                     self.telegram.edit_message_text(self.message_id, text)
                 else:
                     self.message_id = self.telegram.send_message(text)
+        return self

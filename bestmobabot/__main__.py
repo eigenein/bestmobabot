@@ -55,7 +55,7 @@ def main(settings: Settings, verbosity: int, shell: bool):
         logger.info('Welcome «{}»!', bot.user.name)
         logger.info('Game time: {:%H:%M:%S %Z}', datetime.now(bot.user.tz))
         logger.info('Next day: {:%H:%M:%S %Z}.', bot.user.next_day.astimezone(bot.user.tz))
-        bot.notifier.notify(f'🎉 Бот *{bot.user.name}* запущен!')
+        bot.notifier.notify(f'🎉 *{bot.user.name}* запустился!')
 
         if not shell:
             bot.run()

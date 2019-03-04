@@ -220,7 +220,7 @@ class Bot:
         logger.info('Farming daily bonus…')
         self.notifier.notify(f'*{self.user.name}* забирает ежедневный подарок…')
         self.api.farm_daily_bonus().log()
-        self.notifier.notify(f'У *{self.user.name}* теперь есть ежедневный подарок. 🎁')
+        self.notifier.notify(f'*{self.user.name}* забрал ежедневный подарок. 🎁')
 
     def farm_expeditions(self) -> Optional[datetime]:
         """
@@ -229,15 +229,18 @@ class Bot:
         now_ = now()
 
         logger.info('Farming expeditions…')
+        self.notifier.notify(f'⛺️ *{self.user.name}* проверяет отправленные экспедиции…')
         expeditions = self.api.list_expeditions()
-        for expedition in expeditions:
+        for i, expedition in enumerate(expeditions, 1):
             if expedition.is_started and expedition.end_time < now_:
                 self.api.farm_expedition(expedition.id).log()
 
-        return self.send_expeditions()  # farm expeditions once finished
+        self.notifier.notify(f'⛺️ *{self.user.name}* проверил отправленные экспедиции.')
+        return self.send_expeditions()  # send expeditions once finished
 
     def send_expeditions(self) -> Optional[datetime]:
         logger.info('Sending expeditions…')
+        self.notifier.reset().notify(f'⛺️ *{self.user.name}* пробует отправить экспедиции…')
 
         # Need to know which expeditions are already started.
         expeditions = self.api.list_expeditions()
@@ -270,6 +273,7 @@ class Bot:
 
             # Send the expedition.
             end_time, quests = self.api.send_expedition_heroes(expedition.id, get_hero_ids(team))
+            self.notifier.reset().notify(f'⛺️ *{self.user.name}* отправил экспедицию #{expedition.id}.').reset()
             self.farm_quests(quests)
 
             # Exclude the busy heroes.
@@ -280,6 +284,7 @@ class Bot:
             if next_run_at is None or end_time < next_run_at:
                 next_run_at = end_time
 
+        self.notifier.notify(f'⛺️ *{self.user.name}* закончил с отправкой экспедиций.')
         return next_run_at
 
     def farm_quests(self, quests: Quests = None):
