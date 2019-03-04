@@ -9,8 +9,8 @@ from typing import Any, Callable, DefaultDict, Dict, Iterable, List, MutableMapp
 
 from loguru import logger
 
+import bestmobabot.bot
 from bestmobabot.api import AlreadyError, NotEnoughError, OutOfRetargetDelta, ResponseError
-from bestmobabot.bot import Bot
 from bestmobabot.tracking import send_event
 
 
@@ -42,7 +42,7 @@ class TaskNotAvailable(Exception):
 
 
 class Scheduler:
-    def __init__(self, db: MutableMapping[str, Any], bot: Bot):
+    def __init__(self, db: MutableMapping[str, Any], bot: bestmobabot.bot.Bot):
         self.db = db
         self.bot = bot
         self.tasks: Dict[str, Task] = {}

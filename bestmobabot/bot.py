@@ -37,7 +37,7 @@ class Bot(contextlib.AbstractContextManager):
         self.settings = settings
 
         self.user: User = None
-        self.scheduler = Scheduler(db, api)
+        self.scheduler = Scheduler(db, self)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.api.__exit__(exc_type, exc_val, exc_tb)
