@@ -23,20 +23,23 @@ from bestmobabot.model import Model
 from bestmobabot.resources import get_heroic_mission_ids, mission_name, shop_name
 from bestmobabot.scheduler import Scheduler, Task, TaskNotAvailable, now
 from bestmobabot.settings import Settings
+from bestmobabot.telegram import Notifier, Telegram
 from bestmobabot.tracking import send_event
 from bestmobabot.trainer import Trainer
 from bestmobabot.vk import VK
 
 
 class Bot:
-    def __init__(self, db: Database, api: API, vk: VK, settings: Settings):
+    def __init__(self, db: Database, api: API, vk: VK, telegram: Telegram, settings: Settings):
         self.db = db
         self.api = api
         self.vk = vk
+        self.telegram = telegram
         self.settings = settings
 
         self.user: User = None
-        self.scheduler = Scheduler(db, self)
+        self.scheduler = Scheduler(self)
+        self.notifier = Notifier(telegram)
 
     # Task engine.
     # ------------------------------------------------------------------------------------------------------------------
@@ -189,29 +192,35 @@ class Bot:
     # Tasks.
     # ------------------------------------------------------------------------------------------------------------------
 
-    @staticmethod
-    def quack(text: str = 'Quack!'):
+    def quack(self):
         """
         Отладочная задача.
         """
-        logger.info(text)
+        logger.info('Quack!')
+        self.notifier.notify(f'🐤 *{self.user.name}* собирается крякать…')
         sleep(5)
+        self.notifier.notify(f'🐤 Бот *{self.user.name}* сказал: «Кря!»')
         return now() + timedelta(seconds=15)
 
     def register(self):
         """
         Заново заходит в игру, это нужно для появления ежедневных задач в событиях.
         """
+        logger.info('Registering…')
+        self.notifier.notify(f'*{self.user.name}* заново заходит в игру…')
         self.api.prepare(invalidate_session=True)
         self.api.register()
         self.user = self.api.get_user_info()
+        self.notifier.notify(f'*{self.user.name}* заново зашел в игру.')
 
     def farm_daily_bonus(self):
         """
         Забирает ежедневный подарок.
         """
         logger.info('Farming daily bonus…')
+        self.notifier.notify(f'*{self.user.name}* забирает ежедневный подарок…')
         self.api.farm_daily_bonus().log()
+        self.notifier.notify(f'У *{self.user.name}* теперь есть ежедневный подарок. 🎁')
 
     def farm_expeditions(self) -> Optional[datetime]:
         """

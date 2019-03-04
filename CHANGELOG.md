@@ -6,6 +6,7 @@
 - Add `dungeon_activity` reward
 - Improve timezone logging
 - Use single `requests.Session`
+- Remake Telegram notifications
 
 ## `3.0b2`
 

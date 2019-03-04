@@ -76,12 +76,10 @@ class ArgumentError(APIError):
     pass
 
 
-# FIXME: try to inherit it from `ApiError`.
-class OutOfRetargetDelta(Exception):
+class OutOfRetargetDelta(ValueError):
     pass
 
 
-# FIXME: try to inherit it from `ApiError`.
 class ResponseError(ValueError):
     pass
 

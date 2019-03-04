@@ -5,12 +5,11 @@ from dataclasses import dataclass
 from datetime import datetime, time, timedelta, timezone
 from itertools import count
 from time import sleep
-from typing import Any, Callable, DefaultDict, Dict, Iterable, List, MutableMapping, NoReturn, Optional
+from typing import Callable, DefaultDict, Dict, Iterable, List, NoReturn, Optional
 
 from loguru import logger
 
 import bestmobabot.bot
-from bestmobabot.api import AlreadyError, NotEnoughError, OutOfRetargetDelta, ResponseError
 from bestmobabot.tracking import send_event
 
 
@@ -42,11 +41,15 @@ class TaskNotAvailable(Exception):
 
 
 class Scheduler:
-    def __init__(self, db: MutableMapping[str, Any], bot: bestmobabot.bot.Bot):
-        self.db = db
+    def __init__(self, bot: bestmobabot.bot.Bot):
         self.bot = bot
+        self.db = bot.db
         self.tasks: Dict[str, Task] = {}
         self.retries: DefaultDict[int, List[str]] = defaultdict(list)
+
+    @property
+    def user_name(self) -> str:
+        return self.bot.user.name
 
     def add_task(self, task: Task):
         if task.name in self.tasks:
@@ -87,7 +90,8 @@ class Scheduler:
                 if retry_at:
                     logger.info('{} will be retried at {:%b %d %H:%M:%S %Z}.', task.name, retry_at)
                     self.retries[int(retry_at.timestamp())].append(task.name)
-                logger.info('')  # just a visual separator
+                    self.bot.notifier.reset()
+                    self.bot.notifier.notify(f'⏰ *{self.user_name}* попробует снова в *{retry_at:%b %d %H:%M:%S %Z}*.')
 
             # Store the retries if something was executed.
             if pending:
@@ -96,22 +100,20 @@ class Scheduler:
     def execute(self, task: Task) -> Optional[datetime]:
         send_event(category='bot', action=task.execute.__name__, user_id=self.bot.user.id)
         self.bot.api.last_responses.clear()
+        self.bot.notifier.reset()
         try:
             next_run_at = task.execute()
         except TaskNotAvailable as e:
             logger.warning(f'Task unavailable: {e}.')
-        except AlreadyError as e:
-            logger.error(f'Already done: {e.description}.')
-        except NotEnoughError as e:
-            logger.error(f'Not enough: {e.description}.')
-        except OutOfRetargetDelta:
-            logger.error(f'Out of retarget delta.')
-        except ResponseError as e:
-            logger.opt(exception=e).error('API response error.')
+            self.bot.notifier.notify(f'Задача `{task.name}` недоступна в боте *{self.user_name}*.')
         except Exception as e:
+            self.bot.notifier.notify(
+                f'‼️ Бот *{self.user_name}* совершил ошибку.'
+                f' *[Papertrail](https://papertrailapp.com/events?time={int(now().timestamp())})*'
+            )
             logger.opt(exception=e).critical('Uncaught error.')
             for result in self.bot.api.last_responses:
-                logger.critical('API result: {}', result)
+                logger.critical('API response: {}', result)
         else:
             logger.success('Well done.')
             return next_run_at

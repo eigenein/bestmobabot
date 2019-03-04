@@ -1,6 +1,8 @@
+# `bestmobabot`
+
 Bot playing a MOBA-like game on [VK.com](https://vk.com). The bot uses pure reverse-engineered Hero Wars JSON API. No Flash-emulator is used. No browser is needed.
 
-### Settings
+## Settings
 
 At the moment settings are described only in `settings.py`. Here is an example of `settings.yaml`:
 
@@ -82,7 +84,7 @@ You may also need to run `chown nobody:nogroup bestmobabot.sqlite3`.
 
 ## Tasks
 
-Bot uses its own cron-like scheduler to perform game tasks. There're tasks that performed daily at particular time and there're periodic tasks that performed every N minutes/hours. They're spread over a day to decrease game API requests frequency.
+Bot uses its own cron-like scheduler to perform game tasks. The tasks are spread over a day to decrease game API requests frequency.
 
 Also, for expeditions the bot tries to pick up a reward and start the next expedition as soon as possible, given that the bot is not restarted in the meantime.
 

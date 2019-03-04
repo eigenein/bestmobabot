@@ -8,10 +8,10 @@ from requests.adapters import HTTPAdapter
 from bestmobabot import constants
 from bestmobabot.api import API
 from bestmobabot.bot import Bot
-from bestmobabot.constants import LOGURU_TELEGRAM_FORMAT
 from bestmobabot.database import Database
-from bestmobabot.logging_ import TelegramHandler, install_logging, logger
+from bestmobabot.logging_ import install_logging, logger
 from bestmobabot.settings import Settings, SettingsFileParamType
+from bestmobabot.telegram import Telegram
 from bestmobabot.tracking import get_version
 from bestmobabot.vk import VK
 
@@ -44,24 +44,18 @@ def main(settings: Settings, verbosity: int, shell: bool):
     with Session() as session, Database(constants.DATABASE_NAME) as db:
         session.mount('https://', HTTPAdapter(max_retries=5))
 
+        telegram = Telegram(session, settings.telegram) if settings.telegram else None
         api = API(session, db, settings)
-        bot = Bot(db, api, VK(session, settings), settings)
+        bot = Bot(db, api, VK(session, settings), telegram, settings)
 
+        bot.notifier.notify('🎉 Бот запускается…')
         api.prepare()
         bot.prepare()
 
-        if settings.telegram and settings.telegram.token and settings.telegram.chat_id:
-            # Deprecated in favor of explicit notifications.
-            logger.info('Adding Telegram logging handler.')
-            logger.add(
-                TelegramHandler(settings.telegram, bot.user.name),
-                level='INFO',
-                format=LOGURU_TELEGRAM_FORMAT,
-            )
-
         logger.info('Welcome «{}»!', bot.user.name)
         logger.info('Game time: {:%H:%M:%S %Z}', datetime.now(bot.user.tz))
-        logger.info('Next day starts at {:%H:%M:%S %Z}.', bot.user.next_day.astimezone(bot.user.tz))
+        logger.info('Next day: {:%H:%M:%S %Z}.', bot.user.next_day.astimezone(bot.user.tz))
+        bot.notifier.notify(f'🎉 Бот *{bot.user.name}* запущен!')
 
         if not shell:
             bot.run()
