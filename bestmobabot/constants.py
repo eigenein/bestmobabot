@@ -2,6 +2,8 @@ from datetime import timedelta
 from typing import Dict
 
 # General.
+from bestmobabot.enums import DungeonUnitType, LibraryTitanElement
+
 API_TIMEOUT = 10.0
 NODEJS_TIMEOUT = 30
 DATABASE_NAME = 'db.sqlite3'
@@ -76,4 +78,10 @@ COLORS: Dict[int, str] = {
     13: 'Оранжевый+2',
     14: 'Оранжевый+3',
     15: 'Оранжевый+4',
+}
+
+TITAN_ELEMENTS = {
+    DungeonUnitType.EARTH: LibraryTitanElement.EARTH,
+    DungeonUnitType.FIRE: LibraryTitanElement.FIRE,
+    DungeonUnitType.WATER: LibraryTitanElement.WATER,
 }

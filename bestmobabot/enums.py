@@ -21,9 +21,22 @@ class DungeonFloorType(Enum):
     BATTLE = 'battle'
 
 
-class DungeonDefenderType(Enum):
+class DungeonUnitType(Enum):
     EARTH = 'earth'
     FIRE = 'fire'
     HERO = 'hero'
     NEUTRAL = 'neutral'
     WATER = 'water'
+
+
+class LibraryTitanElement(Enum):
+    EARTH = 'earth'
+    FIRE = 'fire'
+    WATER = 'water'
+
+
+class LibraryTitanType(Enum):
+    MELEE = 'melee'
+    SUPPORT = 'support'
+    RANGE = 'range'
+    ULTRA = 'ultra'

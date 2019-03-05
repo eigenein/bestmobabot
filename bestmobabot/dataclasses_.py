@@ -10,7 +10,8 @@ from pydantic.validators import _VALIDATORS
 
 from bestmobabot import resources
 from bestmobabot.constants import COLORS, RAID_N_STARS
-from bestmobabot.enums import DungeonDefenderType, DungeonFloorType, TowerFloorType
+from bestmobabot.enums import DungeonFloorType, DungeonUnitType, LibraryTitanElement, LibraryTitanType, TowerFloorType
+from bestmobabot.telegram import Notifier
 
 _VALIDATORS.append((tzinfo, [lambda value: timezone(timedelta(hours=value))]))
 
@@ -45,6 +46,7 @@ class Reward(BaseModel):
             'tower_point': 'towerPoint',
         }
 
+    # FIXME: I don't really like this.
     @property
     def keywords(self) -> Set[str]:
         return {
@@ -55,35 +57,45 @@ class Reward(BaseModel):
             *(resources.scroll_name(scroll_id).lower() for scroll_id in self.scroll_fragment),
         }
 
-    def log(self):
+    @property
+    def description(self) -> Iterable[str]:
         if self.stamina:
-            logger.success(f'{self.stamina} × stamina.')
+            yield f'{self.stamina} × stamina'
         if self.gold:
-            logger.success(f'{self.gold} × gold.')
+            yield f'{self.gold} × gold'
         if self.experience:
-            logger.success(f'{self.experience} × experience.')
+            yield f'{self.experience} × experience'
         if self.star_money:
-            logger.success(f'{self.star_money} × star money.')
+            yield f'{self.star_money} × star money'
         if self.dungeon_activity:
-            logger.success(f'{self.dungeon_activity} × dungeon activity.')
+            yield f'{self.dungeon_activity} × dungeon activity'
         for consumable_id, value in self.consumable.items():
-            logger.success(f'{value} × «{resources.consumable_name(consumable_id)}» consumable.')
+            yield f'{value} × «{resources.consumable_name(consumable_id)}» consumable'
         for coin_id, value in self.coin.items():
-            logger.success(f'{value} × «{resources.coin_name(coin_id)}» coin.')
+            yield f'{value} × «{resources.coin_name(coin_id)}» coin'
         for hero_id, value in self.hero_fragment.items():
-            logger.success(f'{value} × «{resources.hero_name(hero_id)}» hero fragment.')
+            yield f'{value} × «{resources.hero_name(hero_id)}» hero fragment'
         for artifact_id, value in self.artifact_fragment.items():
-            logger.success(f'{value} × «{resources.artifact_name(artifact_id)}» artifact fragment.')
+            yield f'{value} × «{resources.artifact_name(artifact_id)}» artifact fragment'
         for gear_id, value in self.gear_fragment.items():
-            logger.success(f'{value} × «{resources.gear_name(gear_id)}» gear fragment.')
+            yield f'{value} × «{resources.gear_name(gear_id)}» gear fragment'
         for gear_id, value in self.gear.items():
-            logger.success(f'{value} × «{resources.gear_name(gear_id)}» gear.')
+            yield f'{value} × «{resources.gear_name(gear_id)}» gear'
         for scroll_id, value in self.scroll_fragment.items():
-            logger.success(f'{value} × «{resources.scroll_name(scroll_id)}» scroll fragment.')
+            yield f'{value} × «{resources.scroll_name(scroll_id)}» scroll fragment'
         for artifact_id, value in self.titan_artifact_fragment.items():
-            logger.success(f'{value} × «{resources.titan_artifact_name(artifact_id)}» titan artifact fragment.')
+            yield f'{value} × «{resources.titan_artifact_name(artifact_id)}» titan artifact fragment'
         for hero_id, value in self.titan_fragment.items():
-            logger.success(f'{value} × «{resources.hero_name(hero_id)}» titan fragment.')
+            yield f'{value} × «{resources.hero_name(hero_id)}» titan fragment'
+
+    def log(self) -> Reward:
+        for line in self.description:
+            logger.success('{}.', line)
+        return self
+
+    def notify(self, notifier: Notifier, prefix: str) -> Reward:
+        notifier.notify(f'{prefix}\n\n' + '\n'.join(f'📦 {line}' for line in self.description)).reset()
+        return self
 
 
 class LibraryMission(BaseModel):
@@ -94,24 +106,42 @@ class LibraryMission(BaseModel):
         fields = {'is_heroic': 'isHeroic'}
 
 
-class Library(BaseModel):
-    missions: Dict[str, LibraryMission]
+class LibraryTitan(BaseModel):
+    id: str
+    element: LibraryTitanElement
+    type_: LibraryTitanType
 
     class Config:
-        fields = {'missions': 'mission'}
+        fields = {
+            'type_': 'type',
+        }
+
+
+class Library(BaseModel):
+    missions: Dict[str, LibraryMission]
+    titans: Dict[str, LibraryTitan]
+
+    class Config:
+        fields = {
+            'missions': 'mission',
+            'titans': 'titan',
+        }
 
 
 class Letter(BaseModel):
     id: str
 
 
-@total_ordering
-class Hero(BaseModel):
+class Unit(BaseModel):
     id: str
     level: int
-    color: int
     star: int
-    power: Optional[int] = None  # TODO: move out to a common base for `Hero` and `Titan`.
+    power: Optional[int] = None
+
+
+@total_ordering
+class Hero(Unit):
+    color: int
 
     @property
     def features(self) -> Dict[str, float]:
@@ -145,6 +175,12 @@ class Hero(BaseModel):
 
 Team = List[Hero]
 Teams = List[Team]
+
+
+class Titan(Unit):
+    @property
+    def element(self) -> LibraryTitanElement:
+        return resources.get_library().titans[self.id].element
 
 
 class BattleResult(BaseModel):
@@ -380,8 +416,9 @@ class Quest(BaseModel):
 
 
 class DungeonUserData(BaseModel):
-    defender_type: DungeonDefenderType
-    attacker_type: DungeonDefenderType
+    defender_type: DungeonUnitType
+    attacker_type: DungeonUnitType
+    power: int
 
     class Config:
         fields = {

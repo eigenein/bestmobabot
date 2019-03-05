@@ -7,6 +7,7 @@
 - Improve timezone logging
 - Use single `requests.Session`
 - Remake Telegram notifications
+- Add initial dungeon implementation
 
 ## `3.0b2`
 

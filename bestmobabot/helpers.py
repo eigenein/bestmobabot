@@ -2,29 +2,31 @@ from __future__ import annotations
 
 from itertools import combinations
 from operator import attrgetter
-from typing import Iterable, List, Optional, Sequence
+from typing import Iterable, List, Optional, Sequence, TypeVar
 
 from bestmobabot import constants
-from bestmobabot.dataclasses_ import Hero
+from bestmobabot.dataclasses_ import Hero, Unit
+
+TUnit = TypeVar('TUnit', bound=Unit)
 
 
-def get_hero_ids(team: Iterable[Hero]) -> List[str]:
+def get_unit_ids(team: Iterable[TUnit]) -> List[str]:
     return [hero.id for hero in team]
 
 
-def get_teams_hero_ids(teams: Iterable[Iterable[Hero]]) -> List[List[str]]:
-    return [get_hero_ids(team) for team in teams]
+def get_teams_unit_ids(teams: Iterable[Iterable[TUnit]]) -> List[List[str]]:
+    return [get_unit_ids(team) for team in teams]
 
 
-def get_team_power(team: Iterable[Hero]) -> int:
+def get_team_power(team: Iterable[TUnit]) -> int:
     return sum(hero.power for hero in team)
 
 
-def naive_select_attackers(heroes: Iterable[Hero], count: int = constants.TEAM_SIZE) -> List[Hero]:
+def naive_select_attackers(units: Iterable[TUnit], count: int = constants.TEAM_SIZE) -> List[TUnit]:
     """
-    Selects the most powerful heroes.
+    Selects the most powerful units.
     """
-    return sorted(heroes, key=attrgetter('power'), reverse=True)[:count]
+    return sorted(units, key=attrgetter('power'), reverse=True)[:count]
 
 
 def find_expedition_team(heroes: Iterable[Hero], min_power: int) -> Optional[Sequence[Hero]]:

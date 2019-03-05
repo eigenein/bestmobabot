@@ -1,5 +1,7 @@
 *.yml
 *.yaml
+bestmobabot/js/lib.json
+bestmobabot/js/ru.json
 
 *.env
 *.log

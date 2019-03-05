@@ -37,6 +37,7 @@ from bestmobabot.dataclasses_ import (
     Reward,
     SaveDungeonProgressResponse,
     ShopSlot,
+    Titan,
     Tower,
     User,
 )
@@ -272,6 +273,9 @@ class API:
     def get_all_heroes(self, random_sleep=True) -> List[Hero]:
         return list_of(Hero, self.call('heroGetAll', random_sleep=random_sleep).response)
 
+    def get_all_titans(self) -> List[Titan]:
+        return list_of(Titan, self.call('titanGetAll').response)
+
     # Daily bonus.
     # ------------------------------------------------------------------------------------------------------------------
 
@@ -487,7 +491,7 @@ class API:
         return Dungeon.parse_obj(self.call('dungeonGetInfo').response)
 
     def start_dungeon_battle(self, hero_ids: Iterable[str], team_number: int) -> Any:
-        return self.call('towerStartBattle', {'heroes': list(hero_ids), 'teamNum': team_number}).response
+        return self.call('dungeonStartBattle', {'heroes': list(hero_ids), 'teamNum': team_number}).response
 
     def end_dungeon_battle(self, arguments: Dict[str, Any]) -> EndDungeonBattleResponse:
         return EndDungeonBattleResponse.parse_obj(self.call('dungeonEndBattle', arguments).response)

@@ -4,6 +4,11 @@ from orjson import loads
 from pytest import mark
 
 from bestmobabot import dataclasses_
+from bestmobabot.resources import get_library
+
+
+def test_library():
+    get_library()
 
 
 @mark.parametrize('response', [
@@ -52,3 +57,11 @@ def test_dungeon(response: str):
 ])
 def test_end_dungeon_battle_response(response: str):
     dataclasses_.EndDungeonBattleResponse.parse_obj(loads(response))
+
+
+@mark.parametrize('response', [
+    # language=json
+    r'{"id":4001,"xp":30420,"level":54,"star":4,"skills":{"4003":54},"power":12648,"artifacts":[{"level":34,"star":2},{"level":1,"star":1},{"level":1,"star":1}],"scale":0.80000000000000004}',  # noqa
+])
+def test_titan(response: str):
+    dataclasses_.Titan.parse_obj(loads(response))

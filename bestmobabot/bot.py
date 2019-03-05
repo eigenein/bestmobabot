@@ -1,7 +1,3 @@
-"""
-The bot logic.
-"""
-
 import pickle
 from base64 import b85decode
 from datetime import datetime, time, timedelta, timezone
@@ -14,10 +10,20 @@ from bestmobabot import constants
 from bestmobabot.api import API, AlreadyError, NotEnoughError, NotFoundError
 from bestmobabot.arena import ArenaSolution, ArenaSolver, reduce_grand_arena, reduce_normal_arena
 from bestmobabot.database import Database
-from bestmobabot.dataclasses_ import ArenaResult, Dungeon, Hero, Mission, Quests, Replay, User
-from bestmobabot.enums import BattleType, HeroesJSMode, TowerFloorType
-from bestmobabot.helpers import find_expedition_team, get_hero_ids, get_teams_hero_ids, naive_select_attackers
-from bestmobabot.jsapi import execute_battles
+from bestmobabot.dataclasses_ import (
+    ArenaResult,
+    Dungeon,
+    EndDungeonBattleResponse,
+    Hero,
+    Mission,
+    Quests,
+    Replay,
+    Reward,
+    User,
+)
+from bestmobabot.enums import BattleType, DungeonUnitType, HeroesJSMode, LibraryTitanElement, TowerFloorType
+from bestmobabot.helpers import find_expedition_team, get_teams_unit_ids, get_unit_ids, naive_select_attackers
+from bestmobabot.jsapi import execute_battle_with_retry
 from bestmobabot.logging_ import log_rewards, logger
 from bestmobabot.model import Model
 from bestmobabot.resources import get_heroic_mission_ids, mission_name, shop_name
@@ -110,6 +116,7 @@ class Bot:
             Task(at=[time(hour=9, minute=15, tzinfo=self.user.tz)], execute=self.open_titan_artifact_chest),
             Task(at=[time(hour=9, minute=30, tzinfo=self.user.tz)], execute=self.farm_offers),
             Task(at=[time(hour=10, minute=0, tzinfo=self.user.tz)], execute=self.farm_zeppelin_gift),
+            Task(at=[time(hour=10, minute=15, tzinfo=self.user.tz)], execute=self.clear_dungeon),
         ])
         if self.settings.bot.shops:
             self.scheduler.add_task(Task(at=[
@@ -250,7 +257,7 @@ class Bot:
                 break
 
             # Send the expedition.
-            end_time, quests = self.api.send_expedition_heroes(expedition.id, get_hero_ids(team))
+            end_time, quests = self.api.send_expedition_heroes(expedition.id, get_unit_ids(team))
             self.notifier.reset().notify(f'⛺️ *{self.user.name}* отправил экспедицию #{expedition.id}.').reset()
             self.farm_quests(quests)
 
@@ -270,7 +277,7 @@ class Bot:
         Собирает награды из заданий.
         """
         logger.info('Farming quests…')
-        self.notifier.reset().notify(f'✔ *{self.user.name}* выполняет задания…')
+        self.notifier.reset().notify(f'✅ *{self.user.name}* выполняет задачи…')
         if quests is None:
             quests = self.api.get_all_quests()
         for quest in quests:
@@ -279,9 +286,8 @@ class Bot:
             if self.settings.bot.no_experience and quest.reward.experience:
                 logger.warning(f'Ignoring {quest.reward.experience} experience reward for quest #{quest.id}.')
                 continue
-            self.api.farm_quest(quest.id).log()
-            self.notifier.reset().notify(f'✔ *{self.user.name}* выполнил задание #{quest.id}.').reset()
-        self.notifier.notify(f'✔ *{self.user.name}* выполнил задания.')
+            self.api.farm_quest(quest.id).log().notify(self.notifier.reset(), f'✅ *{self.user.name}* получает за задачу:')  # noqa
+        self.notifier.notify(f'✅ *{self.user.name}* выполнил задачи.')
 
     def farm_mail(self):
         """
@@ -398,7 +404,7 @@ class Bot:
                 friendly_clans=self.settings.bot.arena.friendly_clans,
                 reduce_probabilities=reduce_normal_arena,
             ),
-            attack=lambda solution: self.api.attack_arena(solution.enemy.user_id, get_hero_ids(solution.attackers[0])),
+            attack=lambda solution: self.api.attack_arena(solution.enemy.user_id, get_unit_ids(solution.attackers[0])),
             finalise=lambda: None,
         )
 
@@ -425,7 +431,7 @@ class Bot:
                 reduce_probabilities=reduce_grand_arena,
             ),
             attack=lambda solution: self.api.attack_grand(
-                solution.enemy.user_id, get_teams_hero_ids(solution.attackers)),
+                solution.enemy.user_id, get_teams_unit_ids(solution.attackers)),
             finalise=lambda: self.api.farm_grand_coins().log(),
         )
 
@@ -567,27 +573,23 @@ class Bot:
                 # Otherwise, we have to simulate the battle.
                 else:
                     # Fetch the most powerful team, unless already done.
-                    heroes = heroes or get_hero_ids(naive_select_attackers(
-                        self.api.get_all_heroes(), count=constants.TEAM_SIZE))
-                    # We'll do 3 attempts. Because of randomness that may lead to different results.
-                    for i in range(1, 4):
-                        logger.info('Attempt #{}.', i)
-                        battle_data = self.api.start_tower_battle(heroes)
-                        response, = execute_battles([battle_data], HeroesJSMode.TOWER)
-                        if response['result']['stars'] == constants.RAID_N_STARS:
-                            # No one died, so end the battle and proceed to the next floor.
-                            self.api.end_tower_battle(response).log()
-                            tower = self.api.next_tower_floor()
-                            break
-                        # Someone has died, retry.
-                        logger.warning('Battle result: {}.', response['result'])
+                    heroes = heroes or get_unit_ids(naive_select_attackers(self.api.get_all_heroes()))
+                    reward: Optional[Reward] = execute_battle_with_retry(
+                        mode=HeroesJSMode.TOWER,
+                        start_battle=lambda: self.api.start_tower_battle(heroes),
+                        end_battle=lambda response: self.api.end_tower_battle(response).log(),
+                    )
+                    if reward:
+                        reward.log()
+                        tower = self.api.next_tower_floor()
                     else:
-                        # No attempt was successful. Stop the tower.
+                        # No attempt was successful, stop the tower.
+                        logger.warning('Tower is stopped prematurely.')
                         break
             elif tower.floor_type == TowerFloorType.CHEST:
                 # The simplest one. Just open a random chest.
                 reward, _ = self.api.open_tower_chest(choice([0, 1, 2]))
-                reward.log()
+                reward.log().notify(self.notifier, f'🗼 *{self.user.name}* получает на {tower.floor_number}-м этаже:')
                 # If it was the top floor, we have to stop.
                 if tower.floor_number == 50:
                     logger.success('Finished. It was the top floor.')
@@ -618,7 +620,7 @@ class Bot:
                 # Then normally proceed to the next floor.
                 tower = self.api.next_tower_floor()
 
-        self.notifier.notify(f'🗼 *{self.user.name}* прошел башню.')
+        self.notifier.notify(f'🗼 *{self.user.name}* закончил башню на *{tower.floor_number}-м* этаже.')
 
     def farm_offers(self):
         """
@@ -683,7 +685,7 @@ class Bot:
         heroes = naive_select_attackers(self.api.get_all_heroes(), count=constants.N_GRAND_HEROES)
         if len(heroes) < constants.N_GRAND_HEROES:
             return
-        hero_ids = get_hero_ids(heroes)
+        hero_ids = get_unit_ids(heroes)
         shuffle(hero_ids)
         self.api.set_grand_heroes([hero_ids[0:5], hero_ids[5:10], hero_ids[10:15]])
 
@@ -721,21 +723,55 @@ class Bot:
 
         self.notifier.notify(f'⚡️ *{self.user.name}* вложил и сбросил искры мощи.')
 
-    def clean_dungeon(self):
+    def clear_dungeon(self):
         """
         Подземелье.
         """
         self.notifier.reset().notify(f'🚇️ *{self.user.name}* идет в подземелье…')
 
         dungeon: Optional[Dungeon] = self.api.get_dungeon_info()
-        naive_select_attackers(self.api.get_all_heroes())  # TODO
-        # TODO: `titanGetAll`.
+
+        # Prepare attacker lists.
+        hero_ids = get_unit_ids(naive_select_attackers(self.api.get_all_heroes()))
+        titans = self.api.get_all_titans()
+        neutral_titan_ids = get_unit_ids(naive_select_attackers(titans))
+        element_titan_ids = {
+            element: get_unit_ids(naive_select_attackers(titan for titan in titans if titan.element == element))
+            for element in LibraryTitanElement.__members__.values()
+        }
 
         # Clean the dungeon until the first save point.
         while dungeon is not None and not dungeon.floor.should_save_progress:
-            ...  # TODO: battle.
+            logger.info('Floor: {}.', dungeon.floor_number)
+            self.notifier.notify(f'🚇️ *{self.user.name}* на *{dungeon.floor_number}-м* этаже подземелья…')
+            team_number, user_data = min(enumerate(dungeon.floor.user_data), key=lambda item: item[1].power)
+            if user_data.attacker_type == DungeonUnitType.HERO:
+                attacker_ids = hero_ids
+                mode = HeroesJSMode.TOWER
+            elif user_data.attacker_type == DungeonUnitType.NEUTRAL:
+                attacker_ids = neutral_titan_ids
+                mode = HeroesJSMode.TITAN
+            else:
+                attacker_ids = element_titan_ids[constants.TITAN_ELEMENTS[user_data.attacker_type]]
+                mode = HeroesJSMode.TITAN
+            response: Optional[EndDungeonBattleResponse] = execute_battle_with_retry(
+                mode=mode,
+                start_battle=lambda: self.api.start_dungeon_battle(attacker_ids, team_number),
+                end_battle=lambda response_: self.api.end_dungeon_battle(response_)
+            )
+            if response:
+                response.reward.log().notify(self.notifier, f'🚇️ *{self.user.name}* получает на *{dungeon.floor_number}-м* этаже:')  # noqa
+                dungeon = response.dungeon
+            else:
+                logger.warning('Dungeon is stopped prematurely.')
+                break
 
         # Save progress.
-        self.api.save_dungeon_progress().reward.log()
+        if not dungeon or dungeon.floor.should_save_progress:
+            self.notifier.reset().notify(f'🚇️ *{self.user.name}* сохраняется в подземелье…')
+            self.api.save_dungeon_progress().reward.log().notify(self.notifier, f'🚇️ *{self.user.name}* получает за сохранение:')  # noqa
+        else:
+            logger.warning('Could not save the dungeon progress.')
 
         self.notifier.notify(f'🚇️ *{self.user.name}* сходил в подземелье.')
+        self.farm_quests()

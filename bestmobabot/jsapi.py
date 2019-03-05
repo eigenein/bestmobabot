@@ -5,14 +5,32 @@ Node.js & heroes.js interface.
 from __future__ import annotations
 
 import subprocess
-from typing import Any, List, Optional
+from typing import Any, Callable, List, Optional
 
 import orjson
 from loguru import logger
 
+from bestmobabot import constants
 from bestmobabot.constants import NODEJS_TIMEOUT
 from bestmobabot.enums import HeroesJSMode
 from bestmobabot.resources import get_heroes_js, get_raw_library, get_skills_sc
+
+
+def execute_battle_with_retry(
+    *,
+    mode: HeroesJSMode,
+    start_battle: Callable[[], Any],
+    end_battle: Callable[[Any], Any],
+    n_retries: int = 3,
+) -> Any:
+    for i in range(1, n_retries + 1):
+        logger.info('Battle attempt #{}.', i)
+        response, = execute_battles([start_battle()], mode)
+        if response['result']['stars'] == constants.RAID_N_STARS:
+            logger.success('Battle succeeded.')
+            return end_battle(response)
+        logger.warning('Battle result: {}.', response['result'])
+    return None
 
 
 def execute_battles(battles_data: List[Any], mode: HeroesJSMode) -> Any:
