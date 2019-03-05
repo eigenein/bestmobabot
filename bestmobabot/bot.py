@@ -286,7 +286,7 @@ class Bot:
             if self.settings.bot.no_experience and quest.reward.experience:
                 logger.warning(f'Ignoring {quest.reward.experience} experience reward for quest #{quest.id}.')
                 continue
-            self.api.farm_quest(quest.id).log().notify(self.notifier.reset(), f'✅ *{self.user.name}* получает за задачу:')  # noqa
+            self.api.farm_quest(quest.id).notify(self.notifier.reset(), f'✅ *{self.user.name}* получает за задачу:')  # noqa
         self.notifier.notify(f'✅ *{self.user.name}* выполнил задачи.')
 
     def farm_mail(self):
@@ -377,11 +377,11 @@ class Bot:
         result, quests = attack(solution)
 
         # Collect results.
-        result.log()
-        self.farm_quests(quests)
+        result.log()  # TODO: notify.
         finalise()
+        self.farm_quests(quests)
 
-        self.notifier.notify(f'⚔️ *{self.user.name}* закончил арену.')
+        self.notifier.notify(f'⚔️ *{self.user.name}* закончил арену.')  # TODO: remove.
 
     def attack_normal_arena(self):
         """
@@ -403,6 +403,7 @@ class Bot:
                 get_enemies=self.api.find_arena_enemies,
                 friendly_clans=self.settings.bot.arena.friendly_clans,
                 reduce_probabilities=reduce_normal_arena,
+                callback=lambda i: self.notifier.notify(f'⚔️ *{self.user.name}* на странице *{i}* обычной арены…'),
             ),
             attack=lambda solution: self.api.attack_arena(solution.enemy.user_id, get_unit_ids(solution.attackers[0])),
             finalise=lambda: None,
@@ -429,6 +430,7 @@ class Bot:
                 get_enemies=self.api.find_grand_enemies,
                 friendly_clans=self.settings.bot.arena.friendly_clans,
                 reduce_probabilities=reduce_grand_arena,
+                callback=lambda i: self.notifier.notify(f'⚔️ *{self.user.name}* на странице *{i}* гранд-арены…'),
             ),
             attack=lambda solution: self.api.attack_grand(
                 solution.enemy.user_id, get_teams_unit_ids(solution.attackers)),
@@ -589,7 +591,7 @@ class Bot:
             elif tower.floor_type == TowerFloorType.CHEST:
                 # The simplest one. Just open a random chest.
                 reward, _ = self.api.open_tower_chest(choice([0, 1, 2]))
-                reward.log().notify(self.notifier, f'🗼 *{self.user.name}* получает на {tower.floor_number}-м этаже:')
+                reward.notify(self.notifier, f'🗼 *{self.user.name}* получает на {tower.floor_number}-м этаже:')
                 # If it was the top floor, we have to stop.
                 if tower.floor_number == 50:
                     logger.success('Finished. It was the top floor.')
@@ -760,7 +762,7 @@ class Bot:
                 end_battle=lambda response_: self.api.end_dungeon_battle(response_)
             )
             if response:
-                response.reward.log().notify(self.notifier, f'🚇️ *{self.user.name}* получает на *{dungeon.floor_number}-м* этаже:')  # noqa
+                response.reward.notify(self.notifier, f'🚇️ *{self.user.name}* получает на *{dungeon.floor_number}-м* этаже:')  # noqa
                 dungeon = response.dungeon
             else:
                 logger.warning('Dungeon is stopped prematurely.')
@@ -769,7 +771,7 @@ class Bot:
         # Save progress.
         if not dungeon or dungeon.floor.should_save_progress:
             self.notifier.reset().notify(f'🚇️ *{self.user.name}* сохраняется в подземелье…')
-            self.api.save_dungeon_progress().reward.log().notify(self.notifier, f'🚇️ *{self.user.name}* получает за сохранение:')  # noqa
+            self.api.save_dungeon_progress().reward.notify(self.notifier, f'🚇️ *{self.user.name}* получает за сохранение:')  # noqa
         else:
             logger.warning('Could not save the dungeon progress.')
 

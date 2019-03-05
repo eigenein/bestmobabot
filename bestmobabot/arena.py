@@ -27,6 +27,7 @@ T = TypeVar('T')
 # Universal arena solver.
 # ----------------------------------------------------------------------------------------------------------------------
 
+# TODO: make notifiable.
 @dataclass
 @total_ordering
 class ArenaSolution:
@@ -65,6 +66,7 @@ class ArenaSolver:
     Generic arena solver for both normal arena and grand arena.
     """
 
+    # TODO: maybe move parameters to a separate dataclass.
     def __init__(
         self,
         *,
@@ -81,6 +83,7 @@ class ArenaSolver:
         get_enemies: Callable[[], List[BaseArenaEnemy]],
         friendly_clans: Iterable[str],
         reduce_probabilities: Callable[..., ndarray],
+        callback: Callable[[int], Any],
     ):
         """
         :param model: prediction model.
@@ -95,6 +98,7 @@ class ArenaSolver:
         :param get_enemies: callable to fetch an enemy page.
         :param friendly_clans: friendly clan IDs or titles.
         :param reduce_probabilities: callable to combine probabilities from multiple battles into a final one.
+        :param callback: callable which receives current arena enemies page.
         """
 
         self.db = db
@@ -110,6 +114,7 @@ class ArenaSolver:
         self.get_enemies = get_enemies
         self.friendly_clans = set(friendly_clans)
         self.reduce_probabilities = reduce_probabilities
+        self.callback = callback
 
         # If the same enemy is encountered again, we will use the earlier solution.
         self.cache: Dict[str, ArenaSolution] = {}
@@ -126,8 +131,9 @@ class ArenaSolver:
         """
         Yield best solution from each `get_enemies` call.
         """
-        while True:
+        for n_page in count(1):
             logger.debug('Fetching enemies…')
+            self.callback(n_page)
             enemies = list(self.filter_enemies(self.get_enemies()))
             if enemies:
                 yield max(self.solve_enemy_cached(enemy) for enemy in enemies)

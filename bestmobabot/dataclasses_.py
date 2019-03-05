@@ -57,6 +57,7 @@ class Reward(BaseModel):
             *(resources.scroll_name(scroll_id).lower() for scroll_id in self.scroll_fragment),
         }
 
+    # TODO: move to a base class as an abstract property.
     @property
     def description(self) -> Iterable[str]:
         if self.stamina:
@@ -88,14 +89,16 @@ class Reward(BaseModel):
         for hero_id, value in self.titan_fragment.items():
             yield f'{value} × «{resources.hero_name(hero_id)}» titan fragment'
 
+    # TODO: move to a base class.
     def log(self) -> Reward:
         for line in self.description:
             logger.success('{}.', line)
         return self
 
-    def notify(self, notifier: Notifier, prefix: str) -> Reward:
+    # TODO: move to a base class, keep in mind the emoji.
+    def notify(self, notifier: Notifier, prefix: str):
+        self.log()
         notifier.notify(f'{prefix}\n\n' + '\n'.join(f'📦 {line}' for line in self.description)).reset()
-        return self
 
 
 class LibraryMission(BaseModel):
@@ -265,6 +268,7 @@ class GrandArenaEnemy(BaseArenaEnemy):
         return self.heroes
 
 
+# TODO: make it loggable and notifiable.
 class ArenaState(BaseModel):
     battles: int
     wins: int
@@ -286,6 +290,7 @@ class ArenaState(BaseModel):
         logger.success('Rating: {:.2f}%.', 100.0 * (self.wins / self.battles))
 
 
+# TODO: make it loggable and notifiable.
 class ArenaResult(BaseModel):
     win: bool
     battles: List[Replay]
@@ -301,7 +306,7 @@ class ArenaResult(BaseModel):
     def log(self):
         logger.info('You won!' if self.win else 'You lose.')
         for i, battle in enumerate(self.battles, start=1):
-            logger.info(f'Battle #{i}: {"⭐" * battle.result.stars if battle.result.win else "➖"}')
+            logger.info(f'Battle #{i}: {"⭐" * battle.result.stars if battle.result.win else "⛔️"}')
         if self.reward is not None:
             self.reward.log()
         self.state.log()
