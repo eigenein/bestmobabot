@@ -34,12 +34,6 @@ class Task:
         )
 
 
-class TaskNotAvailable(Exception):
-    """
-    Raised when task pre-conditions are not met.
-    """
-
-
 class Scheduler:
     def __init__(self, bot: bestmobabot.bot.Bot):
         self.bot = bot
@@ -101,12 +95,8 @@ class Scheduler:
     def execute(self, task: Task) -> Optional[datetime]:
         send_event(category='bot', action=task.execute.__name__, user_id=self.bot.user.id)
         self.bot.api.last_responses.clear()
-        self.bot.notifier.reset()
         try:
             next_run_at = task.execute()
-        except TaskNotAvailable as e:
-            logger.warning(f'Task unavailable: {e}.')
-            self.bot.notifier.notify(f'Задача `{task.name}` недоступна в боте *{self.user_name}*.')
         except Exception as e:
             self.bot.notifier.notify(
                 f'‼️ Бот *{self.user_name}* совершил ошибку.'

@@ -8,20 +8,20 @@ from datetime import datetime, time, timedelta, timezone
 from operator import attrgetter
 from random import choice, shuffle
 from time import sleep
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
 
 from bestmobabot import constants
 from bestmobabot.api import API, AlreadyError, NotEnoughError, NotFoundError
-from bestmobabot.arena import ArenaSolver, reduce_grand_arena, reduce_normal_arena
+from bestmobabot.arena import ArenaSolution, ArenaSolver, reduce_grand_arena, reduce_normal_arena
 from bestmobabot.database import Database
-from bestmobabot.dataclasses_ import Dungeon, Hero, Mission, Quests, Replay, User
+from bestmobabot.dataclasses_ import ArenaResult, Dungeon, Hero, Mission, Quests, Replay, User
 from bestmobabot.enums import BattleType, HeroesJSMode, TowerFloorType
 from bestmobabot.helpers import find_expedition_team, get_hero_ids, get_teams_hero_ids, naive_select_attackers
 from bestmobabot.jsapi import execute_battles
 from bestmobabot.logging_ import log_rewards, logger
 from bestmobabot.model import Model
 from bestmobabot.resources import get_heroic_mission_ids, mission_name, shop_name
-from bestmobabot.scheduler import Scheduler, Task, TaskNotAvailable, now
+from bestmobabot.scheduler import Scheduler, Task, now
 from bestmobabot.settings import Settings
 from bestmobabot.telegram import Notifier, Telegram
 from bestmobabot.tracking import send_event
@@ -137,29 +137,6 @@ class Bot:
     # Helpers.
     # ------------------------------------------------------------------------------------------------------------------
 
-    def get_model(self) -> Optional[Model]:
-        """
-        Loads a predictive model from the database.
-        """
-        logger.info('Loading model…')
-        return pickle.loads(b85decode(self.db['bot:model']))
-
-    def check_arena(self, n_heroes: int) -> Tuple[Model, List[Hero]]:
-        """
-        Checks pre-conditions for arena.
-        """
-        model = self.get_model()
-        if not model:
-            raise TaskNotAvailable('model is not ready yet')
-        logger.trace('Model: {}.', model)
-
-        heroes = self.api.get_all_heroes()
-        if len(heroes) < n_heroes:
-            raise TaskNotAvailable(f'not enough heroes: {n_heroes} needed, you have {len(heroes)}')
-
-        self.user = self.api.get_user_info()  # refresh clan ID
-        return model, heroes
-
     def get_raid_mission_ids(self) -> Iterable[str]:
         missions: Dict[str, Mission] = {
             mission.id: mission
@@ -197,7 +174,7 @@ class Bot:
         Отладочная задача.
         """
         logger.info('Quack!')
-        self.notifier.notify(f'🐤 *{self.user.name}* собирается крякать…')
+        self.notifier.reset().notify(f'🐤 *{self.user.name}* собирается крякать…')
         sleep(5)
         self.notifier.notify(f'🐤 Бот *{self.user.name}* сказал: «Кря!»')
         return now() + timedelta(seconds=15)
@@ -207,18 +184,18 @@ class Bot:
         Заново заходит в игру, это нужно для появления ежедневных задач в событиях.
         """
         logger.info('Registering…')
-        self.notifier.notify(f'*{self.user.name}* заново заходит в игру…')
+        self.notifier.reset().notify(f'🎫 *{self.user.name}* заново заходит в игру…')
         self.api.prepare(invalidate_session=True)
         self.api.register()
         self.user = self.api.get_user_info()
-        self.notifier.notify(f'*{self.user.name}* заново зашел в игру.')
+        self.notifier.notify(f'🎫 *{self.user.name}* заново зашел в игру.')
 
     def farm_daily_bonus(self):
         """
         Забирает ежедневный подарок.
         """
         logger.info('Farming daily bonus…')
-        self.notifier.notify(f'*{self.user.name}* забирает ежедневный подарок…')
+        self.notifier.reset().notify(f'*{self.user.name}* забирает ежедневный подарок…')
         self.api.farm_daily_bonus().log()
         self.notifier.notify(f'*{self.user.name}* забрал ежедневный подарок. 🎁')
 
@@ -229,7 +206,7 @@ class Bot:
         now_ = now()
 
         logger.info('Farming expeditions…')
-        self.notifier.notify(f'⛺️ *{self.user.name}* проверяет отправленные экспедиции…')
+        self.notifier.reset().notify(f'⛺️ *{self.user.name}* проверяет отправленные экспедиции…')
         expeditions = self.api.list_expeditions()
         for i, expedition in enumerate(expeditions, 1):
             if expedition.is_started and expedition.end_time < now_:
@@ -293,7 +270,7 @@ class Bot:
         Собирает награды из заданий.
         """
         logger.info('Farming quests…')
-        self.notifier.notify(f'✔ *{self.user.name}* выполняет задания…')
+        self.notifier.reset().notify(f'✔ *{self.user.name}* выполняет задания…')
         if quests is None:
             quests = self.api.get_all_quests()
         for quest in quests:
@@ -311,7 +288,7 @@ class Bot:
         Собирает награды из почты.
         """
         logger.info('Farming mail…')
-        self.notifier.notify(f'📩 *{self.user.name}* читает почту…')
+        self.notifier.reset().notify(f'📩 *{self.user.name}* читает почту…')
         letters = self.api.get_all_mail()
         if letters:
             logger.info(f'{len(letters)} letters.')
@@ -323,7 +300,7 @@ class Bot:
         Открывает ежедневный бесплатный сундук.
         """
         logger.info('Buying a chest…')
-        self.notifier.notify(f'🎁 *{self.user.name}* открывает сундук…')
+        self.notifier.reset().notify(f'🎁 *{self.user.name}* открывает сундук…')
         log_rewards(self.api.buy_chest())
         self.notifier.notify(f'🎁 *{self.user.name}* открыл сундук.')
 
@@ -332,45 +309,57 @@ class Bot:
         Отправляет сердечки друзьям.
         """
         logger.info('Sending daily gift…')
+        self.notifier.reset().notify(f'❤️ *{self.user.name}* дарит сердечки друзьям…')
         if self.settings.bot.friend_ids:
             self.farm_quests(self.api.send_daily_gift(self.settings.bot.friend_ids))
         else:
             logger.warning('No friends specified.')
+        self.notifier.notify(f'❤️ *{self.user.name}* подарил сердечки друзьям.')
 
     def train_arena_model(self):
         """
         Тренирует предсказательную модель для арены.
         """
         logger.info('Running trainer…')
+        self.notifier.reset().notify(f'🎲️ *{self.user.name}* тренирует модель…')
         Trainer(
             self.db,
             n_splits=constants.MODEL_N_SPLITS,
             n_last_battles=self.settings.bot.arena.last_battles,
         ).train()
+        self.notifier.notify(f'🎲️ *{self.user.name}* натренировал модель.')
 
-    def attack_normal_arena(self):
-        """
-        Совершает бой на арене.
-        """
-        logger.info('Attacking normal arena…')
-        model, heroes = self.check_arena(constants.TEAM_SIZE)
+    def attack_any_arena(
+        self,
+        *,
+        n_heroes: int,
+        make_solver: Callable[[Model, List[Hero]], ArenaSolver],
+        attack: Callable[[ArenaSolution], Tuple[ArenaResult, Quests]],
+        finalise: Callable[[], Any],
+    ):
+        logger.info('Attacking arena…')
+        self.notifier.reset().notify(f'⚔️ *{self.user.name}* идет на арену…')
+
+        # Load arena model.
+        logger.info('Loading model…')
+        try:
+            model: Model = pickle.loads(b85decode(self.db['bot:model']))
+        except KeyError:
+            logger.warning('Model is not ready yet.')
+            return
+        logger.trace('Model: {}.', model)
+
+        # Get all heroes.
+        heroes = self.api.get_all_heroes()
+        if len(heroes) < n_heroes:
+            logger.warning('Not enough heroes: {} needed, you have {}.', n_heroes, len(heroes))
+            return
+
+        # Refresh clan ID.
+        self.user = self.api.get_user_info()
 
         # Pick an enemy and select attackers.
-        solution = ArenaSolver(
-            db=self.db,
-            model=model,
-            user_clan_id=self.user.clan_id,
-            heroes=heroes,
-            n_required_teams=1,
-            max_iterations=self.settings.bot.arena.normal_max_pages,
-            n_keep_solutions=self.settings.bot.arena.normal_keep_solutions,
-            n_generate_solutions=self.settings.bot.arena.normal_generate_solutions,
-            n_generations_count_down=self.settings.bot.arena.normal_generations_count_down,
-            early_stop=self.settings.bot.arena.early_stop,
-            get_enemies=self.api.find_arena_enemies,
-            friendly_clans=self.settings.bot.arena.friendly_clans,
-            reduce_probabilities=reduce_normal_arena,
-        ).solve()
+        solution = make_solver(model, heroes).solve()
         solution.log()
 
         # Retry if win probability is too low.
@@ -379,55 +368,74 @@ class Bot:
             return now() + constants.ARENA_RETRY_INTERVAL
 
         # Attack!
-        result, quests = self.api.attack_arena(solution.enemy.user_id, get_hero_ids(solution.attackers[0]))
+        result, quests = attack(solution)
 
         # Collect results.
         result.log()
         self.farm_quests(quests)
+        finalise()
+
+        self.notifier.notify(f'⚔️ *{self.user.name}* закончил арену.')
+
+    def attack_normal_arena(self):
+        """
+        Совершает бой на обычной арене.
+        """
+        self.attack_any_arena(
+            n_heroes=constants.TEAM_SIZE,
+            make_solver=lambda model, heroes: ArenaSolver(
+                db=self.db,
+                model=model,
+                user_clan_id=self.user.clan_id,
+                heroes=heroes,
+                n_required_teams=1,
+                max_iterations=self.settings.bot.arena.normal_max_pages,
+                n_keep_solutions=self.settings.bot.arena.normal_keep_solutions,
+                n_generate_solutions=self.settings.bot.arena.normal_generate_solutions,
+                n_generations_count_down=self.settings.bot.arena.normal_generations_count_down,
+                early_stop=self.settings.bot.arena.early_stop,
+                get_enemies=self.api.find_arena_enemies,
+                friendly_clans=self.settings.bot.arena.friendly_clans,
+                reduce_probabilities=reduce_normal_arena,
+            ),
+            attack=lambda solution: self.api.attack_arena(solution.enemy.user_id, get_hero_ids(solution.attackers[0])),
+            finalise=lambda: None,
+        )
 
     def attack_grand_arena(self):
         """
         Совершает бой на гранд арене.
         """
-        logger.info('Attacking grand arena…')
-        model, heroes = self.check_arena(constants.N_GRAND_HEROES)
 
-        # Pick an enemy and select attackers.
-        solution = ArenaSolver(
-            db=self.db,
-            model=model,
-            user_clan_id=self.user.clan_id,
-            heroes=heroes,
-            n_required_teams=constants.N_GRAND_TEAMS,
-            max_iterations=self.settings.bot.arena.grand_max_pages,
-            n_keep_solutions=self.settings.bot.arena.grand_keep_solutions,
-            n_generate_solutions=self.settings.bot.arena.grand_generate_solutions,
-            n_generations_count_down=self.settings.bot.arena.grand_generations_count_down,
-            early_stop=self.settings.bot.arena.early_stop,
-            get_enemies=self.api.find_grand_enemies,
-            friendly_clans=self.settings.bot.arena.friendly_clans,
-            reduce_probabilities=reduce_grand_arena,
-        ).solve()
-        solution.log()
-
-        # Retry if win probability is too low.
-        if solution.probability < constants.ARENA_MIN_PROBABILITY:
-            logger.warning('Win probability is too low.')
-            return now() + constants.ARENA_RETRY_INTERVAL
-
-        # Attack!
-        result, quests = self.api.attack_grand(solution.enemy.user_id, get_teams_hero_ids(solution.attackers))
-
-        # Collect results.
-        result.log()
-        self.farm_quests(quests)
-        self.api.farm_grand_coins().log()
+        self.attack_any_arena(
+            n_heroes=constants.N_GRAND_HEROES,
+            make_solver=lambda model, heroes: ArenaSolver(
+                db=self.db,
+                model=model,
+                user_clan_id=self.user.clan_id,
+                heroes=heroes,
+                n_required_teams=constants.N_GRAND_TEAMS,
+                max_iterations=self.settings.bot.arena.grand_max_pages,
+                n_keep_solutions=self.settings.bot.arena.grand_keep_solutions,
+                n_generate_solutions=self.settings.bot.arena.grand_generate_solutions,
+                n_generations_count_down=self.settings.bot.arena.grand_generations_count_down,
+                early_stop=self.settings.bot.arena.early_stop,
+                get_enemies=self.api.find_grand_enemies,
+                friendly_clans=self.settings.bot.arena.friendly_clans,
+                reduce_probabilities=reduce_grand_arena,
+            ),
+            attack=lambda solution: self.api.attack_grand(
+                solution.enemy.user_id, get_teams_hero_ids(solution.attackers)),
+            finalise=lambda: self.api.farm_grand_coins().log(),
+        )
 
     def get_arena_replays(self):
         """
         Читает и сохраняет журналы арен.
         """
         logger.info('Reading arena logs…')
+        self.notifier.reset().notify(f'📒️ *{self.user.name}* читает журнал арены…')
+
         replays: List[Replay] = [
             *self.api.get_battle_by_type(BattleType.ARENA),
             *self.api.get_battle_by_type(BattleType.GRAND),
@@ -443,11 +451,14 @@ class Bot:
             }
             logger.info(f'Saved #{replay.id}.')
 
+        self.notifier.notify(f'📒️ *{self.user.name}* прочитал журнал арены.')
+
     def check_freebie(self):
         """
         Собирает подарки на странице игры ВКонтакте.
         """
         logger.info('Checking freebie…')
+        self.notifier.reset().notify(f'🎁 *{self.user.name}* проверяет подарки на VK.com…')
         should_farm_mail = False
 
         for gift_id in self.vk.find_gifts():
@@ -463,11 +474,15 @@ class Bot:
         if should_farm_mail:
             self.farm_mail()
 
+        self.notifier.notify(f'🎁 *{self.user.name}* проверил подарки на VK.com.')
+
     def farm_zeppelin_gift(self):
         """
         Собирает ключ у валькирии и открывает артефактные сундуки.
         """
         logger.info('Farming zeppelin gift…')
+        self.notifier.reset().notify(f'🔑 *{self.user.name}* открывает артефактные сундуки…')
+
         self.api.farm_zeppelin_gift().log()
         for _ in range(constants.MAX_OPEN_ARTIFACT_CHESTS):
             try:
@@ -480,11 +495,15 @@ class Bot:
         else:
             logger.warning('Maximum number of chests opened.')
 
+        self.notifier.notify(f'🔑 *{self.user.name}* открыл артефактные сундуки…')
+
     def raid_missions(self):
         """
         Ходит в рейды в миссиях в кампании за предметами.
         """
         logger.info(f'Raid missions…')
+        self.notifier.reset().notify(f'🔥 *{self.user.name}* идет в рейды…')
+
         for mission_id in self.get_raid_mission_ids():
             logger.info(f'Raid mission #{mission_id} «{mission_name(mission_id)}»…')
             try:
@@ -493,10 +512,14 @@ class Bot:
                 logger.info(f'Not enough: {e.description}.')
                 break
 
+        self.notifier.notify(f'🔥 *{self.user.name}* сходил в рейды.')
+
     def shop(self):
         """
         Покупает в магазине вещи.
         """
+        self.notifier.reset().notify(f'🛍 *{self.user.name}* идет в магазин…')
+
         logger.info(f'Requesting shops…')
         slots: List[Tuple[str, str]] = [
             (shop_id, slot.id)
@@ -515,17 +538,23 @@ class Bot:
             except AlreadyError as e:
                 logger.warning(f'Already: {e.description}')
 
+        self.notifier.notify(f'🛍 *{self.user.name}* сходил в магазин.')
+
     def skip_tower(self):
         """
         Зачистка башни.
         """
         logger.info('Skipping the tower…')
+        self.notifier.reset().notify(f'🗼 *{self.user.name}* проходит башню…')
+
         tower = self.api.get_tower_info()
         heroes: List[str] = []
 
         # Yeah, it's a bit complicated…
         while tower.floor_number <= 50:
             logger.info(f'Floor #{tower.floor_number}: {tower.floor_type}.')
+            self.notifier.notify(f'🗼 *{self.user.name}* на {tower.floor_number}-м этаже башни…')
+
             if tower.floor_type == TowerFloorType.BATTLE:
                 # If we have the top level, then we can skip the tower entirely.
                 # But we need to go chest by chest. So go to the next chest.
@@ -589,22 +618,31 @@ class Bot:
                 # Then normally proceed to the next floor.
                 tower = self.api.next_tower_floor()
 
+        self.notifier.notify(f'🗼 *{self.user.name}* прошел башню.')
+
     def farm_offers(self):
         """
         Фармит предложения (камни обликов).
         """
+        self.notifier.reset().notify(f'🔵 *{self.user.name}* фармит предложения…')
+
         logger.info('Farming offers…')
         for offer in self.api.get_all_offers():
             logger.debug(f'#{offer.id}: {offer.offer_type}.')
             if offer.offer_type in constants.OFFER_FARMED_TYPES and not offer.is_free_reward_obtained:
                 self.api.farm_offer_reward(offer.id).log()
 
+        self.notifier.notify(f'🔵 *{self.user.name}* закончил фармить предложения.')
+
     def raid_bosses(self):
         """
         Рейдит боссов Запределья.
         """
         logger.info('Raid bosses…')
-        for boss in self.api.get_all_bosses():
+        self.notifier.reset().notify(f'🔴 *{self.user.name}* рейдит боссов Запределья…')
+
+        for i, boss in enumerate(self.api.get_all_bosses(), 1):
+            self.notifier.reset().notify(f'🔴 *{self.user.name}* рейдит боссов Запределья: {i}-й…')
             if boss.may_raid:
                 logger.info(f'Raid boss #{boss.id}…')
                 self.api.raid_boss(boss.id).log()
@@ -614,11 +652,15 @@ class Bot:
             else:
                 logger.info(f'May not raid boss #{boss.id}.')
 
+        self.notifier.notify(f'🔴 *{self.user.name}* закончил рейд боссов Запределья.')
+
     def open_titan_artifact_chest(self):
         """
         Открывает сферы артефактов титанов.
         """
         logger.info('Opening titan artifact chests…')
+        self.notifier.reset().notify(f'⚫️ *{self.user.name}* открывает сферы артефактов титанов…')
+
         for amount in [10, 1]:
             try:
                 rewards, quests = self.api.open_titan_artifact_chest(amount)
@@ -629,23 +671,31 @@ class Bot:
                 self.farm_quests(quests)
                 break
 
+        self.notifier.notify(f'⚫️ *{self.user.name}* открыл сферы артефактов титанов.')
+
     def randomize_grand_defenders(self):
         """
         Выставляет в защиту гранд-арены топ-15 героев в случайном порядке.
         """
         logger.info('Randomizing grand defenders…')
+        self.notifier.reset().notify(f'🎲️ *{self.user.name}* изменяет защитников арены…')
+
         heroes = naive_select_attackers(self.api.get_all_heroes(), count=constants.N_GRAND_HEROES)
         if len(heroes) < constants.N_GRAND_HEROES:
-            raise TaskNotAvailable('not enough heroes')
+            return
         hero_ids = get_hero_ids(heroes)
         shuffle(hero_ids)
         self.api.set_grand_heroes([hero_ids[0:5], hero_ids[5:10], hero_ids[10:15]])
+
+        self.notifier.notify(f'🎲️ *{self.user.name}* изменил защитников арены.')
 
     def enchant_rune(self):
         """
         Зачаровать руну.
         """
         logger.info('Enchant rune…')
+        self.notifier.reset().notify(f'🕉 *{self.user.name}* зачаровывает руну…')
+
         result = self.api.enchant_hero_rune(
             self.settings.bot.enchant_rune.hero_id,
             self.settings.bot.enchant_rune.tier,
@@ -653,11 +703,15 @@ class Bot:
         logger.success('Response: {}.', result.response)
         self.farm_quests(result.quests)
 
+        self.notifier.notify(f'🕉 *{self.user.name}* зачаровал руну.')
+
     def level_up_titan_hero_gift(self):
         """
         Вложить и сбросить искры самому слабому герою.
         """
         logger.info('Level up and drop titan hero gift…')
+        self.notifier.reset().notify(f'⚡️ *{self.user.name}* вкладывает и сбрасывает искры мощи…')
+
         hero = min(self.api.get_all_heroes(), key=attrgetter('power'))
         logger.info('Hero: {}.', hero)
         self.farm_quests(self.api.level_up_titan_hero_gift(hero.id))
@@ -665,10 +719,14 @@ class Bot:
         reward.log()
         self.farm_quests(quests)
 
+        self.notifier.notify(f'⚡️ *{self.user.name}* вложил и сбросил искры мощи.')
+
     def clean_dungeon(self):
         """
         Подземелье.
         """
+        self.notifier.reset().notify(f'🚇️ *{self.user.name}* идет в подземелье…')
+
         dungeon: Optional[Dungeon] = self.api.get_dungeon_info()
         naive_select_attackers(self.api.get_all_heroes())  # TODO
         # TODO: `titanGetAll`.
@@ -679,3 +737,5 @@ class Bot:
 
         # Save progress.
         self.api.save_dungeon_progress().reward.log()
+
+        self.notifier.notify(f'🚇️ *{self.user.name}* сходил в подземелье.')

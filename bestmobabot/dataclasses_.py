@@ -265,7 +265,7 @@ class ArenaResult(BaseModel):
     def log(self):
         logger.info('You won!' if self.win else 'You lose.')
         for i, battle in enumerate(self.battles, start=1):
-            logger.info(f'Battle #{i}: {"⭐" * battle.result.stars if battle.result.win else "lose."}')
+            logger.info(f'Battle #{i}: {"⭐" * battle.result.stars if battle.result.win else "➖"}')
         if self.reward is not None:
             self.reward.log()
         self.state.log()
