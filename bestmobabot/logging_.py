@@ -14,6 +14,7 @@ def install_logging(verbosity: int):
     logger.add(sys.stderr, format=LOGURU_FORMAT, level=VERBOSITY_LEVELS.get(verbosity, 'TRACE'))
 
 
+# TODO: `notify_rewards`.
 def log_rewards(rewards: Iterable[bestmobabot.dataclasses_.Reward]):
     for reward in rewards:
         reward.log()
