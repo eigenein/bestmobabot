@@ -234,6 +234,7 @@ class Bot:
         for i, expedition in enumerate(expeditions, 1):
             if expedition.is_started and expedition.end_time < now_:
                 self.api.farm_expedition(expedition.id).log()
+                self.notifier.notify(f'⛺️ *{self.user.name}* собрал награду с экспедиции #{expedition.id}.')
 
         self.notifier.notify(f'⛺️ *{self.user.name}* проверил отправленные экспедиции.')
         return self.send_expeditions()  # send expeditions once finished
@@ -248,7 +249,7 @@ class Bot:
         logger.info('{} expeditions in progress.', len(started_expeditions))
         next_run_at = min([expedition.end_time for expedition in started_expeditions], default=None)
         if next_run_at:
-            logger.info('The earliest expedition finishes at {}.', next_run_at.astimezone())
+            logger.info('The earliest expedition finishes at {}.', next_run_at.astimezone(self.user.tz))
 
         # Select available heroes.
         busy_ids = {hero_id for expedition in started_expeditions for hero_id in expedition.hero_ids}
@@ -292,6 +293,7 @@ class Bot:
         Собирает награды из заданий.
         """
         logger.info('Farming quests…')
+        self.notifier.notify(f'✔ *{self.user.name}* выполняет задания…')
         if quests is None:
             quests = self.api.get_all_quests()
         for quest in quests:
@@ -301,23 +303,29 @@ class Bot:
                 logger.warning(f'Ignoring {quest.reward.experience} experience reward for quest #{quest.id}.')
                 continue
             self.api.farm_quest(quest.id).log()
+            self.notifier.reset().notify(f'✔ *{self.user.name}* выполнил задание #{quest.id}.').reset()
+        self.notifier.notify(f'✔ *{self.user.name}* выполнил задания.')
 
     def farm_mail(self):
         """
         Собирает награды из почты.
         """
         logger.info('Farming mail…')
+        self.notifier.notify(f'📩 *{self.user.name}* читает почту…')
         letters = self.api.get_all_mail()
         if letters:
             logger.info(f'{len(letters)} letters.')
             log_rewards(self.api.farm_mail(letter.id for letter in letters).values())
+        self.notifier.notify(f'📩 *{self.user.name}* прочитал почту.')
 
     def buy_chest(self):
         """
         Открывает ежедневный бесплатный сундук.
         """
         logger.info('Buying a chest…')
+        self.notifier.notify(f'🎁 *{self.user.name}* открывает сундук…')
         log_rewards(self.api.buy_chest())
+        self.notifier.notify(f'🎁 *{self.user.name}* открыл сундук.')
 
     def send_daily_gift(self):
         """

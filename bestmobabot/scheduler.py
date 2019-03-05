@@ -88,6 +88,7 @@ class Scheduler:
                 logger.info('Running {} scheduled at {:%b %d %H:%M:%S %Z}…', task.name, at)
                 retry_at = self.execute(task)
                 if retry_at:
+                    retry_at = retry_at.astimezone(self.bot.user.tz)
                     logger.info('{} will be retried at {:%b %d %H:%M:%S %Z}.', task.name, retry_at)
                     self.retries[int(retry_at.timestamp())].append(task.name)
                     self.bot.notifier.reset().notify(
