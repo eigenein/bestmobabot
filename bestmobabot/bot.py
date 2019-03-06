@@ -374,7 +374,9 @@ class Bot:
 
         # Pick an enemy and select attackers.
         solution = make_solver(model, heroes).solve()
-        solution.log()
+        with self.logger:
+            self.logger.append(f'⚔️ *{self.user.name}* отправляет на арену:', '')
+            solution.log(self.logger)
 
         # Retry if win probability is too low.
         if solution.probability < constants.ARENA_MIN_PROBABILITY:

@@ -17,7 +17,7 @@ from numpy import arange, ndarray, vstack
 from numpy.random import choice, permutation, randint
 
 from bestmobabot.constants import TEAM_SIZE
-from bestmobabot.dataclasses_ import BaseArenaEnemy, Hero, Team
+from bestmobabot.dataclasses_ import BaseArenaEnemy, Hero, Loggable, Team
 from bestmobabot.itertools_ import CountDown, secretary_max, slices
 from bestmobabot.model import Model
 
@@ -27,25 +27,25 @@ T = TypeVar('T')
 # Universal arena solver.
 # ----------------------------------------------------------------------------------------------------------------------
 
-# TODO: make loggable.
 @dataclass
 @total_ordering
-class ArenaSolution:
+class ArenaSolution(Loggable):
     enemy: BaseArenaEnemy  # selected enemy
     attackers: List[Team]  # player's attacker teams
     probability: float  # arena win probability
     probabilities: List[float]  # individual battle win probabilities
 
-    def log(self):
-        logger.success('Solution:')
-        logger.success('{}', self)
+    @property
+    def log_lines(self) -> Iterable[str]:
+        yield 'Solution:'
+        yield str(self)
         for i, (defenders, attackers) in enumerate(zip(self.enemy.teams, self.attackers), start=1):
-            logger.success('Defenders #{}', i)
+            yield f'Defenders #{i}'
             for hero in sorted(defenders, reverse=True):
-                logger.success('{}', hero)
-            logger.success('Attackers #{}', i)
+                yield str(hero)
+            yield f'Attackers #{i}'
             for hero in sorted(attackers, reverse=True):
-                logger.success('{}', hero)
+                yield str(hero)
 
     def __lt__(self, other: ArenaSolution) -> Any:
         if isinstance(other, ArenaSolution):
