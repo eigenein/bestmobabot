@@ -375,7 +375,7 @@ class Bot:
         # Pick an enemy and select attackers.
         solution = make_solver(model, heroes).solve()
         with self.logger:
-            self.logger.append(f'⚔️ *{self.user.name}* отправляет на арену:', '')
+            self.logger.append(f'⚔️ *{self.user.name}* атакует арену:', '')
             solution.log(self.logger)
 
         # Retry if win probability is too low.

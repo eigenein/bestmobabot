@@ -8,6 +8,7 @@
 - Use single `requests.Session`
 - Remake Telegram notifications
 - Add initial dungeon implementation
+- Handle `MemoryError`
 
 ## `3.0b2`
 

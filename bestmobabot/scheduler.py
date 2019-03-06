@@ -4,6 +4,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, time, timedelta, timezone
 from itertools import count
+from random import uniform
 from time import sleep
 from typing import Callable, DefaultDict, Dict, Iterable, List, NoReturn, Optional
 
@@ -96,10 +97,14 @@ class Scheduler:
         self.bot.api.last_responses.clear()
         try:
             next_run_at = task.execute()
+        except MemoryError:
+            logger.error('Memory error.')
+            self.bot.log(f'‼️ *{self.user_name}* пострадал из-за нехватки памяти.')
+            return now() + timedelta(minutes=uniform(1.0, 10.0))
         except Exception as e:
             self.bot.log(
                 f'‼️ Бот *{self.user_name}* совершил ошибку.'
-                f' [*Papertrail*](https://papertrailapp.com/events?time={int(now().timestamp())})'
+                f' [Papertrail](https://papertrailapp.com/events?time={int(now().timestamp())})'
             )
             logger.opt(exception=e).critical('Uncaught error.')
             for result in self.bot.api.last_responses:
