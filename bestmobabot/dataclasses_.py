@@ -271,8 +271,7 @@ class GrandArenaEnemy(BaseArenaEnemy):
         return self.heroes
 
 
-# TODO: make it loggable.
-class ArenaState(BaseModel):
+class ArenaState(BaseModel, Loggable):
     battles: int
     wins: int
     arena_place: Optional[str] = None
@@ -284,35 +283,36 @@ class ArenaState(BaseModel):
             'grand_place': 'grandPlace',
         }
 
-    def log(self):
+    @property
+    def log_lines(self) -> Iterable[str]:
         if self.arena_place:
-            logger.success('Place: {}.', self.arena_place)
+            yield f'Place: {self.arena_place}.'
         if self.grand_place:
-            logger.success('Grand place: {}.', self.grand_place)
-        logger.success('Battles: {}. Wins: {}.', self.battles, self.wins)
-        logger.success('Rating: {:.2f}%.', 100.0 * (self.wins / self.battles))
+            yield f'Grand place: {self.grand_place}.'
+        yield f'Battles: {self.battles}. Wins: {self.wins}.'
+        yield f'Rating: {100.0 * (self.wins / self.battles):.2f}%.'
 
 
-# TODO: make it loggable.
-class ArenaResult(BaseModel):
+class ArenaResult(BaseModel, Loggable):
     win: bool
     battles: List[Replay]
     reward: Optional[Reward]
     state: ArenaState
+
+    @property
+    def log_lines(self) -> Iterable[str]:
+        yield 'You won!' if self.win else 'You lose.'
+        for i, battle in enumerate(self.battles, start=1):
+            yield f'Battle #{i}: {"⭐" * battle.result.stars if battle.result.win else "⛔️"}'
+        if self.reward is not None:
+            yield from self.reward.log_lines
+        yield from self.state.log_lines
 
     # noinspection PyMethodParameters
     @validator('reward', pre=True)
     def fix_reward(cls, value: Any) -> Optional[Reward]:
         # They return the empty list in case of an empty reward. 🤦
         return value or None
-
-    def log(self):
-        logger.info('You won!' if self.win else 'You lose.')
-        for i, battle in enumerate(self.battles, start=1):
-            logger.info(f'Battle #{i}: {"⭐" * battle.result.stars if battle.result.win else "⛔️"}')
-        if self.reward is not None:
-            self.reward.log()
-        self.state.log()
 
 
 class Offer(BaseModel):

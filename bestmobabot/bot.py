@@ -385,11 +385,11 @@ class Bot:
         result, quests = attack(solution)
 
         # Collect results.
-        result.log()  # TODO: loggable.
+        with self.logger:
+            self.logger.append(f'⚔️ *{self.user.name}* закончил арену.', '')
+            result.log(self.logger)
         finalise()
         self.farm_quests(quests)
-
-        self.log(f'⚔️ *{self.user.name}* закончил арену.')  # TODO: remove.
 
     def attack_normal_arena(self):
         """
@@ -483,7 +483,9 @@ class Bot:
             logger.info(f'Checking {gift_id}…')
             reward = self.api.check_freebie(gift_id)
             if reward is not None:
-                reward.log()
+                with self.logger:
+                    self.logger.append(f'🎁 *{self.user.name}* получил из подарка:', '')
+                    reward.log(self.logger)
                 should_farm_mail = True
             self.db[f'gifts:{self.api.user_id}:{gift_id}'] = True
 
@@ -506,12 +508,13 @@ class Bot:
             except NotEnoughError:
                 logger.info('All keys are spent.')
                 break
-            else:
-                log_rewards(rewards)
+            with self.logger:
+                self.logger.append(f'🔑 *{self.user.name}* получил из артефактного сундука:', '')
+                log_rewards(rewards, self.logger)
         else:
             logger.warning('Maximum number of chests opened.')
 
-        self.log(f'🔑 *{self.user.name}* открыл артефактные сундуки…')
+        self.log(f'🔑 *{self.user.name}* открыл артефактные сундуки.')
 
     def raid_missions(self):
         """
@@ -523,7 +526,9 @@ class Bot:
         for mission_id in self.get_raid_mission_ids():
             logger.info(f'Raid mission #{mission_id} «{mission_name(mission_id)}»…')
             try:
-                log_rewards(self.api.raid_mission(mission_id))
+                with self.logger:
+                    self.logger.append(f'🔥 *{self.user.name}* получил из рейда «{mission_name(mission_id)}»:', '')
+                    log_rewards(self.api.raid_mission(mission_id), self.logger)
             except NotEnoughError as e:
                 logger.info(f'Not enough: {e.description}.')
                 break
@@ -548,7 +553,9 @@ class Bot:
         for shop_id, slot_id in slots:
             logger.info(f'Buying slot #{slot_id} in shop «{shop_name(shop_id)}»…')
             try:
-                self.api.shop(shop_id=shop_id, slot_id=slot_id).log()
+                with self.logger:
+                    self.logger.append(f'🛍 *{self.user.name}* купил:', '')
+                    self.api.shop(shop_id=shop_id, slot_id=slot_id).log(self.logger)
             except NotEnoughError as e:
                 logger.warning(f'Not enough: {e.description}')
             except AlreadyError as e:
@@ -600,7 +607,7 @@ class Bot:
                 # The simplest one. Just open a random chest.
                 reward, _ = self.api.open_tower_chest(choice([0, 1, 2]))
                 with self.logger:
-                    self.logger.append(f'🗼 *{self.user.name}* получает на {tower.floor_number}-м этаже:', '')
+                    self.logger.append(f'🗼 *{self.user.name}* получил на {tower.floor_number}-м этаже башни:', '')
                     reward.log(self.logger)
                 # If it was the top floor, we have to stop.
                 if tower.floor_number == 50:
@@ -645,7 +652,7 @@ class Bot:
             logger.debug(f'#{offer.id}: {offer.offer_type}.')
             if offer.offer_type in constants.OFFER_FARMED_TYPES and not offer.is_free_reward_obtained:
                 with self.logger:
-                    self.logger.append(f'🔵 *{self.user.name}* получает за предложение:', '')
+                    self.logger.append(f'🔵 *{self.user.name}* получил за предложение:', '')
                     self.api.farm_offer_reward(offer.id).log(self.logger)
 
         self.log(f'🔵 *{self.user.name}* закончил фармить предложения.')
@@ -663,7 +670,9 @@ class Bot:
                 logger.info(f'Raid boss #{boss.id}…')
                 self.api.raid_boss(boss.id).log()
                 rewards, quests = self.api.open_boss_chest(boss.id)
-                log_rewards(rewards)
+                with self.logger:
+                    self.logger.append(f'🔴 *{self.user.name}* получил в Запределье:', '')
+                    log_rewards(rewards, self.logger)
                 self.farm_quests(quests)
             else:
                 logger.info(f'May not raid boss #{boss.id}.')
@@ -683,7 +692,9 @@ class Bot:
             except NotEnoughError:
                 logger.info(f'Not enough resources to open {amount} chests.')
             else:
-                log_rewards(rewards)
+                with self.logger:
+                    self.logger.append(f'⚫️ *{self.user.name}* получил из сферы артефактов титанов:', '')
+                    log_rewards(rewards, self.logger)
                 self.farm_quests(quests)
                 break
 
@@ -732,7 +743,9 @@ class Bot:
         logger.info('Hero: {}.', hero)
         self.farm_quests(self.api.level_up_titan_hero_gift(hero.id))
         reward, quests = self.api.drop_titan_hero_gift(hero.id)
-        reward.log()
+        with self.logger:
+            self.logger.append(f'⚡️ *{self.user.name}* получил за вложение искр мощи:', '')
+            reward.log(self.logger)
         self.farm_quests(quests)
 
         self.log(f'⚡️ *{self.user.name}* вложил и сбросил искры мощи.')
@@ -775,7 +788,7 @@ class Bot:
             )
             if response:
                 with self.logger:
-                    self.logger.append(f'🚇️ *{self.user.name}* получает на *{dungeon.floor_number}-м* этаже:', '')
+                    self.logger.append(f'🚇️ *{self.user.name}* получил на *{dungeon.floor_number}-м* этаже:', '')
                     response.reward.log(self.logger)
                 dungeon = response.dungeon
             else:
@@ -786,7 +799,7 @@ class Bot:
         if not dungeon or dungeon.floor.should_save_progress:
             self.log(f'🚇️ *{self.user.name}* сохраняется в подземелье…')
             with self.logger:
-                self.logger.append(f'🚇️ *{self.user.name}* получает за сохранение:', '')
+                self.logger.append(f'🚇️ *{self.user.name}* получил за сохранение:', '')
                 self.api.save_dungeon_progress().reward.log(self.logger)
         else:
             logger.warning('Could not save the dungeon progress.')

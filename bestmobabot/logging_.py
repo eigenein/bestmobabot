@@ -7,6 +7,7 @@ from loguru import logger
 
 import bestmobabot.dataclasses_
 from bestmobabot.constants import LOGURU_FORMAT, VERBOSITY_LEVELS
+from bestmobabot.telegram import TelegramLogger
 
 
 def install_logging(verbosity: int):
@@ -14,7 +15,6 @@ def install_logging(verbosity: int):
     logger.add(sys.stderr, format=LOGURU_FORMAT, level=VERBOSITY_LEVELS.get(verbosity, 'TRACE'))
 
 
-# TODO: `notify_rewards`.
-def log_rewards(rewards: Iterable[bestmobabot.dataclasses_.Reward]):
+def log_rewards(rewards: Iterable[bestmobabot.dataclasses_.Reward], logger_: TelegramLogger = None):
     for reward in rewards:
-        reward.log()
+        reward.log(logger_)
