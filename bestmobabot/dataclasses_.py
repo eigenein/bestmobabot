@@ -16,6 +16,7 @@ from bestmobabot.telegram import Notifier
 _VALIDATORS.append((tzinfo, [lambda value: timezone(timedelta(hours=value))]))
 
 
+# FIXME: it's not full.
 class Reward(BaseModel):
     artifact_fragment: Dict[str, int] = {}
     coin: Dict[str, str] = {}
