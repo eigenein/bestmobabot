@@ -203,8 +203,7 @@ class Bot:
         """
         logger.info('Farming daily bonus…')
         self.notifier.reset().notify(f'*{self.user.name}* забирает ежедневный подарок…')
-        self.api.farm_daily_bonus().log()
-        self.notifier.notify(f'*{self.user.name}* забрал ежедневный подарок. 🎁')
+        self.api.farm_daily_bonus().notify(self.notifier, f'🎁 *{self.user.name}* получил в ежедневном подарке:')
 
     def farm_expeditions(self) -> Optional[datetime]:
         """
@@ -217,8 +216,7 @@ class Bot:
         expeditions = self.api.list_expeditions()
         for i, expedition in enumerate(expeditions, 1):
             if expedition.is_started and expedition.end_time < now_:
-                self.api.farm_expedition(expedition.id).log()
-                self.notifier.notify(f'⛺️ *{self.user.name}* собрал награду с экспедиции #{expedition.id}.')
+                self.api.farm_expedition(expedition.id).notify(self.notifier, f'⛺️ *{self.user.name}* получает награду с экспедиции:')  # noqa
 
         self.notifier.notify(f'⛺️ *{self.user.name}* проверил отправленные экспедиции.')
         return self.send_expeditions()  # send expeditions once finished
@@ -479,10 +477,10 @@ class Bot:
                 should_farm_mail = True
             self.db[f'gifts:{self.api.user_id}:{gift_id}'] = True
 
+        self.notifier.notify(f'🎁 *{self.user.name}* проверил подарки на VK.com.')
+
         if should_farm_mail:
             self.farm_mail()
-
-        self.notifier.notify(f'🎁 *{self.user.name}* проверил подарки на VK.com.')
 
     def farm_zeppelin_gift(self):
         """
@@ -634,7 +632,7 @@ class Bot:
         for offer in self.api.get_all_offers():
             logger.debug(f'#{offer.id}: {offer.offer_type}.')
             if offer.offer_type in constants.OFFER_FARMED_TYPES and not offer.is_free_reward_obtained:
-                self.api.farm_offer_reward(offer.id).log()
+                self.api.farm_offer_reward(offer.id).notify(self.notifier, f'🔵 *{self.user.name}* получает за предложение:')  # noqa
 
         self.notifier.notify(f'🔵 *{self.user.name}* закончил фармить предложения.')
 
@@ -705,9 +703,9 @@ class Bot:
             self.settings.bot.enchant_rune.tier,
         )
         logger.success('Response: {}.', result.response)
-        self.farm_quests(result.quests)
-
         self.notifier.notify(f'🕉 *{self.user.name}* зачаровал руну.')
+
+        self.farm_quests(result.quests)
 
     def level_up_titan_hero_gift(self):
         """
