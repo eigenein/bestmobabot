@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from abc import abstractmethod
 from datetime import datetime, timedelta, timezone, tzinfo
 from functools import total_ordering
 from typing import Any, Dict, Iterable, List, Optional, Set
@@ -11,13 +12,26 @@ from pydantic.validators import _VALIDATORS
 from bestmobabot import resources
 from bestmobabot.constants import COLORS, RAID_N_STARS
 from bestmobabot.enums import DungeonFloorType, DungeonUnitType, LibraryTitanElement, LibraryTitanType, TowerFloorType
-from bestmobabot.telegram import Notifier
+from bestmobabot.telegram import TelegramLogger
 
 _VALIDATORS.append((tzinfo, [lambda value: timezone(timedelta(hours=value))]))
 
 
+class Loggable:
+    @property
+    @abstractmethod
+    def log_lines(self) -> Iterable[str]:
+        raise NotImplementedError()
+
+    def log(self, logger_: Optional[TelegramLogger] = None):
+        for line in self.log_lines:
+            logger.success('{}', line)
+            if logger_:
+                logger_.append(line)
+
+
 # FIXME: it's not full.
-class Reward(BaseModel):
+class Reward(BaseModel, Loggable):
     artifact_fragment: Dict[str, int] = {}
     coin: Dict[str, str] = {}
     consumable: Dict[str, int] = {}
@@ -58,9 +72,8 @@ class Reward(BaseModel):
             *(resources.scroll_name(scroll_id).lower() for scroll_id in self.scroll_fragment),
         }
 
-    # TODO: move to a base class as an abstract property.
     @property
-    def description(self) -> Iterable[str]:
+    def log_lines(self) -> Iterable[str]:
         if self.stamina:
             yield f'{self.stamina} × stamina'
         if self.gold:
@@ -89,17 +102,6 @@ class Reward(BaseModel):
             yield f'{value} × «{resources.titan_artifact_name(artifact_id)}» titan artifact fragment'
         for hero_id, value in self.titan_fragment.items():
             yield f'{value} × «{resources.hero_name(hero_id)}» titan fragment'
-
-    # TODO: move to a base class.
-    def log(self) -> Reward:
-        for line in self.description:
-            logger.success('{}.', line)
-        return self
-
-    # TODO: move to a base class, keep in mind the emoji.
-    def notify(self, notifier: Notifier, prefix: str):
-        self.log()
-        notifier.notify(f'{prefix}\n\n' + '\n'.join(f'📦 {line}' for line in self.description)).reset()
 
 
 class LibraryMission(BaseModel):
@@ -269,7 +271,7 @@ class GrandArenaEnemy(BaseArenaEnemy):
         return self.heroes
 
 
-# TODO: make it loggable and notifiable.
+# TODO: make it loggable.
 class ArenaState(BaseModel):
     battles: int
     wins: int
@@ -291,7 +293,7 @@ class ArenaState(BaseModel):
         logger.success('Rating: {:.2f}%.', 100.0 * (self.wins / self.battles))
 
 
-# TODO: make it loggable and notifiable.
+# TODO: make it loggable.
 class ArenaResult(BaseModel):
     win: bool
     battles: List[Replay]

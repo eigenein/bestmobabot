@@ -85,8 +85,7 @@ class Scheduler:
                     retry_at = retry_at.astimezone(self.bot.user.tz)
                     logger.info('{} will be retried at {:%b %d %H:%M:%S %Z}.', task.name, retry_at)
                     self.retries[int(retry_at.timestamp())].append(task.name)
-                    self.bot.notifier.reset().notify(
-                        f'⏰ *{self.user_name}* попробует `{task.name}` снова в *{retry_at:%b %d %H:%M:%S %Z}*.')
+                    self.bot.log(f'⏰ *{self.user_name}* повторит `{task.name}` в *{retry_at:%b %d %H:%M:%S %Z}*.')
 
             # Store the retries if something was executed.
             if pending:
@@ -98,7 +97,7 @@ class Scheduler:
         try:
             next_run_at = task.execute()
         except Exception as e:
-            self.bot.notifier.notify(
+            self.bot.log(
                 f'‼️ Бот *{self.user_name}* совершил ошибку.'
                 f' [*Papertrail*](https://papertrailapp.com/events?time={int(now().timestamp())})'
             )

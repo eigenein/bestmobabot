@@ -29,23 +29,22 @@ from bestmobabot.model import Model
 from bestmobabot.resources import get_heroic_mission_ids, mission_name, shop_name
 from bestmobabot.scheduler import Scheduler, Task, now
 from bestmobabot.settings import Settings
-from bestmobabot.telegram import Notifier, Telegram
+from bestmobabot.telegram import Telegram, TelegramLogger
 from bestmobabot.tracking import send_event
 from bestmobabot.trainer import Trainer
 from bestmobabot.vk import VK
 
 
 class Bot:
-    def __init__(self, db: Database, api: API, vk: VK, telegram: Telegram, settings: Settings):
+    def __init__(self, db: Database, api: API, vk: VK, telegram: Optional[Telegram], settings: Settings):
         self.db = db
         self.api = api
         self.vk = vk
-        self.telegram = telegram
+        self.logger = TelegramLogger(telegram)
         self.settings = settings
 
         self.user: User = None
         self.scheduler = Scheduler(self)
-        self.notifier = Notifier(telegram)
 
     # Task engine.
     # ------------------------------------------------------------------------------------------------------------------
@@ -144,6 +143,10 @@ class Bot:
     # Helpers.
     # ------------------------------------------------------------------------------------------------------------------
 
+    def log(self, text: str):
+        with self.logger:
+            self.logger.append(text)
+
     def get_raid_mission_ids(self) -> Iterable[str]:
         missions: Dict[str, Mission] = {
             mission.id: mission
@@ -180,10 +183,11 @@ class Bot:
         """
         Отладочная задача.
         """
-        logger.info('Quack!')
-        self.notifier.reset().notify(f'🐤 *{self.user.name}* собирается крякать…')
+        logger.info('About to quack…')
+        self.log(f'🐤 *{self.user.name}* собирается крякать…')
         sleep(5)
-        self.notifier.notify(f'🐤 Бот *{self.user.name}* сказал: «Кря!»')
+        logger.info('Quack!')
+        self.log(f'🐤 Бот *{self.user.name}* сказал: «Кря!»')
         return now() + timedelta(seconds=15)
 
     def register(self):
@@ -191,19 +195,21 @@ class Bot:
         Заново заходит в игру, это нужно для появления ежедневных задач в событиях.
         """
         logger.info('Registering…')
-        self.notifier.reset().notify(f'🎫 *{self.user.name}* заново заходит в игру…')
+        self.log(f'🎫 *{self.user.name}* заново заходит в игру…')
         self.api.prepare(invalidate_session=True)
         self.api.register()
         self.user = self.api.get_user_info()
-        self.notifier.notify(f'🎫 *{self.user.name}* заново зашел в игру.')
+        self.log(f'🎫 *{self.user.name}* заново зашел в игру.')
 
     def farm_daily_bonus(self):
         """
         Забирает ежедневный подарок.
         """
         logger.info('Farming daily bonus…')
-        self.notifier.reset().notify(f'*{self.user.name}* забирает ежедневный подарок…')
-        self.api.farm_daily_bonus().notify(self.notifier, f'🎁 *{self.user.name}* получил в ежедневном подарке:')
+        self.log(f'*{self.user.name}* забирает ежедневный подарок…')
+        with self.logger:
+            self.logger.append(f'🎁 *{self.user.name}* получил в ежедневном подарке:', '')
+            self.api.farm_daily_bonus().log(self.logger)
 
     def farm_expeditions(self) -> Optional[datetime]:
         """
@@ -212,18 +218,20 @@ class Bot:
         now_ = now()
 
         logger.info('Farming expeditions…')
-        self.notifier.reset().notify(f'⛺️ *{self.user.name}* проверяет отправленные экспедиции…')
+        self.log(f'⛺️ *{self.user.name}* проверяет отправленные экспедиции…')
         expeditions = self.api.list_expeditions()
         for i, expedition in enumerate(expeditions, 1):
             if expedition.is_started and expedition.end_time < now_:
-                self.api.farm_expedition(expedition.id).notify(self.notifier, f'⛺️ *{self.user.name}* получает награду с экспедиции:')  # noqa
+                with self.logger:
+                    self.logger.append(f'⛺️ *{self.user.name}* получает награду с экспедиции:', '')
+                    self.api.farm_expedition(expedition.id).log(self.logger)
 
-        self.notifier.notify(f'⛺️ *{self.user.name}* проверил отправленные экспедиции.')
+        self.log(f'⛺️ *{self.user.name}* проверил отправленные экспедиции.')
         return self.send_expeditions()  # send expeditions once finished
 
     def send_expeditions(self) -> Optional[datetime]:
         logger.info('Sending expeditions…')
-        self.notifier.reset().notify(f'⛺️ *{self.user.name}* пробует отправить экспедиции…')
+        self.log(f'⛺️ *{self.user.name}* пробует отправить экспедиции…')
 
         # Need to know which expeditions are already started.
         expeditions = self.api.list_expeditions()
@@ -256,7 +264,7 @@ class Bot:
 
             # Send the expedition.
             end_time, quests = self.api.send_expedition_heroes(expedition.id, get_unit_ids(team))
-            self.notifier.reset().notify(f'⛺️ *{self.user.name}* отправил экспедицию #{expedition.id}.').reset()
+            self.log(f'⛺️ *{self.user.name}* отправил экспедицию #{expedition.id}.')
             self.farm_quests(quests)
 
             # Exclude the busy heroes.
@@ -267,7 +275,7 @@ class Bot:
             if next_run_at is None or end_time < next_run_at:
                 next_run_at = end_time
 
-        self.notifier.notify(f'⛺️ *{self.user.name}* закончил с отправкой экспедиций.')
+        self.log(f'⛺️ *{self.user.name}* закончил с отправкой экспедиций.')
         return next_run_at
 
     def farm_quests(self, quests: Quests = None):
@@ -275,7 +283,7 @@ class Bot:
         Собирает награды из заданий.
         """
         logger.info('Farming quests…')
-        self.notifier.reset().notify(f'✅ *{self.user.name}* выполняет задачи…')
+        self.log(f'✅ *{self.user.name}* выполняет задачи…')
         if quests is None:
             quests = self.api.get_all_quests()
         for quest in quests:
@@ -284,54 +292,56 @@ class Bot:
             if self.settings.bot.no_experience and quest.reward.experience:
                 logger.warning(f'Ignoring {quest.reward.experience} experience reward for quest #{quest.id}.')
                 continue
-            self.api.farm_quest(quest.id).notify(self.notifier.reset(), f'✅ *{self.user.name}* получает за задачу:')  # noqa
-        self.notifier.notify(f'✅ *{self.user.name}* выполнил задачи.')
+            with self.logger:
+                self.logger.append(f'✅ *{self.user.name}* получает за задачу:', '')
+                self.api.farm_quest(quest.id).log(self.logger)
+        self.log(f'✅ *{self.user.name}* выполнил задачи.')
 
     def farm_mail(self):
         """
         Собирает награды из почты.
         """
         logger.info('Farming mail…')
-        self.notifier.reset().notify(f'📩 *{self.user.name}* читает почту…')
+        self.log(f'📩 *{self.user.name}* читает почту…')
         letters = self.api.get_all_mail()
         if letters:
             logger.info(f'{len(letters)} letters.')
             log_rewards(self.api.farm_mail(letter.id for letter in letters).values())
-        self.notifier.notify(f'📩 *{self.user.name}* прочитал почту.')
+        self.log(f'📩 *{self.user.name}* прочитал почту.')
 
     def buy_chest(self):
         """
         Открывает ежедневный бесплатный сундук.
         """
         logger.info('Buying a chest…')
-        self.notifier.reset().notify(f'🎁 *{self.user.name}* открывает сундук…')
+        self.log(f'🎁 *{self.user.name}* открывает сундук…')
         log_rewards(self.api.buy_chest())
-        self.notifier.notify(f'🎁 *{self.user.name}* открыл сундук.')
+        self.log(f'🎁 *{self.user.name}* открыл сундук.')
 
     def send_daily_gift(self):
         """
         Отправляет сердечки друзьям.
         """
         logger.info('Sending daily gift…')
-        self.notifier.reset().notify(f'❤️ *{self.user.name}* дарит сердечки друзьям…')
+        self.log(f'❤️ *{self.user.name}* дарит сердечки друзьям…')
         if self.settings.bot.friend_ids:
             self.farm_quests(self.api.send_daily_gift(self.settings.bot.friend_ids))
         else:
             logger.warning('No friends specified.')
-        self.notifier.notify(f'❤️ *{self.user.name}* подарил сердечки друзьям.')
+        self.log(f'❤️ *{self.user.name}* подарил сердечки друзьям.')
 
     def train_arena_model(self):
         """
         Тренирует предсказательную модель для арены.
         """
         logger.info('Running trainer…')
-        self.notifier.reset().notify(f'🎲️ *{self.user.name}* тренирует модель…')
+        self.log(f'🎲️ *{self.user.name}* тренирует модель…')
         Trainer(
             self.db,
             n_splits=constants.MODEL_N_SPLITS,
             n_last_battles=self.settings.bot.arena.last_battles,
         ).train()
-        self.notifier.notify(f'🎲️ *{self.user.name}* натренировал модель.')
+        self.log(f'🎲️ *{self.user.name}* натренировал модель.')
 
     def attack_any_arena(
         self,
@@ -342,7 +352,7 @@ class Bot:
         finalise: Callable[[], Any],
     ):
         logger.info('Attacking arena…')
-        self.notifier.reset().notify(f'⚔️ *{self.user.name}* идет на арену…')
+        self.log(f'⚔️ *{self.user.name}* идет на арену…')
 
         # Load arena model.
         logger.info('Loading model…')
@@ -375,11 +385,11 @@ class Bot:
         result, quests = attack(solution)
 
         # Collect results.
-        result.log()  # TODO: notify.
+        result.log()  # TODO: loggable.
         finalise()
         self.farm_quests(quests)
 
-        self.notifier.notify(f'⚔️ *{self.user.name}* закончил арену.')  # TODO: remove.
+        self.log(f'⚔️ *{self.user.name}* закончил арену.')  # TODO: remove.
 
     def attack_normal_arena(self):
         """
@@ -401,7 +411,7 @@ class Bot:
                 get_enemies=self.api.find_arena_enemies,
                 friendly_clans=self.settings.bot.arena.friendly_clans,
                 reduce_probabilities=reduce_normal_arena,
-                callback=lambda i: self.notifier.notify(f'⚔️ *{self.user.name}* на странице *{i}* обычной арены…'),
+                callback=lambda i: self.log(f'⚔️ *{self.user.name}* на странице *{i}* обычной арены…'),
             ),
             attack=lambda solution: self.api.attack_arena(solution.enemy.user_id, get_unit_ids(solution.attackers[0])),
             finalise=lambda: None,
@@ -428,7 +438,7 @@ class Bot:
                 get_enemies=self.api.find_grand_enemies,
                 friendly_clans=self.settings.bot.arena.friendly_clans,
                 reduce_probabilities=reduce_grand_arena,
-                callback=lambda i: self.notifier.notify(f'⚔️ *{self.user.name}* на странице *{i}* гранд-арены…'),
+                callback=lambda i: self.log(f'⚔️ *{self.user.name}* на странице *{i}* гранд-арены…'),
             ),
             attack=lambda solution: self.api.attack_grand(
                 solution.enemy.user_id, get_teams_unit_ids(solution.attackers)),
@@ -440,7 +450,7 @@ class Bot:
         Читает и сохраняет журналы арен.
         """
         logger.info('Reading arena logs…')
-        self.notifier.reset().notify(f'📒️ *{self.user.name}* читает журнал арены…')
+        self.log(f'📒️ *{self.user.name}* читает журнал арены…')
 
         replays: List[Replay] = [
             *self.api.get_battle_by_type(BattleType.ARENA),
@@ -457,14 +467,14 @@ class Bot:
             }
             logger.info(f'Saved #{replay.id}.')
 
-        self.notifier.notify(f'📒️ *{self.user.name}* прочитал журнал арены.')
+        self.log(f'📒️ *{self.user.name}* прочитал журнал арены.')
 
     def check_freebie(self):
         """
         Собирает подарки на странице игры ВКонтакте.
         """
         logger.info('Checking freebie…')
-        self.notifier.reset().notify(f'🎁 *{self.user.name}* проверяет подарки на VK.com…')
+        self.log(f'🎁 *{self.user.name}* проверяет подарки на VK.com…')
         should_farm_mail = False
 
         for gift_id in self.vk.find_gifts():
@@ -477,7 +487,7 @@ class Bot:
                 should_farm_mail = True
             self.db[f'gifts:{self.api.user_id}:{gift_id}'] = True
 
-        self.notifier.notify(f'🎁 *{self.user.name}* проверил подарки на VK.com.')
+        self.log(f'🎁 *{self.user.name}* проверил подарки на VK.com.')
 
         if should_farm_mail:
             self.farm_mail()
@@ -487,7 +497,7 @@ class Bot:
         Собирает ключ у валькирии и открывает артефактные сундуки.
         """
         logger.info('Farming zeppelin gift…')
-        self.notifier.reset().notify(f'🔑 *{self.user.name}* открывает артефактные сундуки…')
+        self.log(f'🔑 *{self.user.name}* открывает артефактные сундуки…')
 
         self.api.farm_zeppelin_gift().log()
         for _ in range(constants.MAX_OPEN_ARTIFACT_CHESTS):
@@ -501,14 +511,14 @@ class Bot:
         else:
             logger.warning('Maximum number of chests opened.')
 
-        self.notifier.notify(f'🔑 *{self.user.name}* открыл артефактные сундуки…')
+        self.log(f'🔑 *{self.user.name}* открыл артефактные сундуки…')
 
     def raid_missions(self):
         """
         Ходит в рейды в миссиях в кампании за предметами.
         """
         logger.info(f'Raid missions…')
-        self.notifier.reset().notify(f'🔥 *{self.user.name}* идет в рейды…')
+        self.log(f'🔥 *{self.user.name}* идет в рейды…')
 
         for mission_id in self.get_raid_mission_ids():
             logger.info(f'Raid mission #{mission_id} «{mission_name(mission_id)}»…')
@@ -518,13 +528,13 @@ class Bot:
                 logger.info(f'Not enough: {e.description}.')
                 break
 
-        self.notifier.notify(f'🔥 *{self.user.name}* сходил в рейды.')
+        self.log(f'🔥 *{self.user.name}* сходил в рейды.')
 
     def shop(self):
         """
         Покупает в магазине вещи.
         """
-        self.notifier.reset().notify(f'🛍 *{self.user.name}* идет в магазин…')
+        self.log(f'🛍 *{self.user.name}* идет в магазин…')
 
         logger.info(f'Requesting shops…')
         slots: List[Tuple[str, str]] = [
@@ -544,14 +554,14 @@ class Bot:
             except AlreadyError as e:
                 logger.warning(f'Already: {e.description}')
 
-        self.notifier.notify(f'🛍 *{self.user.name}* сходил в магазин.')
+        self.log(f'🛍 *{self.user.name}* сходил в магазин.')
 
     def skip_tower(self):
         """
         Зачистка башни.
         """
         logger.info('Skipping the tower…')
-        self.notifier.reset().notify(f'🗼 *{self.user.name}* проходит башню…')
+        self.log(f'🗼 *{self.user.name}* проходит башню…')
 
         tower = self.api.get_tower_info()
         heroes: List[str] = []
@@ -559,7 +569,7 @@ class Bot:
         # Yeah, it's a bit complicated…
         while tower.floor_number <= 50:
             logger.info(f'Floor #{tower.floor_number}: {tower.floor_type}.')
-            self.notifier.notify(f'🗼 *{self.user.name}* на {tower.floor_number}-м этаже башни…')
+            self.log(f'🗼 *{self.user.name}* на {tower.floor_number}-м этаже башни…')
 
             if tower.floor_type == TowerFloorType.BATTLE:
                 # If we have the top level, then we can skip the tower entirely.
@@ -589,7 +599,9 @@ class Bot:
             elif tower.floor_type == TowerFloorType.CHEST:
                 # The simplest one. Just open a random chest.
                 reward, _ = self.api.open_tower_chest(choice([0, 1, 2]))
-                reward.notify(self.notifier, f'🗼 *{self.user.name}* получает на {tower.floor_number}-м этаже:')
+                with self.logger:
+                    self.logger.append(f'🗼 *{self.user.name}* получает на {tower.floor_number}-м этаже:', '')
+                    reward.log(self.logger)
                 # If it was the top floor, we have to stop.
                 if tower.floor_number == 50:
                     logger.success('Finished. It was the top floor.')
@@ -620,31 +632,33 @@ class Bot:
                 # Then normally proceed to the next floor.
                 tower = self.api.next_tower_floor()
 
-        self.notifier.notify(f'🗼 *{self.user.name}* закончил башню на *{tower.floor_number}-м* этаже.')
+        self.log(f'🗼 *{self.user.name}* закончил башню на *{tower.floor_number}-м* этаже.')
 
     def farm_offers(self):
         """
         Фармит предложения (камни обликов).
         """
-        self.notifier.reset().notify(f'🔵 *{self.user.name}* фармит предложения…')
+        self.log(f'🔵 *{self.user.name}* фармит предложения…')
 
         logger.info('Farming offers…')
         for offer in self.api.get_all_offers():
             logger.debug(f'#{offer.id}: {offer.offer_type}.')
             if offer.offer_type in constants.OFFER_FARMED_TYPES and not offer.is_free_reward_obtained:
-                self.api.farm_offer_reward(offer.id).notify(self.notifier, f'🔵 *{self.user.name}* получает за предложение:')  # noqa
+                with self.logger:
+                    self.logger.append(f'🔵 *{self.user.name}* получает за предложение:', '')
+                    self.api.farm_offer_reward(offer.id).log(self.logger)
 
-        self.notifier.notify(f'🔵 *{self.user.name}* закончил фармить предложения.')
+        self.log(f'🔵 *{self.user.name}* закончил фармить предложения.')
 
     def raid_bosses(self):
         """
         Рейдит боссов Запределья.
         """
         logger.info('Raid bosses…')
-        self.notifier.reset().notify(f'🔴 *{self.user.name}* рейдит боссов Запределья…')
+        self.log(f'🔴 *{self.user.name}* рейдит боссов Запределья…')
 
         for i, boss in enumerate(self.api.get_all_bosses(), 1):
-            self.notifier.reset().notify(f'🔴 *{self.user.name}* рейдит боссов Запределья: {i}-й…')
+            self.log(f'🔴 *{self.user.name}* рейдит боссов Запределья: {i}-й…')
             if boss.may_raid:
                 logger.info(f'Raid boss #{boss.id}…')
                 self.api.raid_boss(boss.id).log()
@@ -654,14 +668,14 @@ class Bot:
             else:
                 logger.info(f'May not raid boss #{boss.id}.')
 
-        self.notifier.notify(f'🔴 *{self.user.name}* закончил рейд боссов Запределья.')
+        self.log(f'🔴 *{self.user.name}* закончил рейд боссов Запределья.')
 
     def open_titan_artifact_chest(self):
         """
         Открывает сферы артефактов титанов.
         """
         logger.info('Opening titan artifact chests…')
-        self.notifier.reset().notify(f'⚫️ *{self.user.name}* открывает сферы артефактов титанов…')
+        self.log(f'⚫️ *{self.user.name}* открывает сферы артефактов титанов…')
 
         for amount in [10, 1]:
             try:
@@ -673,14 +687,14 @@ class Bot:
                 self.farm_quests(quests)
                 break
 
-        self.notifier.notify(f'⚫️ *{self.user.name}* открыл сферы артефактов титанов.')
+        self.log(f'⚫️ *{self.user.name}* открыл сферы артефактов титанов.')
 
     def randomize_grand_defenders(self):
         """
         Выставляет в защиту гранд-арены топ-15 героев в случайном порядке.
         """
         logger.info('Randomizing grand defenders…')
-        self.notifier.reset().notify(f'🎲️ *{self.user.name}* изменяет защитников арены…')
+        self.log(f'🎲️ *{self.user.name}* изменяет защитников арены…')
 
         heroes = naive_select_attackers(self.api.get_all_heroes(), count=constants.N_GRAND_HEROES)
         if len(heroes) < constants.N_GRAND_HEROES:
@@ -689,21 +703,21 @@ class Bot:
         shuffle(hero_ids)
         self.api.set_grand_heroes([hero_ids[0:5], hero_ids[5:10], hero_ids[10:15]])
 
-        self.notifier.notify(f'🎲️ *{self.user.name}* изменил защитников арены.')
+        self.log(f'🎲️ *{self.user.name}* изменил защитников арены.')
 
     def enchant_rune(self):
         """
         Зачаровать руну.
         """
         logger.info('Enchant rune…')
-        self.notifier.reset().notify(f'🕉 *{self.user.name}* зачаровывает руну…')
+        self.log(f'🕉 *{self.user.name}* зачаровывает руну…')
 
         result = self.api.enchant_hero_rune(
             self.settings.bot.enchant_rune.hero_id,
             self.settings.bot.enchant_rune.tier,
         )
         logger.success('Response: {}.', result.response)
-        self.notifier.notify(f'🕉 *{self.user.name}* зачаровал руну.')
+        self.log(f'🕉 *{self.user.name}* зачаровал руну.')
 
         self.farm_quests(result.quests)
 
@@ -712,7 +726,7 @@ class Bot:
         Вложить и сбросить искры самому слабому герою.
         """
         logger.info('Level up and drop titan hero gift…')
-        self.notifier.reset().notify(f'⚡️ *{self.user.name}* вкладывает и сбрасывает искры мощи…')
+        self.log(f'⚡️ *{self.user.name}* вкладывает и сбрасывает искры мощи…')
 
         hero = min(self.api.get_all_heroes(), key=attrgetter('power'))
         logger.info('Hero: {}.', hero)
@@ -721,13 +735,13 @@ class Bot:
         reward.log()
         self.farm_quests(quests)
 
-        self.notifier.notify(f'⚡️ *{self.user.name}* вложил и сбросил искры мощи.')
+        self.log(f'⚡️ *{self.user.name}* вложил и сбросил искры мощи.')
 
     def clear_dungeon(self):
         """
         Подземелье.
         """
-        self.notifier.reset().notify(f'🚇️ *{self.user.name}* идет в подземелье…')
+        self.log(f'🚇️ *{self.user.name}* идет в подземелье…')
 
         dungeon: Optional[Dungeon] = self.api.get_dungeon_info()
 
@@ -743,7 +757,7 @@ class Bot:
         # Clean the dungeon until the first save point.
         while dungeon is not None and not dungeon.floor.should_save_progress:
             logger.info('Floor: {}.', dungeon.floor_number)
-            self.notifier.notify(f'🚇️ *{self.user.name}* на *{dungeon.floor_number}-м* этаже подземелья…')
+            self.log(f'🚇️ *{self.user.name}* на *{dungeon.floor_number}-м* этаже подземелья…')
             team_number, user_data = min(enumerate(dungeon.floor.user_data), key=lambda item: item[1].power)
             if user_data.attacker_type == DungeonUnitType.HERO:
                 attacker_ids = hero_ids
@@ -760,7 +774,9 @@ class Bot:
                 end_battle=lambda response_: self.api.end_dungeon_battle(response_)
             )
             if response:
-                response.reward.notify(self.notifier, f'🚇️ *{self.user.name}* получает на *{dungeon.floor_number}-м* этаже:')  # noqa
+                with self.logger:
+                    self.logger.append(f'🚇️ *{self.user.name}* получает на *{dungeon.floor_number}-м* этаже:', '')
+                    response.reward.log(self.logger)
                 dungeon = response.dungeon
             else:
                 logger.warning('Dungeon is stopped prematurely.')
@@ -768,10 +784,12 @@ class Bot:
 
         # Save progress.
         if not dungeon or dungeon.floor.should_save_progress:
-            self.notifier.reset().notify(f'🚇️ *{self.user.name}* сохраняется в подземелье…')
-            self.api.save_dungeon_progress().reward.notify(self.notifier, f'🚇️ *{self.user.name}* получает за сохранение:')  # noqa
+            self.log(f'🚇️ *{self.user.name}* сохраняется в подземелье…')
+            with self.logger:
+                self.logger.append(f'🚇️ *{self.user.name}* получает за сохранение:', '')
+                self.api.save_dungeon_progress().reward.log(self.logger)
         else:
             logger.warning('Could not save the dungeon progress.')
 
-        self.notifier.notify(f'🚇️ *{self.user.name}* сходил в подземелье.')
+        self.log(f'🚇️ *{self.user.name}* сходил в подземелье.')
         self.farm_quests()

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from contextlib import AbstractContextManager, suppress
-from typing import Any, Optional
+from contextlib import AbstractContextManager
+from typing import Any, List, Optional
 
 from loguru import logger
 from requests import Session
@@ -44,28 +44,28 @@ class Telegram:
         return result['result']
 
 
-class Notifier(AbstractContextManager):
+class TelegramLogger(AbstractContextManager):
     def __init__(self, telegram: Optional[Telegram]):
         self.telegram = telegram
-        self.message_id: Optional[int] = None
+        self.lines: List[str] = []
 
-    def __enter__(self) -> Notifier:
-        self.reset()
+    def __enter__(self) -> TelegramLogger:
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        pass
+        self.flush()
 
-    def reset(self) -> Notifier:
-        self.message_id = None
+    def append(self, *lines: str) -> TelegramLogger:
+        if self.telegram:
+            self.lines.extend(lines)
         return self
 
-    def notify(self, text: str) -> Notifier:
-        if self.telegram:
-            logger.trace('Message ID: {}.', self.message_id)
-            with suppress(Exception):
-                if self.message_id is not None:
-                    self.telegram.edit_message_text(self.message_id, text)
-                else:
-                    self.message_id = self.telegram.send_message(text)
+    def flush(self) -> TelegramLogger:
+        if not self.telegram or not self.lines:
+            return self
+        try:
+            self.telegram.send_message('\n'.join(self.lines))
+        except Exception as e:
+            logger.opt(exception=e).warning('Telegram API error.')
+        self.lines.clear()
         return self

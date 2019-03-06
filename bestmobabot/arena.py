@@ -27,7 +27,7 @@ T = TypeVar('T')
 # Universal arena solver.
 # ----------------------------------------------------------------------------------------------------------------------
 
-# TODO: make notifiable.
+# TODO: make loggable.
 @dataclass
 @total_ordering
 class ArenaSolution:

@@ -48,14 +48,14 @@ def main(settings: Settings, verbosity: int, shell: bool):
         api = API(session, db, settings)
         bot = Bot(db, api, VK(session, settings), telegram, settings)
 
-        bot.notifier.notify('🎉 Бот запускается…')
+        bot.log('🎉 Бот запускается…')
         api.prepare()
         bot.prepare()
 
         logger.info('Welcome «{}»!', bot.user.name)
         logger.info('Game time: {:%H:%M:%S %Z}', datetime.now(bot.user.tz))
         logger.info('Next day: {:%H:%M:%S %Z}.', bot.user.next_day.astimezone(bot.user.tz))
-        bot.notifier.notify(f'🎉 *{bot.user.name}* запустился!')
+        bot.log(f'🎉 *{bot.user.name}* запустился!')
 
         if not shell:
             bot.run()
