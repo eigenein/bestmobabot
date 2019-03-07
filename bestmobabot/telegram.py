@@ -23,13 +23,7 @@ class Telegram:
             'parse_mode': 'Markdown',
         })['message_id']
 
-    def edit_message_text(self, message_id: int, text: str):
-        self.call('editMessageText', {
-            'chat_id': self.chat_id,
-            'message_id': message_id,
-            'text': text,
-            'parse_mode': 'Markdown',
-        })
+    # TODO: pin message.
 
     def call(self, method: str, json: Any) -> Any:
         response = self.session.post(

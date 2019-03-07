@@ -532,7 +532,7 @@ class Bot:
                     self.logger.append(f'🔥 *{self.user.name}* получил из рейда «{mission_name(mission_id)}»:', '')
                     log_rewards(self.api.raid_mission(mission_id), self.logger)
             except NotEnoughError as e:
-                logger.info(f'Not enough: {e.description}.')
+                logger.info(f'Not enough: {e}.')
                 break
 
         self.log(f'🔥 *{self.user.name}* сходил в рейды.')
@@ -559,9 +559,9 @@ class Bot:
                     self.logger.append(f'🛍 *{self.user.name}* купил:', '')
                     self.api.shop(shop_id=shop_id, slot_id=slot_id).log(self.logger)
             except NotEnoughError as e:
-                logger.warning(f'Not enough: {e.description}')
+                logger.warning(f'Not enough: {e}')
             except AlreadyError as e:
-                logger.warning(f'Already: {e.description}')
+                logger.warning(f'Already: {e}')
 
         self.log(f'🛍 *{self.user.name}* сходил в магазин.')
 
@@ -636,7 +636,7 @@ class Bot:
                         except AlreadyError:
                             logger.info(f'Already bought buff #{buff_id}.')
                         except NotFoundError as e:
-                            logger.warning(f'Not found for buff #{buff_id}: {e.description}.')
+                            logger.warning(f'Not found for buff #{buff_id}: {e}.')
                     else:
                         logger.debug(f'Skip buff #{buff_id}.')
                 # Then normally proceed to the next floor.

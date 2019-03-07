@@ -50,10 +50,6 @@ class APIError(Exception):
     """
     General API error.
     """
-    def __init__(self, name: Optional[str], description: Optional[str]):
-        super().__init__(name, description)
-        self.name = name
-        self.description = description
 
 
 class AlreadyError(APIError):
@@ -230,8 +226,8 @@ class API:
                 item = response.json()
             except ValueError:
                 if response.text == 'Invalid signature':
-                    raise InvalidSignatureError(response.text, None)
-                raise APIError(response.text, None)
+                    raise InvalidSignatureError(response.text)
+                raise APIError(response.text)
 
         if 'results' in item:
             result = Result.parse_obj(item['results'][0]['result'])
@@ -276,10 +272,10 @@ class API:
     def make_exception(cls, error: Union[Dict, str]) -> APIError:
         if isinstance(error, dict):
             name = error.get('name')
-            return cls.exception_classes.get(name, APIError)(name, error.get('description'))
+            return cls.exception_classes.get(name, APIError)(error)
         if isinstance(error, str):
-            return cls.exception_classes.get(error, APIError)(error, None)
-        return APIError(str(error), None)
+            return cls.exception_classes.get(error, APIError)(error)
+        return APIError(error)
 
     # User.
     # ------------------------------------------------------------------------------------------------------------------
