@@ -11,6 +11,7 @@
 - Handle `MemoryError`
 - Fix `execute_battle_with_retry` return value
 - Refactor API exception classes
+- Upgrade resources to `v0488`
 
 ## `3.0b2`
 
