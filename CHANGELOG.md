@@ -10,6 +10,7 @@
 - Add initial dungeon implementation
 - Handle `MemoryError`
 - Fix `execute_battle_with_retry` return value
+- Refactor API exception classes
 
 ## `3.0b2`
 

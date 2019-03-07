@@ -8,7 +8,7 @@ import re
 import string
 from datetime import datetime
 from time import sleep, time
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Type, TypeVar
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Type, TypeVar, Union
 
 import orjson
 import requests
@@ -47,6 +47,9 @@ from bestmobabot.tracking import send_event
 
 
 class APIError(Exception):
+    """
+    General API error.
+    """
     def __init__(self, name: Optional[str], description: Optional[str]):
         super().__init__(name, description)
         self.name = name
@@ -85,17 +88,17 @@ class ArgumentError(APIError):
     """
 
 
-class OutOfRetargetDelta(ValueError):
+class InvalidBattleError(APIError):
+    """
+    Raised when invalid battle result is submitted.
+    """
+
+
+class OutOfRetargetDelta(APIError):
     pass
 
 
-class ResponseError(ValueError):
-    """
-    General unexpected error.
-    """
-
-
-class InvalidSignatureError(ResponseError):
+class InvalidSignatureError(APIError):
     """
     Raised when invalid request signature is provided.
     Usually, this happens when session is expired.
@@ -227,15 +230,13 @@ class API:
                 item = response.json()
             except ValueError:
                 if response.text == 'Invalid signature':
-                    raise InvalidSignatureError(response.text)
-                raise ResponseError(response.text)
+                    raise InvalidSignatureError(response.text, None)
+                raise APIError(response.text, None)
 
         if 'results' in item:
             result = Result.parse_obj(item['results'][0]['result'])
             if result.is_error:
-                if result.response['error'] == 'outOfRetargetDelta':
-                    raise OutOfRetargetDelta()
-                raise ResponseError(result.response)
+                raise self.make_exception(result.response['error'])
             return result
         if 'error' in item:
             raise self.make_exception(item['error'])
@@ -262,17 +263,23 @@ class API:
 
     exception_classes = {
         'Already': AlreadyError,
-        'common\\rpc\\exception\\InvalidSession': InvalidSessionError,
-        'NotEnough': NotEnoughError,
-        'NotAvailable': NotAvailableError,
-        'NotFound': NotFoundError,
         'ArgumentError': ArgumentError,
+        'common\\rpc\\exception\\InvalidSession': InvalidSessionError,
+        'Invalid battle': InvalidBattleError,
+        'NotAvailable': NotAvailableError,
+        'NotEnough': NotEnoughError,
+        'NotFound': NotFoundError,
+        'outOfRetargetDelta': OutOfRetargetDelta,
     }
 
     @classmethod
-    def make_exception(cls, error: Dict) -> APIError:
-        name = error.get('name')
-        return cls.exception_classes.get(name, APIError)(name, error.get('description'))
+    def make_exception(cls, error: Union[Dict, str]) -> APIError:
+        if isinstance(error, dict):
+            name = error.get('name')
+            return cls.exception_classes.get(name, APIError)(name, error.get('description'))
+        if isinstance(error, str):
+            return cls.exception_classes.get(error, APIError)(error, None)
+        return APIError(str(error), None)
 
     # User.
     # ------------------------------------------------------------------------------------------------------------------
