@@ -54,15 +54,21 @@ class APIError(Exception):
 
 
 class AlreadyError(APIError):
-    pass
+    """
+    Raised when something, for instance a quest, is already done.
+    """
 
 
 class InvalidSessionError(APIError):
-    pass
+    """
+    Raised when session is expired.
+    """
 
 
 class NotEnoughError(APIError):
-    pass
+    """
+    Raised when not enough resources.
+    """
 
 
 class NotAvailableError(APIError):
@@ -74,7 +80,9 @@ class NotFoundError(APIError):
 
 
 class ArgumentError(APIError):
-    pass
+    """
+    Raised when there is an invalid argument in API request.
+    """
 
 
 class OutOfRetargetDelta(ValueError):
@@ -82,11 +90,16 @@ class OutOfRetargetDelta(ValueError):
 
 
 class ResponseError(ValueError):
-    pass
+    """
+    General unexpected error.
+    """
 
 
 class InvalidSignatureError(ResponseError):
-    pass
+    """
+    Raised when invalid request signature is provided.
+    Usually, this happens when session is expired.
+    """
 
 
 class API:

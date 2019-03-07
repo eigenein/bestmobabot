@@ -16,6 +16,12 @@ from bestmobabot.enums import HeroesJSMode
 from bestmobabot.resources import get_heroes_js, get_raw_library, get_skills_sc
 
 
+class NotEnoughStars(Exception):
+    """
+    Raised when a battle result doesn't contain enough stars.
+    """
+
+
 def execute_battle_with_retry(
     *,
     mode: HeroesJSMode,
@@ -30,7 +36,7 @@ def execute_battle_with_retry(
             logger.success('Battle succeeded.')
             return end_battle(response)
         logger.warning('Battle result: {}.', response['result'])
-    return None
+    raise NotEnoughStars()
 
 
 def execute_battles(battles_data: List[Any], mode: HeroesJSMode) -> Any:

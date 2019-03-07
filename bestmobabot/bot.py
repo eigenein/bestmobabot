@@ -23,7 +23,7 @@ from bestmobabot.dataclasses_ import (
 )
 from bestmobabot.enums import BattleType, DungeonUnitType, HeroesJSMode, LibraryTitanElement, TowerFloorType
 from bestmobabot.helpers import find_expedition_team, get_teams_unit_ids, get_unit_ids, naive_select_attackers
-from bestmobabot.jsapi import execute_battle_with_retry
+from bestmobabot.jsapi import NotEnoughStars, execute_battle_with_retry
 from bestmobabot.logging_ import log_rewards, logger
 from bestmobabot.model import Model
 from bestmobabot.resources import get_heroic_mission_ids, mission_name, shop_name
@@ -593,18 +593,19 @@ class Bot:
                 else:
                     # Fetch the most powerful team, unless already done.
                     heroes = heroes or get_unit_ids(naive_select_attackers(self.api.get_all_heroes()))
-                    reward: Optional[Reward] = execute_battle_with_retry(
-                        mode=HeroesJSMode.TOWER,
-                        start_battle=lambda: self.api.start_tower_battle(heroes),
-                        end_battle=lambda response: self.api.end_tower_battle(response).log(),
-                    )
-                    if reward:
-                        reward.log()
-                        tower = self.api.next_tower_floor()
-                    else:
+                    try:
+                        reward: Reward = execute_battle_with_retry(
+                            mode=HeroesJSMode.TOWER,
+                            start_battle=lambda: self.api.start_tower_battle(heroes),
+                            end_battle=lambda response: self.api.end_tower_battle(response),
+                        )
+                    except NotEnoughStars:
                         # No attempt was successful, stop the tower.
                         logger.warning('Tower is stopped prematurely.')
                         break
+                    else:
+                        reward.log()  # TODO: `self._logger`.
+                        tower = self.api.next_tower_floor()
             elif tower.floor_type == TowerFloorType.CHEST:
                 # The simplest one. Just open a random chest.
                 reward, _ = self.api.open_tower_chest(choice([0, 1, 2]))
@@ -783,19 +784,20 @@ class Bot:
             else:
                 attacker_ids = element_titan_ids[constants.TITAN_ELEMENTS[user_data.attacker_type]]
                 mode = HeroesJSMode.TITAN
-            response: Optional[EndDungeonBattleResponse] = execute_battle_with_retry(
-                mode=mode,
-                start_battle=lambda: self.api.start_dungeon_battle(attacker_ids, team_number),
-                end_battle=lambda response_: self.api.end_dungeon_battle(response_)
-            )
-            if response:
+            try:
+                response: EndDungeonBattleResponse = execute_battle_with_retry(
+                    mode=mode,
+                    start_battle=lambda: self.api.start_dungeon_battle(attacker_ids, team_number),
+                    end_battle=lambda response_: self.api.end_dungeon_battle(response_)
+                )
+            except NotEnoughStars:
+                logger.warning('Dungeon is stopped prematurely.')
+                break
+            else:
                 with self.logger:
                     self.logger.append(f'🚇️ *{self.user.name}* получил на *{dungeon.floor_number}-м* этаже:', '')
                     response.reward.log(self.logger)
                 dungeon = response.dungeon
-            else:
-                logger.warning('Dungeon is stopped prematurely.')
-                break
 
         # Save progress.
         if not dungeon or dungeon.floor.should_save_progress:

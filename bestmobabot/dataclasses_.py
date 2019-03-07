@@ -30,7 +30,7 @@ class Loggable:
                 logger_.append(line)
 
 
-# FIXME: it's not full.
+# FIXME: it's not complete.
 class Reward(BaseModel, Loggable):
     artifact_fragment: Dict[str, int] = {}
     coin: Dict[str, str] = {}
