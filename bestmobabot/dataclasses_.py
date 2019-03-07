@@ -18,6 +18,8 @@ _VALIDATORS.append((tzinfo, [lambda value: timezone(timedelta(hours=value))]))
 
 
 class Loggable:
+    # TODO: separate property specially for the Telegram logger.
+
     @property
     @abstractmethod
     def log_lines(self) -> Iterable[str]:

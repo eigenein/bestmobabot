@@ -17,18 +17,20 @@ class Telegram:
         self.chat_id = settings.chat_id
 
     def send_message(self, text: str) -> int:
-        return self.call('sendMessage', {
-            'chat_id': self.chat_id,
-            'text': text,
-            'parse_mode': 'Markdown',
-        })['message_id']
+        return self.call(
+            'sendMessage',
+            chat_id=self.chat_id,
+            text=text,
+            parse_mode='Markdown',
+        )['message_id']
 
-    # TODO: pin message.
+    def pin_chat_message(self, message_id: int) -> bool:
+        return self.call('pinChatMessage', chat_id=self.chat_id, message_id=message_id)
 
-    def call(self, method: str, json: Any) -> Any:
+    def call(self, method: str, **kwargs: Any) -> Any:
         response = self.session.post(
             f'https://api.telegram.org/bot{self.token}/{method}',
-            json=json,
+            json=kwargs,
             timeout=constants.API_TIMEOUT,
         )
         response.raise_for_status()
@@ -54,11 +56,13 @@ class TelegramLogger(AbstractContextManager):
             self.lines.extend(lines)
         return self
 
-    def flush(self) -> TelegramLogger:
+    def flush(self, pin=False) -> TelegramLogger:
         if not self.telegram or not self.lines:
             return self
         try:
-            self.telegram.send_message('\n'.join(self.lines))
+            message_id = self.telegram.send_message('\n'.join(self.lines))
+            if pin:
+                self.telegram.pin_chat_message(message_id)
         except Exception as e:
             logger.opt(exception=e).warning('Telegram API error.')
         self.lines.clear()

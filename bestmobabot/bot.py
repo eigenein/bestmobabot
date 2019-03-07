@@ -143,9 +143,9 @@ class Bot:
     # Helpers.
     # ------------------------------------------------------------------------------------------------------------------
 
-    def log(self, text: str):
-        with self.logger:
-            self.logger.append(text)
+    def log(self, text: str, pin=False):
+        self.logger.append(text)
+        self.logger.flush(pin)
 
     def get_raid_mission_ids(self) -> Iterable[str]:
         missions: Dict[str, Mission] = {

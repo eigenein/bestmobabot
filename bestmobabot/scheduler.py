@@ -104,7 +104,8 @@ class Scheduler:
         except Exception as e:
             self.bot.log(
                 f'‼️ Бот *{self.user_name}* совершил ошибку.'
-                f' [Papertrail](https://papertrailapp.com/events?time={int(now().timestamp())})'
+                f' [Papertrail](https://papertrailapp.com/events?time={int(now().timestamp())})',
+                pin=True,
             )
             logger.opt(exception=e).critical('Uncaught error.')
             for result in self.bot.api.last_responses:
