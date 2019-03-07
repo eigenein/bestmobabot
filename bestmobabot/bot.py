@@ -311,7 +311,7 @@ class Bot:
         letters = self.api.get_all_mail()
         if letters:
             logger.info(f'{len(letters)} letters.')
-            log_rewards(self.api.farm_mail(letter.id for letter in letters).values())
+            log_rewards(self.api.farm_mail(letter.id for letter in letters).values(), self.logger)
         self.log(f'📩 *{self.user.name}* прочитал почту.')
 
     def buy_chest(self):
@@ -817,3 +817,16 @@ class Bot:
 
         self.log(f'🚇️ *{self.user.name}* сходил в подземелье.')
         self.farm_quests()
+
+    def run_manual_mission(self, mission_id: str, hero_ids: List[str], n_retries=3):
+        try:
+            reward = execute_battle_with_retry(
+                mode=HeroesJSMode.TOWER,
+                start_battle=lambda: self.api.start_mission(mission_id, hero_ids),
+                end_battle=lambda response: self.api.end_mission(mission_id, response),
+                n_retries=n_retries,
+            )
+        except NotEnoughStars:
+            logger.error('Not enough stars.')
+        else:
+            reward.log()
