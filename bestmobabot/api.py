@@ -394,7 +394,7 @@ class API:
         response = self.call('battleGetByType', {'type': battle_type.value, 'offset': offset, 'limit': limit}).response
         return list_of(Replay, response['replays'])
 
-    # Raids.
+    # Missions.
     # https://github.com/eigenein/bestmobabot/wiki/Raids
     # ------------------------------------------------------------------------------------------------------------------
 
@@ -404,6 +404,12 @@ class API:
 
     def get_all_missions(self) -> List[Mission]:
         return list_of(Mission, self.call('missionGetAll').response)
+
+    def start_mission(self, mission_id: str, hero_ids: Iterable[str]) -> Any:
+        return self.call('missionStart', {'id': mission_id, 'heroes': list(hero_ids)}).response
+
+    def end_mission(self, mission_id: str, response: Any) -> Reward:
+        return Reward.parse_obj(self.call('missionEnd', {'id': mission_id, **response}).response['reward'] or {})
 
     # Boss.
     # https://github.com/eigenein/bestmobabot/wiki/Boss
@@ -456,8 +462,8 @@ class API:
     def start_tower_battle(self, hero_ids: Iterable[str]) -> Any:
         return self.call('towerStartBattle', {'heroes': list(hero_ids)}).response
 
-    def end_tower_battle(self, arguments: Dict[str, Any]) -> Reward:
-        return Reward.parse_obj(self.call('towerEndBattle', arguments).response['reward'])
+    def end_tower_battle(self, response) -> Reward:
+        return Reward.parse_obj(self.call('towerEndBattle', response).response['reward'])
 
     # Offers.
     # ------------------------------------------------------------------------------------------------------------------
@@ -509,8 +515,8 @@ class API:
     def start_dungeon_battle(self, hero_ids: Iterable[str], team_number: int) -> Any:
         return self.call('dungeonStartBattle', {'heroes': list(hero_ids), 'teamNum': team_number}).response
 
-    def end_dungeon_battle(self, arguments: Dict[str, Any]) -> EndDungeonBattleResponse:
-        return EndDungeonBattleResponse.parse_obj(self.call('dungeonEndBattle', arguments).response)
+    def end_dungeon_battle(self, response) -> EndDungeonBattleResponse:
+        return EndDungeonBattleResponse.parse_obj(self.call('dungeonEndBattle', response).response)
 
     def save_dungeon_progress(self) -> SaveDungeonProgressResponse:
         return SaveDungeonProgressResponse.parse_obj(self.call('dungeonSaveProgress').response)
