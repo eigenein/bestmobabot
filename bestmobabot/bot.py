@@ -16,6 +16,7 @@ from bestmobabot.dataclasses_ import (
     EndDungeonBattleResponse,
     Hero,
     Mission,
+    Quest,
     Quests,
     Replay,
     Reward,
@@ -278,10 +279,14 @@ class Bot:
         self.log(f'⛺️ *{self.user.name}* закончил с отправкой экспедиций.')
         return next_run_at
 
-    def farm_quests(self, quests: Quests = None):
+    def farm_quests(self, quests: List[Quest] = None):
         """
         Собирает награды из заданий.
         """
+        if quests is not None and not quests:
+            logger.info('No quests to farm.')  # provided but empty
+            return
+
         logger.info('Farming quests…')
         self.log(f'✅ *{self.user.name}* выполняет задачи…')
         if quests is None:
