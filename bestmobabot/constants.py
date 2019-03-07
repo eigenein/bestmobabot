@@ -61,7 +61,7 @@ VERBOSITY_LEVELS = {
     1: 'DEBUG',
 }
 
-# FIXME: obtain from the resources.
+# FIXME: obtain from the resources: `LIB_ENUM_HEROCOLOR_1`.
 COLORS: Dict[int, str] = {
     1: 'Белый',
     2: 'Зеленый',

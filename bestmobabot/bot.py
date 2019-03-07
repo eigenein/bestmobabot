@@ -320,8 +320,9 @@ class Bot:
         """
         logger.info('Buying a chest…')
         self.log(f'🎁 *{self.user.name}* открывает сундук…')
-        log_rewards(self.api.buy_chest())
-        self.log(f'🎁 *{self.user.name}* открыл сундук.')
+        with self.logger:
+            self.logger.append(f'🎁 *{self.user.name}* получил из сундука:', '')
+            log_rewards(self.api.buy_chest(), self.logger)
 
     def send_daily_gift(self):
         """
@@ -534,8 +535,9 @@ class Bot:
             logger.info(f'Raid mission #{mission_id} «{mission_name(mission_id)}»…')
             try:
                 with self.logger:
+                    rewards = self.api.raid_mission(mission_id)
                     self.logger.append(f'🔥 *{self.user.name}* получил из рейда «{mission_name(mission_id)}»:', '')
-                    log_rewards(self.api.raid_mission(mission_id), self.logger)
+                    log_rewards(rewards, self.logger)
             except NotEnoughError as e:
                 logger.info(f'Not enough: {e}.')
                 break
