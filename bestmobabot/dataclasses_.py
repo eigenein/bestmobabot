@@ -33,6 +33,7 @@ class Loggable:
 
 
 # FIXME: it's not complete.
+# FIXME: truth magic to check for emptiness.
 class Reward(BaseModel, Loggable):
     artifact_fragment: Dict[str, int] = {}
     coin: Dict[str, str] = {}

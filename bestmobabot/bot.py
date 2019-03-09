@@ -311,7 +311,9 @@ class Bot:
         letters = self.api.get_all_mail()
         if letters:
             logger.info(f'{len(letters)} letters.')
-            log_rewards(self.api.farm_mail(letter.id for letter in letters).values(), self.logger)
+            with self.logger:
+                self.logger.append(f'📩 *{self.user.name}* получил из почты:\n')
+                log_rewards(self.api.farm_mail(letter.id for letter in letters).values(), self.logger)
         self.log(f'📩 *{self.user.name}* прочитал почту.')
 
     def buy_chest(self):
@@ -491,9 +493,7 @@ class Bot:
             logger.info(f'Checking {gift_id}…')
             reward = self.api.check_freebie(gift_id)
             if reward is not None:
-                with self.logger:
-                    self.logger.append(f'🎁 *{self.user.name}* получил из подарка:', '')
-                    reward.log(self.logger)
+                reward.log()
                 should_farm_mail = True
             self.db[f'gifts:{self.api.user_id}:{gift_id}'] = True
 
@@ -562,13 +562,15 @@ class Bot:
         for shop_id, slot_id in slots:
             logger.info(f'Buying slot #{slot_id} in shop «{shop_name(shop_id)}»…')
             try:
-                with self.logger:
-                    self.logger.append(f'🛍 *{self.user.name}* купил:', '')
-                    self.api.shop(shop_id=shop_id, slot_id=slot_id).log(self.logger)
+                reward = self.api.shop(shop_id=shop_id, slot_id=slot_id)
             except NotEnoughError as e:
                 logger.warning(f'Not enough: {e}')
             except AlreadyError as e:
                 logger.warning(f'Already: {e}')
+            else:
+                with self.logger:
+                    self.logger.append(f'🛍 *{self.user.name}* купил:', '')
+                    reward.log(self.logger)
 
         self.log(f'🛍 *{self.user.name}* сходил в магазин.')
 
@@ -611,13 +613,15 @@ class Bot:
                         logger.warning('Tower is stopped prematurely.')
                         break
                     else:
-                        reward.log()  # TODO: `self._logger`.
+                        with self.logger:
+                            self.logger.append(f'🗼 *{self.user.name}* получил на {tower.floor_number}-м этаже:\n')
+                            reward.log(self.logger)
                         tower = self.api.next_tower_floor()
             elif tower.floor_type == TowerFloorType.CHEST:
                 # The simplest one. Just open a random chest.
                 reward, _ = self.api.open_tower_chest(choice([0, 1, 2]))
                 with self.logger:
-                    self.logger.append(f'🗼 *{self.user.name}* получил на {tower.floor_number}-м этаже башни:', '')
+                    self.logger.append(f'🗼 *{self.user.name}* получил на {tower.floor_number}-м этаже башни:\n')
                     reward.log(self.logger)
                 # If it was the top floor, we have to stop.
                 if tower.floor_number == 50:
