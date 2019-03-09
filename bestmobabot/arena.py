@@ -17,7 +17,7 @@ from numpy import arange, ndarray, vstack
 from numpy.random import choice, permutation, randint
 
 from bestmobabot.constants import TEAM_SIZE
-from bestmobabot.dataclasses_ import BaseArenaEnemy, Hero, Loggable, Team
+from bestmobabot.dataclasses_ import BaseArenaEnemy, Hero, Loggable
 from bestmobabot.itertools_ import CountDown, secretary_max, slices
 from bestmobabot.model import Model
 
@@ -31,12 +31,12 @@ T = TypeVar('T')
 @total_ordering
 class ArenaSolution(Loggable):
     enemy: BaseArenaEnemy  # selected enemy
-    attackers: List[Team]  # player's attacker teams
+    attackers: List[List[Hero]]  # player's attacker teams
     probability: float  # arena win probability
     probabilities: List[float]  # individual battle win probabilities
 
     @property
-    def log_lines(self) -> Iterable[str]:
+    def plain_text(self) -> Iterable[str]:
         yield 'Solution:'
         yield str(self)
         for i, (defenders, attackers) in enumerate(zip(self.enemy.teams, self.attackers), start=1):
@@ -281,7 +281,7 @@ class ArenaSolver:
         # noinspection PyUnresolvedReferences
         return numpy.fromiter((hero.features.get(name, 0.0) for name in self.model.feature_names), numpy.float)
 
-    def make_team_features(self, team: Team) -> ndarray:
+    def make_team_features(self, team: List[Hero]) -> ndarray:
         """
         Make team features 2D-array. Shape is number of heroes × number of features.
         """

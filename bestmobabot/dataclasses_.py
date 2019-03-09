@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from datetime import datetime, timedelta, timezone, tzinfo
 from functools import total_ordering
 from typing import Any, Dict, Iterable, List, Optional, Set
@@ -17,19 +17,23 @@ from bestmobabot.telegram import TelegramLogger
 _VALIDATORS.append((tzinfo, [lambda value: timezone(timedelta(hours=value))]))
 
 
-class Loggable:
+class Loggable(ABC):
     # TODO: separate property specially for the Telegram logger.
 
     @property
     @abstractmethod
-    def log_lines(self) -> Iterable[str]:
+    def plain_text(self) -> Iterable[str]:
         raise NotImplementedError()
 
+    @property
+    def markdown(self) -> Iterable[str]:
+        yield from self.plain_text
+
     def log(self, logger_: Optional[TelegramLogger] = None):
-        for line in self.log_lines:
+        for line in self.plain_text:
             logger.success('{}', line)
-            if logger_:
-                logger_.append(line)
+        if logger_:
+            logger_.append(*self.markdown)
 
 
 # FIXME: truth magic to check for emptiness.
@@ -75,7 +79,7 @@ class Reward(BaseModel, Loggable):
         }
 
     @property
-    def log_lines(self) -> Iterable[str]:
+    def plain_text(self) -> Iterable[str]:
         if self.stamina:
             yield f'{self.stamina} × stamina'
         if self.gold:
@@ -181,10 +185,6 @@ class Hero(Unit):
         return f'{stars} {resources.hero_name(self.id)} ({self.level}) {COLORS.get(self.color, self.color)}'
 
 
-Team = List[Hero]
-Teams = List[Team]
-
-
 class Titan(Unit):
     @property
     def element(self) -> LibraryTitanElement:
@@ -238,7 +238,7 @@ class User(BaseModel):
         return f'«{self.name}» from «{self.clan_title}»'
 
 
-class BaseArenaEnemy(BaseModel):
+class BaseArenaEnemy(BaseModel, ABC):
     user_id: str
     place: str
     power: int
@@ -250,7 +250,7 @@ class BaseArenaEnemy(BaseModel):
         }
 
     @property
-    def teams(self) -> Teams:
+    def teams(self) -> List[List[Hero]]:
         raise NotImplementedError()
 
     def __str__(self) -> str:
@@ -261,7 +261,7 @@ class ArenaEnemy(BaseArenaEnemy):
     heroes: List[Hero]
 
     @property
-    def teams(self) -> Teams:
+    def teams(self) -> List[List[Hero]]:
         return [self.heroes]
 
 
@@ -269,7 +269,7 @@ class GrandArenaEnemy(BaseArenaEnemy):
     heroes: List[List[Hero]]
 
     @property
-    def teams(self) -> Teams:
+    def teams(self) -> List[List[Hero]]:
         return self.heroes
 
 
@@ -286,13 +286,21 @@ class ArenaState(BaseModel, Loggable):
         }
 
     @property
-    def log_lines(self) -> Iterable[str]:
+    def plain_text(self) -> Iterable[str]:
         if self.arena_place:
             yield f'Place: {self.arena_place}.'
         if self.grand_place:
             yield f'Grand place: {self.grand_place}.'
         yield f'Battles: {self.battles}. Wins: {self.wins}.'
         yield f'Rating: {100.0 * (self.wins / self.battles):.2f}%.'
+
+    @property
+    def markdown(self) -> Iterable[str]:
+        if self.arena_place:
+            yield f'Место на арене: *{self.arena_place}*'
+        if self.grand_place:
+            yield f'Место на гранд-арене: {self.grand_place}'
+        yield f'Рейтинг: *{100.0 * (self.wins / self.battles):.2f}%*'
 
 
 class ArenaResult(BaseModel, Loggable):
@@ -302,13 +310,13 @@ class ArenaResult(BaseModel, Loggable):
     state: ArenaState
 
     @property
-    def log_lines(self) -> Iterable[str]:
+    def plain_text(self) -> Iterable[str]:
         yield 'You won!' if self.win else 'You lose.'
         for i, battle in enumerate(self.battles, start=1):
             yield f'Battle #{i}: {"⭐" * battle.result.stars if battle.result.win else "⛔️"}'
         if self.reward is not None:
-            yield from self.reward.log_lines
-        yield from self.state.log_lines
+            yield from self.reward.plain_text
+        yield from self.state.plain_text
 
     # noinspection PyMethodParameters
     @validator('reward', pre=True)
