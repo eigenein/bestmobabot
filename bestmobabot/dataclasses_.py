@@ -195,6 +195,9 @@ class BattleResult(BaseModel):
     win: bool
     stars: int = 0
 
+    def __str__(self) -> str:
+        return '⭐' * self.stars if self.win else '⛔️'
+
 
 class Replay(BaseModel):
     id: str
@@ -313,10 +316,19 @@ class ArenaResult(BaseModel, Loggable):
     def plain_text(self) -> Iterable[str]:
         yield 'You won!' if self.win else 'You lose.'
         for i, battle in enumerate(self.battles, start=1):
-            yield f'Battle #{i}: {"⭐" * battle.result.stars if battle.result.win else "⛔️"}'
+            yield f'Battle #{i}: {battle.result}'
         if self.reward is not None:
             yield from self.reward.plain_text
         yield from self.state.plain_text
+
+    @property
+    def markdown(self):
+        yield '*Победа* 😉' if self.win else '*Поражение* 😕'
+        for i, battle in enumerate(self.battles, start=1):
+            yield f'Бой #{i}: {battle.result}'
+        if self.reward is not None:
+            yield from self.reward.markdown
+        yield from self.state.markdown
 
     # noinspection PyMethodParameters
     @validator('reward', pre=True)
