@@ -177,6 +177,24 @@ class Bot:
         while True:
             yield choice(non_heroic_mission_ids)
 
+    def run_manual_mission(self, mission_id: str, hero_ids: List[str], n_retries=3, n_stars=1):
+        """
+        Attacks the specified mission with the specified heroes.
+        Supposed to be used in the shell.
+        """
+        try:
+            reward = execute_battle_with_retry(
+                mode=HeroesJSMode.TOWER,
+                start_battle=lambda: self.api.start_mission(mission_id, hero_ids),
+                end_battle=lambda response: self.api.end_mission(mission_id, response),
+                n_retries=n_retries,
+                n_stars=n_stars,
+            )
+        except NotEnoughStars:
+            logger.error('Not enough stars.')
+        else:
+            reward.log()
+
     # Tasks.
     # ------------------------------------------------------------------------------------------------------------------
 
@@ -813,24 +831,12 @@ class Bot:
         # Save progress.
         if not dungeon or dungeon.floor.should_save_progress:
             self.log(f'🚇️ *{self.user.name}* сохраняется в подземелье…')
+            response = self.api.save_dungeon_progress()
             with self.logger:
                 self.logger.append(f'🚇️ *{self.user.name}* получил за сохранение:', '')
-                self.api.save_dungeon_progress().reward.log(self.logger)
+                response.reward.log(self.logger)
         else:
             logger.warning('Could not save the dungeon progress.')
 
         self.log(f'🚇️ *{self.user.name}* сходил в подземелье.')
         self.farm_quests()
-
-    def run_manual_mission(self, mission_id: str, hero_ids: List[str], n_retries=3):
-        try:
-            reward = execute_battle_with_retry(
-                mode=HeroesJSMode.TOWER,
-                start_battle=lambda: self.api.start_mission(mission_id, hero_ids),
-                end_battle=lambda response: self.api.end_mission(mission_id, response),
-                n_retries=n_retries,
-            )
-        except NotEnoughStars:
-            logger.error('Not enough stars.')
-        else:
-            reward.log()

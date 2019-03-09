@@ -28,11 +28,12 @@ def execute_battle_with_retry(
     start_battle: Callable[[], Any],
     end_battle: Callable[[Any], Any],
     n_retries: int = 3,
+    n_stars: int = constants.RAID_N_STARS,
 ) -> Any:
     for i in range(1, n_retries + 1):
         logger.info('Battle attempt #{}.', i)
         response, = execute_battles([start_battle()], mode)
-        if response['result']['stars'] == constants.RAID_N_STARS:
+        if response['result']['stars'] == n_stars:
             logger.success('Battle succeeded.')
             return end_battle(response)
         logger.warning('Battle result: {}.', response['result'])
