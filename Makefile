@@ -51,3 +51,7 @@ publish/docker: docker
 .PHONY: publish/docker/latest
 publish/docker/latest: docker
 	@docker push 'eigenein/bestmobabot:latest'
+
+.PHONY
+deploy/latest: publish/docker/latest
+	ssh moon.eigenein.com 'docker pull eigenein/bestmobabot && docker-compose up -d --remove-orphans'
