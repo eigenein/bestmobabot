@@ -355,10 +355,13 @@ class ArenaResult(BaseModel, Loggable):
     @property
     def markdown(self):
         yield '*Победа* 😉' if self.win else '*Поражение* 😕'
+        yield ''
         for i, battle in enumerate(self.battles, start=1):
             yield f'Бой #{i}: {battle.result}'
         if self.reward is not None:
+            yield ''
             yield from self.reward.markdown
+            yield ''
         yield from self.state.markdown
 
     # noinspection PyMethodParameters
@@ -530,6 +533,14 @@ class EndDungeonBattleResponse(BaseModel):
 class SaveDungeonProgressResponse(BaseModel):
     reward: Reward
     dungeon: Dungeon
+
+
+class HallOfFameTrophy(BaseModel):
+    week: str
+
+
+class HallOfFame(BaseModel):
+    trophy: HallOfFameTrophy
 
 
 class Result(BaseModel):

@@ -13,6 +13,7 @@
 - Refactor API exception classes
 - Upgrade resources to `v0488`
 - Add mission APIs
+- Farm Hall of Fame reward on Saturday
 
 ## `3.0b2`
 

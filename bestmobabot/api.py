@@ -26,6 +26,7 @@ from bestmobabot.dataclasses_ import (
     EndDungeonBattleResponse,
     Expedition,
     GrandArenaEnemy,
+    HallOfFame,
     Hero,
     Letter,
     Mission,
@@ -520,6 +521,18 @@ class API:
 
     def save_dungeon_progress(self) -> SaveDungeonProgressResponse:
         return SaveDungeonProgressResponse.parse_obj(self.call('dungeonSaveProgress').response)
+
+    # Hall of Fame
+    # ------------------------------------------------------------------------------------------------------------------
+
+    def get_hall_of_fame(self) -> HallOfFame:
+        return HallOfFame.parse_obj(self.call('hallOfFameGet').response)
+
+    def farm_hall_of_fame_trophy_reward(self, trophy_id: str) -> Reward:
+        return Reward.parse_obj(self.call('hallOfFameFarmTrophyReward', {
+            'trophyId': trophy_id,
+            'rewardType': 'champion',
+        }).response)
 
 
 TModel = TypeVar('TModel', bound=BaseModel)

@@ -1,5 +1,6 @@
 import pickle
 from base64 import b85decode
+from calendar import SATURDAY
 from datetime import datetime, time, timedelta, timezone
 from operator import attrgetter
 from random import choice, shuffle
@@ -111,6 +112,7 @@ class Bot:
             Task(at=[time(hour=8, minute=15, tzinfo=self.user.tz)], execute=self.farm_daily_bonus),
             Task(at=[time(hour=8, minute=20, tzinfo=timezone.utc)], execute=self.raid_bosses),
             Task(at=[time(hour=8, minute=30, tzinfo=self.user.tz)], execute=self.buy_chest),
+            Task(at=[time(hour=8, minute=40, tzinfo=timezone.utc)], execute=self.hall_of_fame),
             Task(at=[time(hour=8, minute=45, tzinfo=self.user.tz)], execute=self.level_up_titan_hero_gift),
             Task(at=[time(hour=9, minute=0, tzinfo=self.user.tz)], execute=self.send_daily_gift),
             Task(at=[time(hour=9, minute=15, tzinfo=self.user.tz)], execute=self.open_titan_artifact_chest),
@@ -213,7 +215,6 @@ class Bot:
         """
         Заново заходит в игру, это нужно для появления ежедневных задач в событиях.
         """
-        logger.info('Registering…')
         self.log(f'🎫 *{self.user.name}* заново заходит в игру…')
         self.api.prepare(invalidate_session=True)
         self.api.register()
@@ -224,7 +225,6 @@ class Bot:
         """
         Забирает ежедневный подарок.
         """
-        logger.info('Farming daily bonus…')
         self.log(f'*{self.user.name}* забирает ежедневный подарок…')
         with self.logger:
             self.logger.append(f'🎁 *{self.user.name}* получил в ежедневном подарке:', '')
@@ -236,7 +236,6 @@ class Bot:
         """
         now_ = now()
 
-        logger.info('Farming expeditions…')
         self.log(f'⛺️ *{self.user.name}* проверяет отправленные экспедиции…')
         expeditions = self.api.list_expeditions()
         for i, expedition in enumerate(expeditions, 1):
@@ -338,7 +337,6 @@ class Bot:
         """
         Открывает ежедневный бесплатный сундук.
         """
-        logger.info('Buying a chest…')
         self.log(f'🎁 *{self.user.name}* открывает сундук…')
         with self.logger:
             self.logger.append(f'🎁 *{self.user.name}* получил из сундука:', '')
@@ -348,7 +346,6 @@ class Bot:
         """
         Отправляет сердечки друзьям.
         """
-        logger.info('Sending daily gift…')
         self.log(f'❤️ *{self.user.name}* дарит сердечки друзьям…')
         if self.settings.bot.friend_ids:
             self.farm_quests(self.api.send_daily_gift(self.settings.bot.friend_ids))
@@ -360,7 +357,6 @@ class Bot:
         """
         Тренирует предсказательную модель для арены.
         """
-        logger.info('Running trainer…')
         self.log(f'🎲️ *{self.user.name}* тренирует модель…')
         Trainer(
             self.db,
@@ -377,7 +373,6 @@ class Bot:
         attack: Callable[[ArenaSolution], Tuple[ArenaResult, Quests]],
         finalise: Callable[[], Any],
     ):
-        logger.info('Attacking arena…')
         self.log(f'⚔️ *{self.user.name}* идет на арену…')
 
         # Load arena model.
@@ -414,7 +409,7 @@ class Bot:
 
         # Collect results.
         with self.logger:
-            self.logger.append(f'⚔️ *{self.user.name}* закончил арену.', '')
+            self.logger.append(f'⚔️ *{self.user.name}* закончил арену:\n')
             result.log(self.logger)
         finalise()
         self.farm_quests(quests)
@@ -477,7 +472,6 @@ class Bot:
         """
         Читает и сохраняет журналы арен.
         """
-        logger.info('Reading arena logs…')
         self.log(f'📒️ *{self.user.name}* читает журнал арены…')
 
         replays: List[Replay] = [
@@ -501,7 +495,6 @@ class Bot:
         """
         Собирает подарки на странице игры ВКонтакте.
         """
-        logger.info('Checking freebie…')
         self.log(f'🎁 *{self.user.name}* проверяет подарки на VK.com…')
         should_farm_mail = False
 
@@ -524,7 +517,6 @@ class Bot:
         """
         Собирает ключ у валькирии и открывает артефактные сундуки.
         """
-        logger.info('Farming zeppelin gift…')
         self.log(f'🔑 *{self.user.name}* открывает артефактные сундуки…')
 
         self.api.farm_zeppelin_gift().log()
@@ -546,7 +538,6 @@ class Bot:
         """
         Ходит в рейды в миссиях в кампании за предметами.
         """
-        logger.info(f'Raid missions…')
         self.log(f'🔥 *{self.user.name}* идет в рейды…')
 
         for mission_id in self.get_raid_mission_ids():
@@ -596,7 +587,6 @@ class Bot:
         """
         Зачистка башни.
         """
-        logger.info('Skipping the tower…')
         self.log(f'🗼 *{self.user.name}* проходит башню…')
 
         tower = self.api.get_tower_info()
@@ -679,7 +669,6 @@ class Bot:
         """
         self.log(f'🔵 *{self.user.name}* фармит предложения…')
 
-        logger.info('Farming offers…')
         for offer in self.api.get_all_offers():
             logger.debug(f'#{offer.id}: {offer.offer_type}.')
             if offer.offer_type in constants.OFFER_FARMED_TYPES and not offer.is_free_reward_obtained:
@@ -693,7 +682,6 @@ class Bot:
         """
         Рейдит боссов Запределья.
         """
-        logger.info('Raid bosses…')
         self.log(f'🔴 *{self.user.name}* рейдит боссов Запределья…')
 
         for i, boss in enumerate(self.api.get_all_bosses(), 1):
@@ -715,7 +703,6 @@ class Bot:
         """
         Открывает сферы артефактов титанов.
         """
-        logger.info('Opening titan artifact chests…')
         self.log(f'⚫️ *{self.user.name}* открывает сферы артефактов титанов…')
 
         for amount in [10, 1]:
@@ -736,7 +723,6 @@ class Bot:
         """
         Выставляет в защиту гранд-арены топ-15 героев в случайном порядке.
         """
-        logger.info('Randomizing grand defenders…')
         self.log(f'🎲️ *{self.user.name}* изменяет защитников арены…')
 
         heroes = naive_select_attackers(self.api.get_all_heroes(), count=constants.N_GRAND_HEROES)
@@ -752,7 +738,6 @@ class Bot:
         """
         Зачаровать руну.
         """
-        logger.info('Enchant rune…')
         self.log(f'🕉 *{self.user.name}* зачаровывает руну…')
 
         result = self.api.enchant_hero_rune(
@@ -768,7 +753,6 @@ class Bot:
         """
         Вложить и сбросить искры самому слабому герою.
         """
-        logger.info('Level up and drop titan hero gift…')
         self.log(f'⚡️ *{self.user.name}* вкладывает и сбрасывает искры мощи…')
 
         hero = min(self.api.get_all_heroes(), key=attrgetter('power'))
@@ -840,3 +824,23 @@ class Bot:
 
         self.log(f'🚇️ *{self.user.name}* сходил в подземелье.')
         self.farm_quests()
+
+    def hall_of_fame(self):
+        """
+        Турнир Стихий.
+        """
+        self.log(f'💨 *{self.user.name}* идет в Турнир Стихий…')
+
+        weekday = now().weekday()
+
+        if weekday == SATURDAY:
+            logger.info('Farming reward today…')
+            hall_of_fame = self.api.get_hall_of_fame()
+            reward = self.api.farm_hall_of_fame_trophy_reward(hall_of_fame.trophy.week)
+            with self.logger:
+                self.logger.append(f'💨 *{self.user.name}* получил в Турнире Стихий:\n')
+                reward.log(self.logger)
+        else:
+            logger.info('Doing nothing today.')
+
+        self.log(f'💨 *{self.user.name}* закончил Турнир Стихий.')
