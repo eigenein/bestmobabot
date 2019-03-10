@@ -47,6 +47,15 @@ class ArenaSolution(Loggable):
             for hero in sorted(attackers, reverse=True):
                 yield str(hero)
 
+    @property
+    def markdown(self) -> Iterable[str]:
+        yield f'*{self.enemy.user.name}* из клана *{self.enemy.user.clan_title}*'
+        yield f'Место: *{self.enemy.place}*'
+        yield ' '.join([
+            f'Вероятность победы: *{100.0 * self.probability:.1f}%*',
+            f'({" ".join(f"*{100 * probability:.1f}%*" for probability in self.probabilities)})',
+        ])
+
     def __lt__(self, other: ArenaSolution) -> Any:
         if isinstance(other, ArenaSolution):
             return self.probability < other.probability

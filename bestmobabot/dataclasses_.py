@@ -109,6 +109,37 @@ class Reward(BaseModel, Loggable):
         for hero_id, value in self.titan_fragment.items():
             yield f'{value} × «{resources.hero_name(hero_id)}» titan fragment'
 
+    @property
+    def markdown(self) -> Iterable[str]:
+        if self.stamina:
+            yield f'*{self.stamina}* × энергия'
+        if self.gold:
+            yield f'*{self.gold}* × золото'
+        if self.experience:
+            yield f'*{self.experience}* × опыт'
+        if self.star_money:
+            yield f'*{self.star_money}* × изумруды'
+        if self.dungeon_activity:
+            yield f'*{self.dungeon_activity}* × титанит'
+        for consumable_id, value in self.consumable.items():
+            yield f'{value} × *{resources.consumable_name(consumable_id)}*'
+        for coin_id, value in self.coin.items():
+            yield f'{value} × *{resources.coin_name(coin_id)}*'
+        for hero_id, value in self.hero_fragment.items():
+            yield f'{value} × камень души *{resources.hero_name(hero_id)}*'
+        for artifact_id, value in self.artifact_fragment.items():
+            yield f'{value} × фрагмент *{resources.artifact_name(artifact_id)}*'
+        for gear_id, value in self.gear_fragment.items():
+            yield f'{value} × фрагмент *{resources.gear_name(gear_id)}*'
+        for gear_id, value in self.gear.items():
+            yield f'{value} × *{resources.gear_name(gear_id)}*'
+        for scroll_id, value in self.scroll_fragment.items():
+            yield f'{value} × фрагмент *{resources.scroll_name(scroll_id)}*'
+        for artifact_id, value in self.titan_artifact_fragment.items():
+            yield f'{value} × фрагмент *{resources.titan_artifact_name(artifact_id)}*'
+        for hero_id, value in self.titan_fragment.items():
+            yield f'{value} × камень души *{resources.hero_name(hero_id)}*'
+
 
 class LibraryMission(BaseModel):
     id: str
@@ -302,7 +333,7 @@ class ArenaState(BaseModel, Loggable):
         if self.arena_place:
             yield f'Место на арене: *{self.arena_place}*'
         if self.grand_place:
-            yield f'Место на гранд-арене: {self.grand_place}'
+            yield f'Место на гранд-арене: *{self.grand_place}*'
         yield f'Рейтинг: *{100.0 * (self.wins / self.battles):.2f}%*'
 
 

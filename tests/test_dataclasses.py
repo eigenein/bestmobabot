@@ -13,6 +13,9 @@ def test_library():
 
 @mark.parametrize('response', [
     # language=json
+    r'{}',
+
+    # language=json
     '{"consumable":{"24":250}}',
 
     # language=json
@@ -65,11 +68,3 @@ def test_end_dungeon_battle_response(response: str):
 ])
 def test_titan(response: str):
     dataclasses_.Titan.parse_obj(loads(response))
-
-
-@mark.parametrize('response', [
-    # language=json
-    r'{}',
-])
-def test_reward(response: str):
-    dataclasses_.Reward.parse_obj(loads(response))
