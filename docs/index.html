@@ -1,0 +1,1032 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Dungeon - bestmobabot</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+    </head>
+    <body class="light">
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { } 
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            document.body.className = theme;
+            document.querySelector('html').className = theme + ' js';
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <ol class="chapter"><li><a href="dungeon.html"><strong aria-hidden="true">1.</strong> Dungeon</a></li><li><a href="enchant-rune.html"><strong aria-hidden="true">2.</strong> Enchant Rune</a></li><li><a href="hall-of-fame.html"><strong aria-hidden="true">3.</strong> Hall of Fame</a></li><li><a href="hero-titan-gift-level-up.html"><strong aria-hidden="true">4.</strong> Hero Titan Gift Level Up</a></li></ol>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar" class="menu-bar">
+                    <div id="menu-bar-sticky-container">
+                        <div class="left-buttons">
+                            <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                                <i class="fa fa-bars"></i>
+                            </button>
+                            <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                                <i class="fa fa-paint-brush"></i>
+                            </button>
+                            <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                                <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            </ul>
+                            
+                            <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                                <i class="fa fa-search"></i>
+                            </button>
+                            
+                        </div>
+
+                        <h1 class="menu-title">bestmobabot</h1> 
+
+                        <div class="right-buttons">
+                            <a href="print.html" title="Print this book" aria-label="Print this book">
+                                <i id="print-button" class="fa fa-print"></i>
+                            </a>
+                            
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <a class="header" href="#dungeon" id="dungeon"><h1>Dungeon</h1></a>
+<a class="header" href="#clangetactivitystat" id="clangetactivitystat"><h2><code>clanGetActivityStat</code></h2></a>
+<pre><code class="language-json">{&quot;name&quot;:&quot;clanGetActivityStat&quot;,&quot;args&quot;:{},&quot;ident&quot;:&quot;group_1_body&quot;}
+</code></pre>
+<pre><code class="language-json">{&quot;clanActivity&quot;:8918,&quot;dungeonActivity&quot;:842,&quot;stat&quot;:{&quot;todayActivity&quot;:148,&quot;activitySum&quot;:148,&quot;dungeonActivitySum&quot;:150,&quot;todayRaid&quot;:[],&quot;todayItemsActivity&quot;:0,&quot;todayDungeonActivity&quot;:150,&quot;activityForRuneAvailable&quot;:false}}
+</code></pre>
+<a class="header" href="#titangetall" id="titangetall"><h2><code>titanGetAll</code></h2></a>
+<pre><code class="language-json">{&quot;ident&quot;:&quot;titanGetAll&quot;,&quot;result&quot;:{&quot;response&quot;:{&quot;4001&quot;:{&quot;id&quot;:4001,&quot;xp&quot;:30420,&quot;level&quot;:54,&quot;star&quot;:4,&quot;skills&quot;:{&quot;4003&quot;:54},&quot;power&quot;:12648,&quot;artifacts&quot;:[{&quot;level&quot;:34,&quot;star&quot;:2},{&quot;level&quot;:1,&quot;star&quot;:1},{&quot;level&quot;:1,&quot;star&quot;:1}],&quot;scale&quot;:0.80000000000000004},&quot;4020&quot;:{&quot;id&quot;:4020,&quot;xp&quot;:32210,&quot;level&quot;:55,&quot;star&quot;:4,&quot;skills&quot;:{&quot;4019&quot;:55},&quot;power&quot;:14063,&quot;artifacts&quot;:[{&quot;level&quot;:43,&quot;star&quot;:2},{&quot;level&quot;:4,&quot;star&quot;:2},{&quot;level&quot;:10,&quot;star&quot;:1}],&quot;scale&quot;:0.80000000000000004},&quot;4002&quot;:{&quot;id&quot;:4002,&quot;xp&quot;:6580,&quot;level&quot;:29,&quot;star&quot;:3,&quot;skills&quot;:{&quot;4005&quot;:29},&quot;power&quot;:3333,&quot;artifacts&quot;:[{&quot;level&quot;:1,&quot;star&quot;:0},{&quot;level&quot;:1,&quot;star&quot;:0},{&quot;level&quot;:1,&quot;star&quot;:0}],&quot;scale&quot;:0.80000000000000004},&quot;4010&quot;:{&quot;id&quot;:4010,&quot;xp&quot;:32210,&quot;level&quot;:55,&quot;star&quot;:3,&quot;skills&quot;:{&quot;4010&quot;:55},&quot;power&quot;:11042,&quot;artifacts&quot;:[{&quot;level&quot;:42,&quot;star&quot;:1},{&quot;level&quot;:10,&quot;star&quot;:1},{&quot;level&quot;:1,&quot;star&quot;:1}],&quot;scale&quot;:0.80000000000000004},&quot;4012&quot;:{&quot;id&quot;:4012,&quot;xp&quot;:30420,&quot;level&quot;:54,&quot;star&quot;:4,&quot;skills&quot;:{&quot;4014&quot;:54},&quot;power&quot;:12653,&quot;artifacts&quot;:[{&quot;level&quot;:28,&quot;star&quot;:3},{&quot;level&quot;:3,&quot;star&quot;:1},{&quot;level&quot;:2,&quot;star&quot;:1}],&quot;scale&quot;:0.80000000000000004},&quot;4011&quot;:{&quot;id&quot;:4011,&quot;xp&quot;:2310,&quot;level&quot;:15,&quot;star&quot;:2,&quot;skills&quot;:{&quot;4012&quot;:15},&quot;power&quot;:1015,&quot;artifacts&quot;:[{&quot;level&quot;:1,&quot;star&quot;:0},{&quot;level&quot;:1,&quot;star&quot;:0},{&quot;level&quot;:1,&quot;star&quot;:0}],&quot;scale&quot;:0.80000000000000004},&quot;4022&quot;:{&quot;id&quot;:4022,&quot;xp&quot;:3060,&quot;level&quot;:18,&quot;star&quot;:2,&quot;skills&quot;:{&quot;4023&quot;:18},&quot;power&quot;:1290,&quot;artifacts&quot;:[{&quot;level&quot;:1,&quot;star&quot;:0},{&quot;level&quot;:1,&quot;star&quot;:0},{&quot;level&quot;:1,&quot;star&quot;:0}],&quot;scale&quot;:0.80000000000000004},&quot;4000&quot;:{&quot;id&quot;:4000,&quot;xp&quot;:19200,&quot;level&quot;:46,&quot;star&quot;:3,&quot;skills&quot;:{&quot;4001&quot;:46},&quot;power&quot;:8545,&quot;artifacts&quot;:[{&quot;level&quot;:37,&quot;star&quot;:1},{&quot;level&quot;:7,&quot;star&quot;:1},{&quot;level&quot;:2,&quot;star&quot;:1}],&quot;scale&quot;:0.80000000000000004},&quot;4013&quot;:{&quot;id&quot;:4013,&quot;xp&quot;:32210,&quot;level&quot;:55,&quot;star&quot;:3,&quot;skills&quot;:{&quot;4016&quot;:55,&quot;4017&quot;:55},&quot;power&quot;:11260,&quot;artifacts&quot;:[{&quot;level&quot;:37,&quot;star&quot;:3},{&quot;level&quot;:7,&quot;star&quot;:1},{&quot;level&quot;:1,&quot;star&quot;:1}],&quot;scale&quot;:0.80000000000000004},&quot;4021&quot;:{&quot;id&quot;:4021,&quot;xp&quot;:0,&quot;level&quot;:1,&quot;star&quot;:2,&quot;skills&quot;:{&quot;4021&quot;:1},&quot;power&quot;:162,&quot;artifacts&quot;:[{&quot;level&quot;:1,&quot;star&quot;:0},{&quot;level&quot;:1,&quot;star&quot;:0},{&quot;level&quot;:1,&quot;star&quot;:0}],&quot;scale&quot;:0.80000000000000004}}}}
+</code></pre>
+<a class="header" href="#dungeongetinfo" id="dungeongetinfo"><h2><code>dungeonGetInfo</code></h2></a>
+<pre><code class="language-json">{&quot;name&quot;:&quot;dungeonGetInfo&quot;,&quot;args&quot;:{},&quot;ident&quot;:&quot;group_1_body&quot;}
+</code></pre>
+<pre><code class="language-json">{
+    &quot;date&quot;: 1551616579.361306,
+    &quot;results&quot;: [
+        {
+            &quot;ident&quot;: &quot;group_0_body&quot;,
+            &quot;result&quot;: {
+                &quot;response&quot;: [
+                    true
+                ]
+            }
+        },
+        {
+            &quot;ident&quot;: &quot;group_1_body&quot;,
+            &quot;result&quot;: {
+                &quot;response&quot;: {
+                    &quot;userId&quot;: &quot;833061&quot;,
+                    &quot;elements&quot;: {
+                        &quot;prime&quot;: &quot;fire&quot;,
+                        &quot;nonprime&quot;: [
+                            &quot;water&quot;,
+                            &quot;earth&quot;
+                        ]
+                    },
+                    &quot;respawnFloor&quot;: &quot;221&quot;,
+                    &quot;floorNumber&quot;: &quot;221&quot;,
+                    &quot;floorType&quot;: &quot;battle&quot;,
+                    &quot;states&quot;: {
+                        &quot;titans&quot;: []
+                    },
+                    &quot;floor&quot;: {
+                        &quot;userData&quot;: [
+                            {
+                                &quot;defenderType&quot;: &quot;hero&quot;,
+                                &quot;chance&quot;: 1,
+                                &quot;arenaHeroesPacked&quot;: &quot;p:[{\&quot;color\&quot;:4,\&quot;id\&quot;:\&quot;4\&quot;,\&quot;level\&quot;:\&quot;39\&quot;,\&quot;star\&quot;:\&quot;3\&quot;},{\&quot;color\&quot;:4,\&quot;id\&quot;:\&quot;1\&quot;,\&quot;level\&quot;:\&quot;39\&quot;,\&quot;star\&quot;:\&quot;2\&quot;},{\&quot;color\&quot;:4,\&quot;id\&quot;:\&quot;9\&quot;,\&quot;level\&quot;:\&quot;39\&quot;,\&quot;star\&quot;:\&quot;1\&quot;},{\&quot;color\&quot;:4,\&quot;id\&quot;:\&quot;5\&quot;,\&quot;level\&quot;:\&quot;39\&quot;,\&quot;star\&quot;:\&quot;3\&quot;},{\&quot;color\&quot;:4,\&quot;id\&quot;:\&quot;19\&quot;,\&quot;level\&quot;:\&quot;39\&quot;,\&quot;star\&quot;:\&quot;3\&quot;}]&quot;,
+                                &quot;userId&quot;: &quot;-560009&quot;,
+                                &quot;team&quot;: [
+                                    {
+                                        &quot;color&quot;: 4,
+                                        &quot;id&quot;: &quot;4&quot;,
+                                        &quot;level&quot;: &quot;39&quot;,
+                                        &quot;star&quot;: &quot;3&quot;
+                                    },
+                                    {
+                                        &quot;color&quot;: 4,
+                                        &quot;id&quot;: &quot;1&quot;,
+                                        &quot;level&quot;: &quot;39&quot;,
+                                        &quot;star&quot;: &quot;2&quot;
+                                    },
+                                    {
+                                        &quot;color&quot;: 4,
+                                        &quot;id&quot;: &quot;9&quot;,
+                                        &quot;level&quot;: &quot;39&quot;,
+                                        &quot;star&quot;: &quot;1&quot;
+                                    },
+                                    {
+                                        &quot;color&quot;: 4,
+                                        &quot;id&quot;: &quot;5&quot;,
+                                        &quot;level&quot;: &quot;39&quot;,
+                                        &quot;star&quot;: &quot;3&quot;
+                                    },
+                                    {
+                                        &quot;color&quot;: 4,
+                                        &quot;id&quot;: &quot;19&quot;,
+                                        &quot;level&quot;: &quot;39&quot;,
+                                        &quot;star&quot;: &quot;3&quot;
+                                    }
+                                ],
+                                &quot;delta&quot;: 770,
+                                &quot;needPower&quot;: 25679,
+                                &quot;power&quot;: &quot;24961&quot;,
+                                &quot;attackerType&quot;: &quot;hero&quot;
+                            }
+                        ],
+                        &quot;defenders&quot;: [],
+                        &quot;state&quot;: 1
+                    },
+                    &quot;reward&quot;: [],
+                    &quot;maxFloorReached&quot;: &quot;230&quot;
+                }
+            }
+        }
+    ]
+}
+</code></pre>
+<pre><code class="language-json">{
+    &quot;date&quot;: 1551651295.916583,
+    &quot;results&quot;: [
+        {
+            &quot;ident&quot;: &quot;body&quot;,
+            &quot;result&quot;: {
+                &quot;response&quot;: {
+                    &quot;userId&quot;: &quot;833061&quot;,
+                    &quot;elements&quot;: {
+                        &quot;prime&quot;: &quot;fire&quot;,
+                        &quot;nonprime&quot;: [
+                            &quot;water&quot;,
+                            &quot;earth&quot;
+                        ]
+                    },
+                    &quot;respawnFloor&quot;: &quot;231&quot;,
+                    &quot;floorNumber&quot;: &quot;250&quot;,
+                    &quot;floorType&quot;: &quot;battle&quot;,
+                    &quot;states&quot;: {
+                        &quot;titans&quot;: {
+                            &quot;4011&quot;: {
+                                &quot;hp&quot;: 70340,
+                                &quot;energy&quot;: 200,
+                                &quot;isDead&quot;: false,
+                                &quot;maxHp&quot;: 70340
+                            },
+                            &quot;4010&quot;: {
+                                &quot;hp&quot;: 639100,
+                                &quot;energy&quot;: 629,
+                                &quot;isDead&quot;: false,
+                                &quot;maxHp&quot;: 750366
+                            },
+                            &quot;4013&quot;: {
+                                &quot;hp&quot;: 706524,
+                                &quot;energy&quot;: 600,
+                                &quot;isDead&quot;: false,
+                                &quot;maxHp&quot;: 706524
+                            },
+                            &quot;4012&quot;: {
+                                &quot;hp&quot;: 862389,
+                                &quot;energy&quot;: 1000,
+                                &quot;isDead&quot;: false,
+                                &quot;maxHp&quot;: 862389
+                            },
+                            &quot;4021&quot;: {
+                                &quot;hp&quot;: 17559,
+                                &quot;energy&quot;: 600,
+                                &quot;isDead&quot;: false,
+                                &quot;maxHp&quot;: 17559
+                            },
+                            &quot;4022&quot;: {
+                                &quot;hp&quot;: 151766,
+                                &quot;energy&quot;: 800,
+                                &quot;isDead&quot;: false,
+                                &quot;maxHp&quot;: 151766
+                            },
+                            &quot;4020&quot;: {
+                                &quot;hp&quot;: 1258064,
+                                &quot;energy&quot;: 709,
+                                &quot;isDead&quot;: false,
+                                &quot;maxHp&quot;: 1554744
+                            },
+                            &quot;4002&quot;: {
+                                &quot;hp&quot;: 326806,
+                                &quot;energy&quot;: 400,
+                                &quot;isDead&quot;: false,
+                                &quot;maxHp&quot;: 326806
+                            },
+                            &quot;4001&quot;: {
+                                &quot;hp&quot;: 967440,
+                                &quot;energy&quot;: 200,
+                                &quot;isDead&quot;: false,
+                                &quot;maxHp&quot;: 967440
+                            },
+                            &quot;4000&quot;: {
+                                &quot;hp&quot;: 436523,
+                                &quot;energy&quot;: 941,
+                                &quot;isDead&quot;: false,
+                                &quot;maxHp&quot;: 708451
+                            }
+                        }
+                    },
+                    &quot;floor&quot;: {
+                        &quot;userData&quot;: [
+                            {
+                                &quot;defenderType&quot;: &quot;water&quot;,
+                                &quot;chance&quot;: 50,
+                                &quot;team&quot;: [
+                                    {
+                                        &quot;id&quot;: 4002,
+                                        &quot;level&quot;: 26,
+                                        &quot;star&quot;: 2
+                                    },
+                                    {
+                                        &quot;id&quot;: 4000,
+                                        &quot;level&quot;: 27,
+                                        &quot;star&quot;: 2
+                                    }
+                                ],
+                                &quot;userId&quot;: -1000915,
+                                &quot;power&quot;: 4377,
+                                &quot;attackerType&quot;: &quot;earth&quot;
+                            },
+                            {
+                                &quot;defenderType&quot;: &quot;fire&quot;,
+                                &quot;chance&quot;: 50,
+                                &quot;team&quot;: [
+                                    {
+                                        &quot;id&quot;: 4012,
+                                        &quot;level&quot;: 26,
+                                        &quot;star&quot;: 2,
+                                        &quot;buffs&quot;: {
+                                            &quot;hp&quot;: 3480.3921568627447,
+                                            &quot;physicalAttack&quot;: 261.02941176470586
+                                        }
+                                    },
+                                    {
+                                        &quot;id&quot;: 4010,
+                                        &quot;level&quot;: 26,
+                                        &quot;star&quot;: 2,
+                                        &quot;buffs&quot;: {
+                                            &quot;hp&quot;: 3480.3921568627447,
+                                            &quot;physicalAttack&quot;: 261.02941176470586
+                                        }
+                                    }
+                                ],
+                                &quot;userId&quot;: -2000890,
+                                &quot;power&quot;: 4330,
+                                &quot;attackerType&quot;: &quot;water&quot;
+                            }
+                        ],
+                        &quot;defenders&quot;: {
+                            &quot;1&quot;: [
+                                []
+                            ]
+                        },
+                        &quot;state&quot;: 2
+                    },
+                    &quot;reward&quot;: [],
+                    &quot;maxFloorReached&quot;: &quot;250&quot;
+                }
+            }
+        }
+    ]
+}
+</code></pre>
+<a class="header" href="#dungeonstartbattle" id="dungeonstartbattle"><h2><code>dungeonStartBattle</code></h2></a>
+<pre><code class="language-json">{&quot;calls&quot;:[{&quot;name&quot;:&quot;dungeonStartBattle&quot;,&quot;args&quot;:{&quot;heroes&quot;:[39,25,35,13,29],&quot;teamNum&quot;:0},&quot;ident&quot;:&quot;body&quot;}]}
+</code></pre>
+<pre><code class="language-json">{&quot;name&quot;:&quot;dungeonStartBattle&quot;,&quot;args&quot;:{&quot;heroes&quot;:[4021,4022,4020],&quot;teamNum&quot;:0},&quot;ident&quot;:&quot;group_1_body&quot;}
+</code></pre>
+<pre><code class="language-json">{&quot;name&quot;:&quot;dungeonStartBattle&quot;,&quot;args&quot;:{&quot;heroes&quot;:[4021,4022,4020],&quot;teamNum&quot;:1},&quot;ident&quot;:&quot;group_1_body&quot;}
+</code></pre>
+<a class="header" href="#dungeonendbattle" id="dungeonendbattle"><h2><code>dungeonEndBattle</code></h2></a>
+<pre><code class="language-json">{
+    &quot;date&quot;: 1551617810.169543,
+    &quot;results&quot;: [
+        {
+            &quot;ident&quot;: &quot;body&quot;,
+            &quot;result&quot;: {
+                &quot;response&quot;: {
+                    &quot;reward&quot;: {
+                        &quot;dungeonActivity&quot;: 1,
+                        &quot;consumable&quot;: {
+                            &quot;20&quot;: 25
+                        }
+                    },
+                    &quot;rewardMultiplier&quot;: 1,
+                    &quot;dungeon&quot;: {
+                        &quot;userId&quot;: &quot;833061&quot;,
+                        &quot;elements&quot;: {
+                            &quot;prime&quot;: &quot;fire&quot;,
+                            &quot;nonprime&quot;: [
+                                &quot;water&quot;,
+                                &quot;earth&quot;
+                            ]
+                        },
+                        &quot;respawnFloor&quot;: &quot;221&quot;,
+                        &quot;floorNumber&quot;: 222,
+                        &quot;floorType&quot;: &quot;battle&quot;,
+                        &quot;states&quot;: {
+                            &quot;titans&quot;: []
+                        },
+                        &quot;floor&quot;: {
+                            &quot;userData&quot;: [
+                                {
+                                    &quot;defenderType&quot;: &quot;earth&quot;,
+                                    &quot;chance&quot;: 75,
+                                    &quot;team&quot;: [
+                                        {
+                                            &quot;id&quot;: 4022,
+                                            &quot;level&quot;: 30,
+                                            &quot;star&quot;: 1
+                                        },
+                                        {
+                                            &quot;id&quot;: 4020,
+                                            &quot;level&quot;: 30,
+                                            &quot;star&quot;: 1
+                                        }
+                                    ],
+                                    &quot;userId&quot;: -3000687,
+                                    &quot;power&quot;: 3645,
+                                    &quot;attackerType&quot;: &quot;fire&quot;
+                                }
+                            ],
+                            &quot;defenders&quot;: [],
+                            &quot;state&quot;: 1
+                        },
+                        &quot;reward&quot;: [],
+                        &quot;maxFloorReached&quot;: &quot;230&quot;
+                    },
+                    &quot;states&quot;: {
+                        &quot;titans&quot;: []
+                    },
+                    &quot;dungeonActivity&quot;: 432
+                },
+                &quot;quests&quot;: [
+                    {
+                        &quot;id&quot;: 10021,
+                        &quot;state&quot;: 1,
+                        &quot;progress&quot;: 1,
+                        &quot;reward&quot;: {
+                            &quot;coin&quot;: {
+                                &quot;13&quot;: &quot;1&quot;
+                            }
+                        }
+                    },
+                    {
+                        &quot;id&quot;: 10022,
+                        &quot;state&quot;: 1,
+                        &quot;progress&quot;: 1,
+                        &quot;reward&quot;: {
+                            &quot;coin&quot;: {
+                                &quot;13&quot;: &quot;2&quot;
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}
+</code></pre>
+<pre><code class="language-json">{
+    &quot;date&quot;: 1551619371.579586,
+    &quot;results&quot;: [
+        {
+            &quot;ident&quot;: &quot;group_0_body&quot;,
+            &quot;result&quot;: {
+                &quot;response&quot;: [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ]
+            }
+        },
+        {
+            &quot;ident&quot;: &quot;group_1_body&quot;,
+            &quot;result&quot;: {
+                &quot;response&quot;: {
+                    &quot;reward&quot;: {
+                        &quot;dungeonActivity&quot;: 1,
+                        &quot;consumable&quot;: {
+                            &quot;20&quot;: 25
+                        }
+                    },
+                    &quot;rewardMultiplier&quot;: 1,
+                    &quot;dungeon&quot;: {
+                        &quot;userId&quot;: &quot;833061&quot;,
+                        &quot;elements&quot;: {
+                            &quot;prime&quot;: &quot;fire&quot;,
+                            &quot;nonprime&quot;: [
+                                &quot;water&quot;,
+                                &quot;earth&quot;
+                            ]
+                        },
+                        &quot;respawnFloor&quot;: &quot;221&quot;,
+                        &quot;floorNumber&quot;: 225,
+                        &quot;floorType&quot;: &quot;battle&quot;,
+                        &quot;states&quot;: {
+                            &quot;titans&quot;: {
+                                &quot;4011&quot;: {
+                                    &quot;hp&quot;: 51226,
+                                    &quot;energy&quot;: 400,
+                                    &quot;isDead&quot;: false,
+                                    &quot;maxHp&quot;: 51226
+                                },
+                                &quot;4010&quot;: {
+                                    &quot;hp&quot;: 700916,
+                                    &quot;energy&quot;: 419,
+                                    &quot;isDead&quot;: false,
+                                    &quot;maxHp&quot;: 730477
+                                },
+                                &quot;4013&quot;: {
+                                    &quot;hp&quot;: 706524,
+                                    &quot;energy&quot;: 600,
+                                    &quot;isDead&quot;: false,
+                                    &quot;maxHp&quot;: 706524
+                                },
+                                &quot;4012&quot;: {
+                                    &quot;hp&quot;: 862389,
+                                    &quot;energy&quot;: 1000,
+                                    &quot;isDead&quot;: false,
+                                    &quot;maxHp&quot;: 862389
+                                }
+                            }
+                        },
+                        &quot;floor&quot;: {
+                            &quot;userData&quot;: [
+                                {
+                                    &quot;defenderType&quot;: &quot;water&quot;,
+                                    &quot;chance&quot;: 50,
+                                    &quot;team&quot;: [
+                                        {
+                                            &quot;id&quot;: 4000,
+                                            &quot;level&quot;: 30,
+                                            &quot;star&quot;: 1
+                                        },
+                                        {
+                                            &quot;id&quot;: 4001,
+                                            &quot;level&quot;: 31,
+                                            &quot;star&quot;: 1
+                                        }
+                                    ],
+                                    &quot;userId&quot;: -1000754,
+                                    &quot;power&quot;: 3742,
+                                    &quot;attackerType&quot;: &quot;earth&quot;
+                                },
+                                {
+                                    &quot;defenderType&quot;: &quot;neutral&quot;,
+                                    &quot;chance&quot;: 50,
+                                    &quot;team&quot;: [
+                                        {
+                                            &quot;id&quot;: 4002,
+                                            &quot;level&quot;: 31,
+                                            &quot;star&quot;: 1
+                                        },
+                                        {
+                                            &quot;id&quot;: 4021,
+                                            &quot;level&quot;: 31,
+                                            &quot;star&quot;: 1
+                                        }
+                                    ],
+                                    &quot;userId&quot;: -4000703,
+                                    &quot;power&quot;: 3811,
+                                    &quot;attackerType&quot;: &quot;neutral&quot;
+                                }
+                            ],
+                            &quot;defenders&quot;: [],
+                            &quot;state&quot;: 1
+                        },
+                        &quot;reward&quot;: [],
+                        &quot;maxFloorReached&quot;: &quot;230&quot;
+                    },
+                    &quot;states&quot;: {
+                        &quot;titans&quot;: {
+                            &quot;4011&quot;: {
+                                &quot;hp&quot;: 51226,
+                                &quot;energy&quot;: 400,
+                                &quot;isDead&quot;: false,
+                                &quot;maxHp&quot;: 51226
+                            },
+                            &quot;4010&quot;: {
+                                &quot;hp&quot;: 700916,
+                                &quot;energy&quot;: 419,
+                                &quot;isDead&quot;: false,
+                                &quot;maxHp&quot;: 730477
+                            },
+                            &quot;4013&quot;: {
+                                &quot;hp&quot;: 706524,
+                                &quot;energy&quot;: 600,
+                                &quot;isDead&quot;: false,
+                                &quot;maxHp&quot;: 706524
+                            },
+                            &quot;4012&quot;: {
+                                &quot;hp&quot;: 862389,
+                                &quot;energy&quot;: 1000,
+                                &quot;isDead&quot;: false,
+                                &quot;maxHp&quot;: 862389
+                            }
+                        }
+                    },
+                    &quot;dungeonActivity&quot;: 443
+                },
+                &quot;quests&quot;: [
+                    {
+                        &quot;id&quot;: 10021,
+                        &quot;state&quot;: 1,
+                        &quot;progress&quot;: 8,
+                        &quot;reward&quot;: {
+                            &quot;coin&quot;: {
+                                &quot;13&quot;: &quot;1&quot;
+                            }
+                        }
+                    },
+                    {
+                        &quot;id&quot;: 10022,
+                        &quot;state&quot;: 1,
+                        &quot;progress&quot;: 8,
+                        &quot;reward&quot;: {
+                            &quot;coin&quot;: {
+                                &quot;13&quot;: &quot;2&quot;
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}
+</code></pre>
+<pre><code class="language-json">{
+    &quot;date&quot;: 1551630357.287681,
+    &quot;results&quot;: [
+        {
+            &quot;ident&quot;: &quot;body&quot;,
+            &quot;result&quot;: {
+                &quot;response&quot;: {
+                    &quot;reward&quot;: {
+                        &quot;dungeonActivity&quot;: 10,
+                        &quot;fragmentTitan&quot;: {
+                            &quot;4021&quot;: 2
+                        }
+                    },
+                    &quot;rewardMultiplier&quot;: 2,
+                    &quot;states&quot;: {
+                        &quot;titans&quot;: {
+                            &quot;4011&quot;: {
+                                &quot;hp&quot;: 51226,
+                                &quot;energy&quot;: 600,
+                                &quot;isDead&quot;: false,
+                                &quot;maxHp&quot;: 51226
+                            },
+                            &quot;4010&quot;: {
+                                &quot;hp&quot;: 669236,
+                                &quot;energy&quot;: 1000,
+                                &quot;isDead&quot;: false,
+                                &quot;maxHp&quot;: 730477
+                            },
+                            &quot;4013&quot;: {
+                                &quot;hp&quot;: 706524,
+                                &quot;energy&quot;: 200,
+                                &quot;isDead&quot;: false,
+                                &quot;maxHp&quot;: 706524
+                            },
+                            &quot;4012&quot;: {
+                                &quot;hp&quot;: 862389,
+                                &quot;energy&quot;: 700,
+                                &quot;isDead&quot;: false,
+                                &quot;maxHp&quot;: 862389
+                            },
+                            &quot;4021&quot;: {
+                                &quot;hp&quot;: 17045,
+                                &quot;energy&quot;: 1000,
+                                &quot;isDead&quot;: false,
+                                &quot;maxHp&quot;: 17045
+                            },
+                            &quot;4022&quot;: {
+                                &quot;hp&quot;: 109001,
+                                &quot;energy&quot;: 1000,
+                                &quot;isDead&quot;: false,
+                                &quot;maxHp&quot;: 109001
+                            },
+                            &quot;4020&quot;: {
+                                &quot;hp&quot;: 1326222,
+                                &quot;energy&quot;: 500,
+                                &quot;isDead&quot;: false,
+                                &quot;maxHp&quot;: 1554744
+                            },
+                            &quot;4002&quot;: {
+                                &quot;hp&quot;: 243568,
+                                &quot;energy&quot;: 200,
+                                &quot;isDead&quot;: false,
+                                &quot;maxHp&quot;: 243568
+                            },
+                            &quot;4001&quot;: {
+                                &quot;hp&quot;: 967440,
+                                &quot;energy&quot;: 1000,
+                                &quot;isDead&quot;: false,
+                                &quot;maxHp&quot;: 967440
+                            },
+                            &quot;4000&quot;: {
+                                &quot;hp&quot;: 382462,
+                                &quot;energy&quot;: 861,
+                                &quot;isDead&quot;: false,
+                                &quot;maxHp&quot;: 525315
+                            }
+                        }
+                    },
+                    &quot;dungeonActivity&quot;: 624
+                },
+                &quot;quests&quot;: [
+                    {
+                        &quot;id&quot;: 10021,
+                        &quot;state&quot;: 2,
+                        &quot;progress&quot;: 90,
+                        &quot;reward&quot;: {
+                            &quot;coin&quot;: {
+                                &quot;13&quot;: &quot;1&quot;
+                            }
+                        }
+                    },
+                    {
+                        &quot;id&quot;: 10022,
+                        &quot;state&quot;: 1,
+                        &quot;progress&quot;: 90,
+                        &quot;reward&quot;: {
+                            &quot;coin&quot;: {
+                                &quot;13&quot;: &quot;2&quot;
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}
+</code></pre>
+<a class="header" href="#dungeonsaveprogress" id="dungeonsaveprogress"><h2><code>dungeonSaveProgress</code></h2></a>
+<pre><code class="language-json">{&quot;calls&quot;:[{&quot;name&quot;:&quot;dungeonSaveProgress&quot;,&quot;args&quot;:{},&quot;ident&quot;:&quot;body&quot;}]}
+</code></pre>
+<pre><code class="language-json">{
+    &quot;date&quot;: 1551630539.122356,
+    &quot;results&quot;: [
+        {
+            &quot;ident&quot;: &quot;body&quot;,
+            &quot;result&quot;: {
+                &quot;response&quot;: {
+                    &quot;reward&quot;: {
+                        &quot;gold&quot;: 17200
+                    },
+                    &quot;dungeon&quot;: {
+                        &quot;userId&quot;: &quot;833061&quot;,
+                        &quot;elements&quot;: {
+                            &quot;prime&quot;: &quot;fire&quot;,
+                            &quot;nonprime&quot;: [
+                                &quot;water&quot;,
+                                &quot;earth&quot;
+                            ]
+                        },
+                        &quot;respawnFloor&quot;: &quot;231&quot;,
+                        &quot;floorNumber&quot;: 241,
+                        &quot;floorType&quot;: &quot;battle&quot;,
+                        &quot;states&quot;: {
+                            &quot;titans&quot;: {
+                                &quot;4011&quot;: {
+                                    &quot;hp&quot;: 51226,
+                                    &quot;energy&quot;: 600,
+                                    &quot;isDead&quot;: false,
+                                    &quot;maxHp&quot;: 51226
+                                },
+                                &quot;4010&quot;: {
+                                    &quot;hp&quot;: 669236,
+                                    &quot;energy&quot;: 1000,
+                                    &quot;isDead&quot;: false,
+                                    &quot;maxHp&quot;: 730477
+                                },
+                                &quot;4013&quot;: {
+                                    &quot;hp&quot;: 706524,
+                                    &quot;energy&quot;: 200,
+                                    &quot;isDead&quot;: false,
+                                    &quot;maxHp&quot;: 706524
+                                },
+                                &quot;4012&quot;: {
+                                    &quot;hp&quot;: 862389,
+                                    &quot;energy&quot;: 700,
+                                    &quot;isDead&quot;: false,
+                                    &quot;maxHp&quot;: 862389
+                                },
+                                &quot;4021&quot;: {
+                                    &quot;hp&quot;: 17045,
+                                    &quot;energy&quot;: 1000,
+                                    &quot;isDead&quot;: false,
+                                    &quot;maxHp&quot;: 17045
+                                },
+                                &quot;4022&quot;: {
+                                    &quot;hp&quot;: 109001,
+                                    &quot;energy&quot;: 1000,
+                                    &quot;isDead&quot;: false,
+                                    &quot;maxHp&quot;: 109001
+                                },
+                                &quot;4020&quot;: {
+                                    &quot;hp&quot;: 1326222,
+                                    &quot;energy&quot;: 500,
+                                    &quot;isDead&quot;: false,
+                                    &quot;maxHp&quot;: 1554744
+                                },
+                                &quot;4002&quot;: {
+                                    &quot;hp&quot;: 243568,
+                                    &quot;energy&quot;: 200,
+                                    &quot;isDead&quot;: false,
+                                    &quot;maxHp&quot;: 243568
+                                },
+                                &quot;4001&quot;: {
+                                    &quot;hp&quot;: 967440,
+                                    &quot;energy&quot;: 1000,
+                                    &quot;isDead&quot;: false,
+                                    &quot;maxHp&quot;: 967440
+                                },
+                                &quot;4000&quot;: {
+                                    &quot;hp&quot;: 382462,
+                                    &quot;energy&quot;: 861,
+                                    &quot;isDead&quot;: false,
+                                    &quot;maxHp&quot;: 525315
+                                }
+                            }
+                        },
+                        &quot;floor&quot;: {
+                            &quot;userData&quot;: [
+                                {
+                                    &quot;defenderType&quot;: &quot;hero&quot;,
+                                    &quot;chance&quot;: 1,
+                                    &quot;arenaHeroesPacked&quot;: &quot;p:[{\&quot;id\&quot;:2,\&quot;level\&quot;:48,\&quot;color\&quot;:6,\&quot;star\&quot;:1},{\&quot;id\&quot;:20,\&quot;level\&quot;:49,\&quot;color\&quot;:6,\&quot;star\&quot;:1},{\&quot;id\&quot;:4,\&quot;level\&quot;:50,\&quot;color\&quot;:6,\&quot;star\&quot;:2},{\&quot;id\&quot;:6,\&quot;level\&quot;:50,\&quot;color\&quot;:6,\&quot;star\&quot;:1},{\&quot;id\&quot;:7,\&quot;level\&quot;:50,\&quot;color\&quot;:6,\&quot;star\&quot;:2}]&quot;,
+                                    &quot;userId&quot;: &quot;851135&quot;,
+                                    &quot;team&quot;: [
+                                        {
+                                            &quot;id&quot;: 2,
+                                            &quot;level&quot;: 48,
+                                            &quot;color&quot;: 6,
+                                            &quot;star&quot;: 1
+                                        },
+                                        {
+                                            &quot;id&quot;: 20,
+                                            &quot;level&quot;: 49,
+                                            &quot;color&quot;: 6,
+                                            &quot;star&quot;: 1
+                                        },
+                                        {
+                                            &quot;id&quot;: 4,
+                                            &quot;level&quot;: 50,
+                                            &quot;color&quot;: 6,
+                                            &quot;star&quot;: 2
+                                        },
+                                        {
+                                            &quot;id&quot;: 6,
+                                            &quot;level&quot;: 50,
+                                            &quot;color&quot;: 6,
+                                            &quot;star&quot;: 1
+                                        },
+                                        {
+                                            &quot;id&quot;: 7,
+                                            &quot;level&quot;: 50,
+                                            &quot;color&quot;: 6,
+                                            &quot;star&quot;: 2
+                                        }
+                                    ],
+                                    &quot;delta&quot;: 785,
+                                    &quot;needPower&quot;: 26177,
+                                    &quot;power&quot;: &quot;25462&quot;,
+                                    &quot;attackerType&quot;: &quot;hero&quot;
+                                }
+                            ],
+                            &quot;defenders&quot;: [],
+                            &quot;state&quot;: 1
+                        },
+                        &quot;reward&quot;: [],
+                        &quot;maxFloorReached&quot;: 241
+                    }
+                },
+                &quot;quests&quot;: [
+                    {
+                        &quot;id&quot;: 329,
+                        &quot;state&quot;: 3,
+                        &quot;progress&quot;: 240,
+                        &quot;reward&quot;: {
+                            &quot;coin&quot;: {
+                                &quot;13&quot;: &quot;1&quot;
+                            }
+                        }
+                    },
+                    {
+                        &quot;id&quot;: 330,
+                        &quot;state&quot;: 3,
+                        &quot;progress&quot;: 240,
+                        &quot;reward&quot;: {
+                            &quot;coin&quot;: {
+                                &quot;13&quot;: &quot;1&quot;
+                            }
+                        }
+                    },
+                    {
+                        &quot;id&quot;: 331,
+                        &quot;state&quot;: 3,
+                        &quot;progress&quot;: 240,
+                        &quot;reward&quot;: {
+                            &quot;coin&quot;: {
+                                &quot;13&quot;: &quot;1&quot;
+                            }
+                        }
+                    },
+                    {
+                        &quot;id&quot;: 332,
+                        &quot;state&quot;: 3,
+                        &quot;progress&quot;: 240,
+                        &quot;reward&quot;: {
+                            &quot;coin&quot;: {
+                                &quot;13&quot;: &quot;1&quot;
+                            }
+                        }
+                    },
+                    {
+                        &quot;id&quot;: 333,
+                        &quot;state&quot;: 1,
+                        &quot;progress&quot;: 240,
+                        &quot;reward&quot;: {
+                            &quot;coin&quot;: {
+                                &quot;13&quot;: &quot;1&quot;
+                            }
+                        }
+                    },
+                    {
+                        &quot;id&quot;: 10034,
+                        &quot;state&quot;: 3,
+                        &quot;progress&quot;: 240,
+                        &quot;reward&quot;: {
+                            &quot;consumable&quot;: {
+                                &quot;81&quot;: &quot;5&quot;
+                            }
+                        }
+                    },
+                    {
+                        &quot;id&quot;: 10035,
+                        &quot;state&quot;: 1,
+                        &quot;progress&quot;: 240,
+                        &quot;reward&quot;: {
+                            &quot;consumable&quot;: {
+                                &quot;81&quot;: &quot;5&quot;
+                            }
+                        }
+                    },
+                    {
+                        &quot;id&quot;: 10036,
+                        &quot;state&quot;: 1,
+                        &quot;progress&quot;: 240,
+                        &quot;reward&quot;: {
+                            &quot;consumable&quot;: {
+                                &quot;81&quot;: &quot;5&quot;
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}
+</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+
+        
+
+        
+        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+
+    </body>
+</html>

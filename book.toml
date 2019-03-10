@@ -1,0 +1,12 @@
+[book]
+authors = ["Pavel Perestoronin"]
+multilingual = false
+src = "book"
+title = "bestmobabot"
+
+[build]
+build-dir = "docs"
+create-missing = false
+
+[output.html]
+curly-quotes = true
