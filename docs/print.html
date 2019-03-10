@@ -75,7 +75,7 @@
         </script>
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
-            <ol class="chapter"><li><a href="dungeon.html"><strong aria-hidden="true">1.</strong> Dungeon</a></li><li><a href="enchant-rune.html"><strong aria-hidden="true">2.</strong> Enchant Rune</a></li><li><a href="hall-of-fame.html"><strong aria-hidden="true">3.</strong> Hall of Fame</a></li><li><a href="hero-titan-gift-level-up.html"><strong aria-hidden="true">4.</strong> Hero Titan Gift Level Up</a></li></ol>
+            <ol class="chapter"><li><a href="dungeon.html"><strong aria-hidden="true">1.</strong> Подземелье</a></li><li><a href="enchant-rune.html"><strong aria-hidden="true">2.</strong> Enchant Rune</a></li><li><a href="hall-of-fame.html"><strong aria-hidden="true">3.</strong> Зал Славы</a></li><li><a href="hero-titan-gift-level-up.html"><strong aria-hidden="true">4.</strong> Hero Titan Gift Level Up</a></li></ol>
         </nav>
 
         <div id="page-wrapper" class="page-wrapper">
@@ -140,7 +140,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <a class="header" href="#dungeon" id="dungeon"><h1>Dungeon</h1></a>
+                        <a class="header" href="#Подземелье" id="Подземелье"><h1>Подземелье</h1></a>
 <a class="header" href="#clangetactivitystat" id="clangetactivitystat"><h2><code>clanGetActivityStat</code></h2></a>
 <pre><code class="language-json">{&quot;name&quot;:&quot;clanGetActivityStat&quot;,&quot;args&quot;:{},&quot;ident&quot;:&quot;group_1_body&quot;}
 </code></pre>
@@ -985,18 +985,347 @@
     ]
 }
 </code></pre>
+<a class="header" href="#enchant-rune" id="enchant-rune"><h1>Enchant Rune</h1></a>
 <pre><code class="language-json">{&quot;calls&quot;:[{&quot;name&quot;:&quot;heroEnchantRune&quot;,&quot;args&quot;:{&quot;heroId&quot;:39,&quot;tier&quot;:2,&quot;items&quot;:{&quot;consumable&quot;:{&quot;1&quot;:1}}},&quot;ident&quot;:&quot;body&quot;}]}
 </code></pre>
 <pre><code class="language-json">{&quot;date&quot;:1550923502.2710991,&quot;results&quot;:[{&quot;ident&quot;:&quot;body&quot;,&quot;result&quot;:{&quot;response&quot;:10,&quot;quests&quot;:[{&quot;id&quot;:10013,&quot;state&quot;:2,&quot;progress&quot;:880,&quot;reward&quot;:{&quot;consumable&quot;:{&quot;1&quot;:&quot;10&quot;},&quot;gold&quot;:1500}},{&quot;id&quot;:10014,&quot;state&quot;:1,&quot;progress&quot;:880,&quot;reward&quot;:{&quot;consumable&quot;:{&quot;2&quot;:&quot;15&quot;},&quot;gold&quot;:3000}},{&quot;id&quot;:10032,&quot;state&quot;:1,&quot;progress&quot;:880,&quot;reward&quot;:{&quot;consumable&quot;:{&quot;3&quot;:&quot;10&quot;},&quot;gold&quot;:5000}}]}}]}
 </code></pre>
-<pre><code class="language-json">{&quot;calls&quot;:[{&quot;name&quot;:&quot;hallOfFameGet&quot;,&quot;args&quot;:{},&quot;ident&quot;:&quot;body&quot;}]}
+<a class="header" href="#Зал-Славы" id="Зал-Славы"><h1>Зал Славы</h1></a>
+<a class="header" href="#get" id="get"><h2>Get</h2></a>
+<pre><code class="language-json">{
+    &quot;calls&quot;: [
+        {
+            &quot;name&quot;: &quot;hallOfFameGet&quot;,
+            &quot;args&quot;: {},
+            &quot;ident&quot;: &quot;body&quot;
+        }
+    ]
+}
 </code></pre>
-<pre><code class="language-json">{&quot;date&quot;:1550918994.1558781,&quot;results&quot;:[{&quot;ident&quot;:&quot;body&quot;,&quot;result&quot;:{&quot;response&quot;:{&quot;champions&quot;:{&quot;5181775&quot;:{&quot;userId&quot;:&quot;5181775&quot;,&quot;place&quot;:1,&quot;serverId&quot;:&quot;7&quot;,&quot;clanId&quot;:&quot;49207&quot;,&quot;score&quot;:&quot;84229&quot;,&quot;power&quot;:&quot;825499&quot;,&quot;cup&quot;:1,&quot;info&quot;:{&quot;name&quot;:&quot;Faal&quot;,&quot;level&quot;:&quot;130&quot;,&quot;avatarId&quot;:&quot;386&quot;,&quot;frameId&quot;:3,&quot;clanTitle&quot;:&quot;\u041d\u0435\u0443\u0434\u0435\u0440\u0436\u0438\u043c\u044b\u0435 NEW&quot;,&quot;clanIcon&quot;:{&quot;flagColor1&quot;:16,&quot;flagColor2&quot;:19,&quot;flagShape&quot;:1,&quot;iconColor&quot;:19,&quot;iconShape&quot;:5},&quot;serverId&quot;:&quot;7&quot;,&quot;clanId&quot;:&quot;49207&quot;}},&quot;5069714&quot;:{&quot;userId&quot;:&quot;5069714&quot;,&quot;place&quot;:2,&quot;serverId&quot;:&quot;2&quot;,&quot;clanId&quot;:&quot;3980&quot;,&quot;score&quot;:&quot;84210&quot;,&quot;power&quot;:&quot;825436&quot;,&quot;cup&quot;:2,&quot;info&quot;:{&quot;name&quot;:&quot;\u0411\u044f\u043a\u0430&quot;,&quot;level&quot;:&quot;130&quot;,&quot;avatarId&quot;:&quot;305&quot;,&quot;frameId&quot;:3,&quot;clanTitle&quot;:&quot;T-Grad&quot;,&quot;clanIcon&quot;:{&quot;flagColor1&quot;:16,&quot;flagColor2&quot;:0,&quot;flagShape&quot;:1,&quot;iconColor&quot;:3,&quot;iconShape&quot;:10},&quot;serverId&quot;:&quot;2&quot;,&quot;clanId&quot;:&quot;3980&quot;}},&quot;1207246&quot;:{&quot;userId&quot;:&quot;1207246&quot;,&quot;place&quot;:3,&quot;serverId&quot;:&quot;11&quot;,&quot;clanId&quot;:&quot;8050&quot;,&quot;score&quot;:&quot;84147&quot;,&quot;power&quot;:&quot;825436&quot;,&quot;cup&quot;:2,&quot;info&quot;:{&quot;name&quot;:&quot;isaac morris&quot;,&quot;level&quot;:&quot;130&quot;,&quot;avatarId&quot;:&quot;411&quot;,&quot;frameId&quot;:3,&quot;clanTitle&quot;:&quot;BewareUs&quot;,&quot;clanIcon&quot;:{&quot;flagColor1&quot;:8,&quot;flagColor2&quot;:19,&quot;flagShape&quot;:14,&quot;iconColor&quot;:7,&quot;iconShape&quot;:31},&quot;serverId&quot;:&quot;11&quot;,&quot;clanId&quot;:&quot;8050&quot;}},&quot;5176560&quot;:{&quot;userId&quot;:&quot;5176560&quot;,&quot;place&quot;:4,&quot;serverId&quot;:&quot;9&quot;,&quot;clanId&quot;:&quot;23928&quot;,&quot;score&quot;:&quot;84047&quot;,&quot;power&quot;:&quot;825499&quot;,&quot;cup&quot;:2,&quot;info&quot;:{&quot;name&quot;:&quot;68 RUS&quot;,&quot;level&quot;:&quot;130&quot;,&quot;avatarId&quot;:&quot;305&quot;,&quot;frameId&quot;:3,&quot;clanTitle&quot;:&quot;NFS&quot;,&quot;clanIcon&quot;:{&quot;flagColor1&quot;:0,&quot;flagColor2&quot;:3,&quot;flagShape&quot;:14,&quot;iconColor&quot;:0,&quot;iconShape&quot;:46},&quot;serverId&quot;:&quot;9&quot;,&quot;clanId&quot;:&quot;23928&quot;}},&quot;5222351&quot;:{&quot;userId&quot;:&quot;5222351&quot;,&quot;place&quot;:5,&quot;serverId&quot;:&quot;3&quot;,&quot;clanId&quot;:&quot;45148&quot;,&quot;score&quot;:&quot;84018&quot;,&quot;power&quot;:&quot;825499&quot;,&quot;cup&quot;:2,&quot;info&quot;:{&quot;name&quot;:&quot;\u0411\u043e\u0433 \u0441\u043c\u0435\u0440\u0442\u0438 \u0420\u044e\u043a&quot;,&quot;level&quot;:&quot;130&quot;,&quot;avatarId&quot;:&quot;374&quot;,&quot;frameId&quot;:3,&quot;clanTitle&quot;:&quot;Revolution&quot;,&quot;clanIcon&quot;:{&quot;flagColor1&quot;:0,&quot;flagColor2&quot;:19,&quot;flagShape&quot;:3,&quot;iconColor&quot;:8,&quot;iconShape&quot;:2},&quot;serverId&quot;:&quot;3&quot;,&quot;clanId&quot;:&quot;45148&quot;}},&quot;5355159&quot;:{&quot;userId&quot;:&quot;5355159&quot;,&quot;place&quot;:6,&quot;serverId&quot;:&quot;7&quot;,&quot;clanId&quot;:&quot;49207&quot;,&quot;score&quot;:&quot;83823&quot;,&quot;power&quot;:&quot;825436&quot;,&quot;cup&quot;:2,&quot;info&quot;:{&quot;name&quot;:&quot;\u041b\u0415\u0413\u0418\u041e\u041d&quot;,&quot;level&quot;:&quot;130&quot;,&quot;avatarId&quot;:&quot;303&quot;,&quot;frameId&quot;:3,&quot;clanTitle&quot;:&quot;\u041d\u0435\u0443\u0434\u0435\u0440\u0436\u0438\u043c\u044b\u0435 NEW&quot;,&quot;clanIcon&quot;:{&quot;flagColor1&quot;:16,&quot;flagColor2&quot;:19,&quot;flagShape&quot;:1,&quot;iconColor&quot;:19,&quot;iconShape&quot;:5},&quot;serverId&quot;:&quot;7&quot;,&quot;clanId&quot;:&quot;49207&quot;}},&quot;4944789&quot;:{&quot;userId&quot;:&quot;4944789&quot;,&quot;place&quot;:7,&quot;serverId&quot;:&quot;17&quot;,&quot;clanId&quot;:&quot;20301&quot;,&quot;score&quot;:&quot;83756&quot;,&quot;power&quot;:&quot;820715&quot;,&quot;cup&quot;:2,&quot;info&quot;:{&quot;name&quot;:&quot;\u041a\u0430\u0442\u0430\u0441\u0442\u0440\u043e\u0444\u0430&quot;,&quot;level&quot;:&quot;130&quot;,&quot;avatarId&quot;:&quot;385&quot;,&quot;frameId&quot;:3,&quot;clanTitle&quot;:&quot;Paradox&quot;,&quot;clanIcon&quot;:{&quot;flagColor1&quot;:0,&quot;flagColor2&quot;:0,&quot;flagShape&quot;:14,&quot;iconColor&quot;:19,&quot;iconShape&quot;:12},&quot;serverId&quot;:&quot;17&quot;,&quot;clanId&quot;:&quot;20301&quot;}},&quot;4534638&quot;:{&quot;userId&quot;:&quot;4534638&quot;,&quot;place&quot;:8,&quot;serverId&quot;:&quot;22&quot;,&quot;clanId&quot;:&quot;23965&quot;,&quot;score&quot;:&quot;83736&quot;,&quot;power&quot;:&quot;825499&quot;,&quot;cup&quot;:2,&quot;info&quot;:{&quot;name&quot;:&quot;\u041c_\u0410_\u041a_\u0421&quot;,&quot;level&quot;:&quot;130&quot;,&quot;avatarId&quot;:&quot;303&quot;,&quot;frameId&quot;:3,&quot;clanTitle&quot;:&quot;PROTEX&quot;,&quot;clanIcon&quot;:{&quot;flagColor1&quot;:9,&quot;flagColor2&quot;:7,&quot;flagShape&quot;:0,&quot;iconColor&quot;:5,&quot;iconShape&quot;:14},&quot;serverId&quot;:&quot;22&quot;,&quot;clanId&quot;:&quot;23965&quot;}},&quot;5069879&quot;:{&quot;userId&quot;:&quot;5069879&quot;,&quot;place&quot;:9,&quot;serverId&quot;:&quot;34&quot;,&quot;clanId&quot;:&quot;19945&quot;,&quot;score&quot;:&quot;83705&quot;,&quot;power&quot;:&quot;825499&quot;,&quot;cup&quot;:2,&quot;info&quot;:{&quot;name&quot;:&quot;\u0410\u0440\u0442\u0435\u043c&quot;,&quot;level&quot;:&quot;130&quot;,&quot;avatarId&quot;:&quot;385&quot;,&quot;frameId&quot;:3,&quot;clanTitle&quot;:&quot;Brazzers&quot;,&quot;clanIcon&quot;:{&quot;flagColor1&quot;:19,&quot;flagColor2&quot;:19,&quot;flagShape&quot;:5,&quot;iconColor&quot;:3,&quot;iconShape&quot;:27},&quot;serverId&quot;:&quot;34&quot;,&quot;clanId&quot;:&quot;19945&quot;}},&quot;5182053&quot;:{&quot;userId&quot;:&quot;5182053&quot;,&quot;place&quot;:10,&quot;serverId&quot;:&quot;5&quot;,&quot;clanId&quot;:&quot;24015&quot;,&quot;score&quot;:&quot;83666&quot;,&quot;power&quot;:&quot;821785&quot;,&quot;cup&quot;:2,&quot;info&quot;:{&quot;name&quot;:&quot;\u041c\u043e\u043b\u044c&quot;,&quot;level&quot;:&quot;130&quot;,&quot;avatarId&quot;:&quot;397&quot;,&quot;frameId&quot;:3,&quot;clanTitle&quot;:&quot;E-\u0431\u043e\u0431\u043e&quot;,&quot;clanIcon&quot;:{&quot;flagColor1&quot;:19,&quot;flagColor2&quot;:7,&quot;flagShape&quot;:14,&quot;iconColor&quot;:19,&quot;iconShape&quot;:17},&quot;serverId&quot;:&quot;5&quot;,&quot;clanId&quot;:&quot;24015&quot;}}},&quot;bestOnServer&quot;:false,&quot;bestGuildMembers&quot;:[],&quot;result&quot;:{&quot;place&quot;:&quot;58774&quot;,&quot;cup&quot;:&quot;5&quot;},&quot;key&quot;:1550865600,&quot;next&quot;:null,&quot;prev&quot;:1549850400,&quot;trophy&quot;:{&quot;cup&quot;:&quot;5&quot;,&quot;week&quot;:&quot;1550455200&quot;,&quot;place&quot;:&quot;58774&quot;,&quot;serverId&quot;:&quot;10&quot;,&quot;clanId&quot;:&quot;15676&quot;,&quot;championReward&quot;:{&quot;coin&quot;:{&quot;19&quot;:&quot;2&quot;},&quot;gold&quot;:&quot;150000&quot;},&quot;championRewardFarmed&quot;:0,&quot;serverReward&quot;:[],&quot;serverRewardFarmed&quot;:0,&quot;clanReward&quot;:[],&quot;clanRewardFarmed&quot;:0}}}}]}
+<pre><code class="language-json">{
+    &quot;date&quot;: 1550918994.155878,
+    &quot;results&quot;: [
+        {
+            &quot;ident&quot;: &quot;body&quot;,
+            &quot;result&quot;: {
+                &quot;response&quot;: {
+                    &quot;champions&quot;: {
+                        &quot;5181775&quot;: {
+                            &quot;userId&quot;: &quot;5181775&quot;,
+                            &quot;place&quot;: 1,
+                            &quot;serverId&quot;: &quot;7&quot;,
+                            &quot;clanId&quot;: &quot;49207&quot;,
+                            &quot;score&quot;: &quot;84229&quot;,
+                            &quot;power&quot;: &quot;825499&quot;,
+                            &quot;cup&quot;: 1,
+                            &quot;info&quot;: {
+                                &quot;name&quot;: &quot;Faal&quot;,
+                                &quot;level&quot;: &quot;130&quot;,
+                                &quot;avatarId&quot;: &quot;386&quot;,
+                                &quot;frameId&quot;: 3,
+                                &quot;clanTitle&quot;: &quot;\u041d\u0435\u0443\u0434\u0435\u0440\u0436\u0438\u043c\u044b\u0435 NEW&quot;,
+                                &quot;clanIcon&quot;: {
+                                    &quot;flagColor1&quot;: 16,
+                                    &quot;flagColor2&quot;: 19,
+                                    &quot;flagShape&quot;: 1,
+                                    &quot;iconColor&quot;: 19,
+                                    &quot;iconShape&quot;: 5
+                                },
+                                &quot;serverId&quot;: &quot;7&quot;,
+                                &quot;clanId&quot;: &quot;49207&quot;
+                            }
+                        },
+                        &quot;5069714&quot;: {
+                            &quot;userId&quot;: &quot;5069714&quot;,
+                            &quot;place&quot;: 2,
+                            &quot;serverId&quot;: &quot;2&quot;,
+                            &quot;clanId&quot;: &quot;3980&quot;,
+                            &quot;score&quot;: &quot;84210&quot;,
+                            &quot;power&quot;: &quot;825436&quot;,
+                            &quot;cup&quot;: 2,
+                            &quot;info&quot;: {
+                                &quot;name&quot;: &quot;\u0411\u044f\u043a\u0430&quot;,
+                                &quot;level&quot;: &quot;130&quot;,
+                                &quot;avatarId&quot;: &quot;305&quot;,
+                                &quot;frameId&quot;: 3,
+                                &quot;clanTitle&quot;: &quot;T-Grad&quot;,
+                                &quot;clanIcon&quot;: {
+                                    &quot;flagColor1&quot;: 16,
+                                    &quot;flagColor2&quot;: 0,
+                                    &quot;flagShape&quot;: 1,
+                                    &quot;iconColor&quot;: 3,
+                                    &quot;iconShape&quot;: 10
+                                },
+                                &quot;serverId&quot;: &quot;2&quot;,
+                                &quot;clanId&quot;: &quot;3980&quot;
+                            }
+                        },
+                        &quot;1207246&quot;: {
+                            &quot;userId&quot;: &quot;1207246&quot;,
+                            &quot;place&quot;: 3,
+                            &quot;serverId&quot;: &quot;11&quot;,
+                            &quot;clanId&quot;: &quot;8050&quot;,
+                            &quot;score&quot;: &quot;84147&quot;,
+                            &quot;power&quot;: &quot;825436&quot;,
+                            &quot;cup&quot;: 2,
+                            &quot;info&quot;: {
+                                &quot;name&quot;: &quot;isaac morris&quot;,
+                                &quot;level&quot;: &quot;130&quot;,
+                                &quot;avatarId&quot;: &quot;411&quot;,
+                                &quot;frameId&quot;: 3,
+                                &quot;clanTitle&quot;: &quot;BewareUs&quot;,
+                                &quot;clanIcon&quot;: {
+                                    &quot;flagColor1&quot;: 8,
+                                    &quot;flagColor2&quot;: 19,
+                                    &quot;flagShape&quot;: 14,
+                                    &quot;iconColor&quot;: 7,
+                                    &quot;iconShape&quot;: 31
+                                },
+                                &quot;serverId&quot;: &quot;11&quot;,
+                                &quot;clanId&quot;: &quot;8050&quot;
+                            }
+                        },
+                        &quot;5176560&quot;: {
+                            &quot;userId&quot;: &quot;5176560&quot;,
+                            &quot;place&quot;: 4,
+                            &quot;serverId&quot;: &quot;9&quot;,
+                            &quot;clanId&quot;: &quot;23928&quot;,
+                            &quot;score&quot;: &quot;84047&quot;,
+                            &quot;power&quot;: &quot;825499&quot;,
+                            &quot;cup&quot;: 2,
+                            &quot;info&quot;: {
+                                &quot;name&quot;: &quot;68 RUS&quot;,
+                                &quot;level&quot;: &quot;130&quot;,
+                                &quot;avatarId&quot;: &quot;305&quot;,
+                                &quot;frameId&quot;: 3,
+                                &quot;clanTitle&quot;: &quot;NFS&quot;,
+                                &quot;clanIcon&quot;: {
+                                    &quot;flagColor1&quot;: 0,
+                                    &quot;flagColor2&quot;: 3,
+                                    &quot;flagShape&quot;: 14,
+                                    &quot;iconColor&quot;: 0,
+                                    &quot;iconShape&quot;: 46
+                                },
+                                &quot;serverId&quot;: &quot;9&quot;,
+                                &quot;clanId&quot;: &quot;23928&quot;
+                            }
+                        },
+                        &quot;5222351&quot;: {
+                            &quot;userId&quot;: &quot;5222351&quot;,
+                            &quot;place&quot;: 5,
+                            &quot;serverId&quot;: &quot;3&quot;,
+                            &quot;clanId&quot;: &quot;45148&quot;,
+                            &quot;score&quot;: &quot;84018&quot;,
+                            &quot;power&quot;: &quot;825499&quot;,
+                            &quot;cup&quot;: 2,
+                            &quot;info&quot;: {
+                                &quot;name&quot;: &quot;\u0411\u043e\u0433 \u0441\u043c\u0435\u0440\u0442\u0438 \u0420\u044e\u043a&quot;,
+                                &quot;level&quot;: &quot;130&quot;,
+                                &quot;avatarId&quot;: &quot;374&quot;,
+                                &quot;frameId&quot;: 3,
+                                &quot;clanTitle&quot;: &quot;Revolution&quot;,
+                                &quot;clanIcon&quot;: {
+                                    &quot;flagColor1&quot;: 0,
+                                    &quot;flagColor2&quot;: 19,
+                                    &quot;flagShape&quot;: 3,
+                                    &quot;iconColor&quot;: 8,
+                                    &quot;iconShape&quot;: 2
+                                },
+                                &quot;serverId&quot;: &quot;3&quot;,
+                                &quot;clanId&quot;: &quot;45148&quot;
+                            }
+                        },
+                        &quot;5355159&quot;: {
+                            &quot;userId&quot;: &quot;5355159&quot;,
+                            &quot;place&quot;: 6,
+                            &quot;serverId&quot;: &quot;7&quot;,
+                            &quot;clanId&quot;: &quot;49207&quot;,
+                            &quot;score&quot;: &quot;83823&quot;,
+                            &quot;power&quot;: &quot;825436&quot;,
+                            &quot;cup&quot;: 2,
+                            &quot;info&quot;: {
+                                &quot;name&quot;: &quot;\u041b\u0415\u0413\u0418\u041e\u041d&quot;,
+                                &quot;level&quot;: &quot;130&quot;,
+                                &quot;avatarId&quot;: &quot;303&quot;,
+                                &quot;frameId&quot;: 3,
+                                &quot;clanTitle&quot;: &quot;\u041d\u0435\u0443\u0434\u0435\u0440\u0436\u0438\u043c\u044b\u0435 NEW&quot;,
+                                &quot;clanIcon&quot;: {
+                                    &quot;flagColor1&quot;: 16,
+                                    &quot;flagColor2&quot;: 19,
+                                    &quot;flagShape&quot;: 1,
+                                    &quot;iconColor&quot;: 19,
+                                    &quot;iconShape&quot;: 5
+                                },
+                                &quot;serverId&quot;: &quot;7&quot;,
+                                &quot;clanId&quot;: &quot;49207&quot;
+                            }
+                        },
+                        &quot;4944789&quot;: {
+                            &quot;userId&quot;: &quot;4944789&quot;,
+                            &quot;place&quot;: 7,
+                            &quot;serverId&quot;: &quot;17&quot;,
+                            &quot;clanId&quot;: &quot;20301&quot;,
+                            &quot;score&quot;: &quot;83756&quot;,
+                            &quot;power&quot;: &quot;820715&quot;,
+                            &quot;cup&quot;: 2,
+                            &quot;info&quot;: {
+                                &quot;name&quot;: &quot;\u041a\u0430\u0442\u0430\u0441\u0442\u0440\u043e\u0444\u0430&quot;,
+                                &quot;level&quot;: &quot;130&quot;,
+                                &quot;avatarId&quot;: &quot;385&quot;,
+                                &quot;frameId&quot;: 3,
+                                &quot;clanTitle&quot;: &quot;Paradox&quot;,
+                                &quot;clanIcon&quot;: {
+                                    &quot;flagColor1&quot;: 0,
+                                    &quot;flagColor2&quot;: 0,
+                                    &quot;flagShape&quot;: 14,
+                                    &quot;iconColor&quot;: 19,
+                                    &quot;iconShape&quot;: 12
+                                },
+                                &quot;serverId&quot;: &quot;17&quot;,
+                                &quot;clanId&quot;: &quot;20301&quot;
+                            }
+                        },
+                        &quot;4534638&quot;: {
+                            &quot;userId&quot;: &quot;4534638&quot;,
+                            &quot;place&quot;: 8,
+                            &quot;serverId&quot;: &quot;22&quot;,
+                            &quot;clanId&quot;: &quot;23965&quot;,
+                            &quot;score&quot;: &quot;83736&quot;,
+                            &quot;power&quot;: &quot;825499&quot;,
+                            &quot;cup&quot;: 2,
+                            &quot;info&quot;: {
+                                &quot;name&quot;: &quot;\u041c_\u0410_\u041a_\u0421&quot;,
+                                &quot;level&quot;: &quot;130&quot;,
+                                &quot;avatarId&quot;: &quot;303&quot;,
+                                &quot;frameId&quot;: 3,
+                                &quot;clanTitle&quot;: &quot;PROTEX&quot;,
+                                &quot;clanIcon&quot;: {
+                                    &quot;flagColor1&quot;: 9,
+                                    &quot;flagColor2&quot;: 7,
+                                    &quot;flagShape&quot;: 0,
+                                    &quot;iconColor&quot;: 5,
+                                    &quot;iconShape&quot;: 14
+                                },
+                                &quot;serverId&quot;: &quot;22&quot;,
+                                &quot;clanId&quot;: &quot;23965&quot;
+                            }
+                        },
+                        &quot;5069879&quot;: {
+                            &quot;userId&quot;: &quot;5069879&quot;,
+                            &quot;place&quot;: 9,
+                            &quot;serverId&quot;: &quot;34&quot;,
+                            &quot;clanId&quot;: &quot;19945&quot;,
+                            &quot;score&quot;: &quot;83705&quot;,
+                            &quot;power&quot;: &quot;825499&quot;,
+                            &quot;cup&quot;: 2,
+                            &quot;info&quot;: {
+                                &quot;name&quot;: &quot;\u0410\u0440\u0442\u0435\u043c&quot;,
+                                &quot;level&quot;: &quot;130&quot;,
+                                &quot;avatarId&quot;: &quot;385&quot;,
+                                &quot;frameId&quot;: 3,
+                                &quot;clanTitle&quot;: &quot;Brazzers&quot;,
+                                &quot;clanIcon&quot;: {
+                                    &quot;flagColor1&quot;: 19,
+                                    &quot;flagColor2&quot;: 19,
+                                    &quot;flagShape&quot;: 5,
+                                    &quot;iconColor&quot;: 3,
+                                    &quot;iconShape&quot;: 27
+                                },
+                                &quot;serverId&quot;: &quot;34&quot;,
+                                &quot;clanId&quot;: &quot;19945&quot;
+                            }
+                        },
+                        &quot;5182053&quot;: {
+                            &quot;userId&quot;: &quot;5182053&quot;,
+                            &quot;place&quot;: 10,
+                            &quot;serverId&quot;: &quot;5&quot;,
+                            &quot;clanId&quot;: &quot;24015&quot;,
+                            &quot;score&quot;: &quot;83666&quot;,
+                            &quot;power&quot;: &quot;821785&quot;,
+                            &quot;cup&quot;: 2,
+                            &quot;info&quot;: {
+                                &quot;name&quot;: &quot;\u041c\u043e\u043b\u044c&quot;,
+                                &quot;level&quot;: &quot;130&quot;,
+                                &quot;avatarId&quot;: &quot;397&quot;,
+                                &quot;frameId&quot;: 3,
+                                &quot;clanTitle&quot;: &quot;E-\u0431\u043e\u0431\u043e&quot;,
+                                &quot;clanIcon&quot;: {
+                                    &quot;flagColor1&quot;: 19,
+                                    &quot;flagColor2&quot;: 7,
+                                    &quot;flagShape&quot;: 14,
+                                    &quot;iconColor&quot;: 19,
+                                    &quot;iconShape&quot;: 17
+                                },
+                                &quot;serverId&quot;: &quot;5&quot;,
+                                &quot;clanId&quot;: &quot;24015&quot;
+                            }
+                        }
+                    },
+                    &quot;bestOnServer&quot;: false,
+                    &quot;bestGuildMembers&quot;: [],
+                    &quot;result&quot;: {
+                        &quot;place&quot;: &quot;58774&quot;,
+                        &quot;cup&quot;: &quot;5&quot;
+                    },
+                    &quot;key&quot;: 1550865600,
+                    &quot;next&quot;: null,
+                    &quot;prev&quot;: 1549850400,
+                    &quot;trophy&quot;: {
+                        &quot;cup&quot;: &quot;5&quot;,
+                        &quot;week&quot;: &quot;1550455200&quot;,
+                        &quot;place&quot;: &quot;58774&quot;,
+                        &quot;serverId&quot;: &quot;10&quot;,
+                        &quot;clanId&quot;: &quot;15676&quot;,
+                        &quot;championReward&quot;: {
+                            &quot;coin&quot;: {
+                                &quot;19&quot;: &quot;2&quot;
+                            },
+                            &quot;gold&quot;: &quot;150000&quot;
+                        },
+                        &quot;championRewardFarmed&quot;: 0,
+                        &quot;serverReward&quot;: [],
+                        &quot;serverRewardFarmed&quot;: 0,
+                        &quot;clanReward&quot;: [],
+                        &quot;clanRewardFarmed&quot;: 0
+                    }
+                }
+            }
+        }
+    ]
+}
 </code></pre>
-<pre><code class="language-json">{&quot;calls&quot;:[{&quot;name&quot;:&quot;hallOfFameFarmTrophyReward&quot;,&quot;args&quot;:{&quot;trophyId&quot;:1550455200,&quot;rewardType&quot;:&quot;champion&quot;},&quot;ident&quot;:&quot;body&quot;}]}
+<a class="header" href="#farm" id="farm"><h2>Farm</h2></a>
+<pre><code class="language-json">{
+    &quot;calls&quot;: [
+        {
+            &quot;name&quot;: &quot;hallOfFameFarmTrophyReward&quot;,
+            &quot;args&quot;: {
+                &quot;trophyId&quot;: 1550455200,
+                &quot;rewardType&quot;: &quot;champion&quot;
+            },
+            &quot;ident&quot;: &quot;body&quot;
+        }
+    ]
+}
 </code></pre>
-<pre><code class="language-json">{&quot;date&quot;:1550918996.7556961,&quot;results&quot;:[{&quot;ident&quot;:&quot;body&quot;,&quot;result&quot;:{&quot;response&quot;:{&quot;coin&quot;:{&quot;19&quot;:&quot;2&quot;},&quot;gold&quot;:&quot;150000&quot;}}}]}
+<pre><code class="language-json">{
+    &quot;date&quot;: 1550918996.755696,
+    &quot;results&quot;: [
+        {
+            &quot;ident&quot;: &quot;body&quot;,
+            &quot;result&quot;: {
+                &quot;response&quot;: {
+                    &quot;coin&quot;: {
+                        &quot;19&quot;: &quot;2&quot;
+                    },
+                    &quot;gold&quot;: &quot;150000&quot;
+                }
+            }
+        }
+    ]
+}
 </code></pre>
+<a class="header" href="#hero-titan-gift-level-up" id="hero-titan-gift-level-up"><h1>Hero Titan Gift Level Up</h1></a>
 <pre><code class="language-json">{&quot;calls&quot;:[{&quot;name&quot;:&quot;heroTitanGiftLevelUp&quot;,&quot;args&quot;:{&quot;heroId&quot;:43},&quot;ident&quot;:&quot;body&quot;}]}
 </code></pre>
 <pre><code class="language-json">{&quot;date&quot;:1551212398.459389,&quot;results&quot;:[{&quot;ident&quot;:&quot;body&quot;,&quot;result&quot;:{&quot;response&quot;:null,&quot;quests&quot;:[{&quot;id&quot;:309,&quot;state&quot;:3,&quot;progress&quot;:7,&quot;reward&quot;:{&quot;gold&quot;:30000}},{&quot;id&quot;:10023,&quot;state&quot;:2,&quot;progress&quot;:1,&quot;reward&quot;:{&quot;consumable&quot;:{&quot;20&quot;:&quot;300&quot;}}}]}}]}

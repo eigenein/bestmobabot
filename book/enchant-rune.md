@@ -1,3 +1,5 @@
+# Enchant Rune
+
 ```json
 {"calls":[{"name":"heroEnchantRune","args":{"heroId":39,"tier":2,"items":{"consumable":{"1":1}}},"ident":"body"}]}
 ```

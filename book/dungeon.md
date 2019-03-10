@@ -1,4 +1,4 @@
-# Dungeon
+# Подземелье
 
 ## `clanGetActivityStat`
 
