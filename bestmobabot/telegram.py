@@ -25,6 +25,7 @@ class Telegram:
         )['message_id']
 
     def pin_chat_message(self, message_id: int) -> bool:
+        # FIXME
         return self.call('pinChatMessage', chat_id=self.chat_id, message_id=message_id)
 
     def call(self, method: str, **kwargs: Any) -> Any:
@@ -33,10 +34,11 @@ class Telegram:
             json=kwargs,
             timeout=constants.API_TIMEOUT,
         )
-        response.raise_for_status()
+        if response.status_code != 200:
+            raise TelegramException(response.text)
         result = response.json()
         if not result.get('ok'):
-            logger.error('Error: {}', result.get('description', 'no description'))
+            raise TelegramException(result.get('description'))
         return result['result']
 
 
@@ -64,6 +66,12 @@ class TelegramLogger(AbstractContextManager):
             if pin:
                 self.telegram.pin_chat_message(message_id)
         except Exception as e:
-            logger.opt(exception=e).warning('Telegram API error.')
+            logger.warning('Telegram API error: {}', e)
         self.lines.clear()
         return self
+
+
+class TelegramException(Exception):
+    """
+    Raised when Telegram API call has failed.
+    """
