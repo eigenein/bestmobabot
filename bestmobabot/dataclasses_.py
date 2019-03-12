@@ -358,8 +358,8 @@ class ArenaResult(BaseModel, Loggable):
         yield ''
         for i, battle in enumerate(self.battles, start=1):
             yield f'Бой #{i}: {battle.result}'
+        yield ''
         if self.reward is not None:
-            yield ''
             yield from self.reward.markdown
             yield ''
         yield from self.state.markdown
