@@ -175,17 +175,23 @@ class API:
             'session_id': self.session_id,
         }
 
-    def call(self, name: str, arguments: Optional[Dict[str, Any]] = None, random_sleep=True) -> Result:
+    def call(
+        self,
+        name: str,
+        arguments: Optional[Dict[str, Any]] = None,
+        random_sleep=True,
+        log_result=False,
+    ) -> Result:
         # TODO: perhaps, accept a return response type and return a typed response.
         try:
-            return self._call(name, arguments=arguments, random_sleep=random_sleep)
+            return self._call(name, arguments=arguments, random_sleep=random_sleep, log_result=log_result)
         except (InvalidSessionError, InvalidSignatureError) as e:
             logger.warning('Invalid session: {}.', e)
             self.prepare(invalidate_session=True)
             logger.info('Retrying the call…')
-            return self._call(name, arguments=arguments, random_sleep=random_sleep)
+            return self._call(name, arguments=arguments, random_sleep=random_sleep, log_result=log_result)
 
-    def _call(self, name: str, *, arguments: Optional[Dict[str, Any]] = None, random_sleep=True) -> Result:
+    def _call(self, name: str, *, arguments: Optional[Dict[str, Any]], random_sleep, log_result) -> Result:
         self.request_id += 1
         self.db[f'api:{self.remixsid}:request_id'] = self.request_id
 
@@ -234,6 +240,8 @@ class API:
             result = Result.parse_obj(item['results'][0]['result'])
             if result.is_error:
                 raise self.make_exception(result.response['error'])
+            if log_result:
+                logger.debug('Result: {}', result.response)
             return result
         if 'error' in item:
             raise self.make_exception(item['error'])
@@ -306,7 +314,7 @@ class API:
         return list_of(Expedition, self.call('expeditionGet').response)
 
     def farm_expedition(self, expedition_id: str) -> Reward:
-        return Reward.parse_obj(self.call('expeditionFarm', {'expeditionId': expedition_id}).response)
+        return Reward.parse_obj(self.call('expeditionFarm', {'expeditionId': expedition_id}, log_result=True).response)
 
     def send_expedition_heroes(self, expedition_id: str, hero_ids: List[str]) -> Tuple[datetime, Quests]:
         response = self.call('expeditionSendHeroes', {'expeditionId': expedition_id, 'heroes': hero_ids})
