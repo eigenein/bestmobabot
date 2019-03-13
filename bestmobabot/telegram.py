@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from contextlib import AbstractContextManager
+from http import HTTPStatus
 from typing import Any, List, Optional
 
 from loguru import logger
@@ -34,7 +35,7 @@ class Telegram:
             json=kwargs,
             timeout=constants.API_TIMEOUT,
         )
-        if response.status_code != 200:
+        if response.status_code != HTTPStatus.OK:
             raise TelegramException(response.text)
         result = response.json()
         if not result.get('ok'):

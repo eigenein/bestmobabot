@@ -12,7 +12,12 @@ from bestmobabot.telegram import TelegramLogger
 
 def install_logging(verbosity: int):
     logger.stop()
-    logger.add(sys.stderr, format=LOGURU_FORMAT, level=VERBOSITY_LEVELS.get(verbosity, 'TRACE'))
+    logger.add(
+        sys.stderr,
+        format=LOGURU_FORMAT,
+        level=VERBOSITY_LEVELS.get(verbosity, 'TRACE'),
+        backtrace=False,
+    )
 
 
 def log_rewards(rewards: Iterable[bestmobabot.dataclasses_.Reward], logger_: TelegramLogger = None):
