@@ -33,7 +33,7 @@ tag:
 	@git tag -a '$(VERSION)' -m '$(VERSION)'
 
 .PHONY: publish/tag
-publish/tag: tag
+publish/tag:
 	@$(eval VERSION = $(shell $(PYTHON) setup.py --version))
 	@git push origin '$(VERSION)'
 
