@@ -1,6 +1,6 @@
 # Changelog
 
-## `latest`
+## `3.0b3`
 
 - Add dungeon APIs
 - Add `dungeon_activity` reward
