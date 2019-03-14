@@ -42,18 +42,18 @@ docker:
 	@docker build -t eigenein/bestmobabot .
 
 .PHONY: publish/docker
-publish/docker: docker
+publish: docker
 	@$(eval VERSION = $(shell $(PYTHON) setup.py --version))
 	@docker tag 'eigenein/bestmobabot:latest' 'eigenein/bestmobabot:$(VERSION)'
 	@docker push 'eigenein/bestmobabot:latest'
 	@docker push 'eigenein/bestmobabot:$(VERSION)'
 
-.PHONY: publish/docker/latest
-publish/docker/latest: docker
+.PHONY: publish/latest
+publish/latest: docker
 	@docker push 'eigenein/bestmobabot:latest'
 
 .PHONY: deploy/latest
-deploy/latest: publish/docker/latest
+deploy/latest: publish/latest
 	ssh moon.eigenein.com 'docker pull eigenein/bestmobabot && docker-compose up -d --remove-orphans'
 
 .PHONY: resources
