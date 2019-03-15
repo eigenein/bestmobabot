@@ -3,6 +3,7 @@
 ## `master`
 
 - Fix `farm_expedition` return value
+- Check expeditions 2 times less frequently
 
 ## `3.0b3`
 

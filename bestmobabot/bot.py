@@ -83,11 +83,8 @@ class Bot:
             ], execute=self.check_freebie),
             Task(at=[
                 time(hour=0, minute=0, tzinfo=self.user.tz),
-                time(hour=4, minute=0, tzinfo=self.user.tz),
                 time(hour=8, minute=0, tzinfo=self.user.tz),
-                time(hour=12, minute=0, tzinfo=self.user.tz),
                 time(hour=16, minute=0, tzinfo=self.user.tz),
-                time(hour=20, minute=0, tzinfo=self.user.tz),
             ], execute=self.farm_expeditions),
             Task(at=[
                 time(hour=0, minute=0, tzinfo=self.user.tz),
