@@ -314,7 +314,7 @@ class API:
         return list_of(Expedition, self.call('expeditionGet').response)
 
     def farm_expedition(self, expedition_id: str) -> Reward:
-        return Reward.parse_obj(self.call('expeditionFarm', {'expeditionId': expedition_id}, log_result=True).response)
+        return Reward.parse_obj(self.call('expeditionFarm', {'expeditionId': expedition_id}).response['reward'])
 
     def send_expedition_heroes(self, expedition_id: str, hero_ids: List[str]) -> Tuple[datetime, Quests]:
         response = self.call('expeditionSendHeroes', {'expeditionId': expedition_id, 'heroes': hero_ids})

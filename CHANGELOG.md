@@ -1,5 +1,9 @@
 # Changelog
 
+## `master`
+
+- Fix `farm_expedition` return value
+
 ## `3.0b3`
 
 - Add dungeon APIs
