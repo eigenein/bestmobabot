@@ -505,10 +505,28 @@ class DungeonFloor(BaseModel):
         return self.state == 2
 
 
+class DungeonTitan(BaseModel):
+    hp: int
+    energy: int
+    is_dead: bool
+    max_hp: int
+
+    class Config:
+        fields = {
+            'is_dead': 'isDead',
+            'max_hp': 'maxHp',
+        }
+
+
+class DungeonStates(BaseModel):
+    titans: Dict[str, DungeonTitan]
+
+
 class Dungeon(BaseModel):
     floor_number: int
     floor_type: DungeonFloorType
     floor: DungeonFloor
+    states: DungeonStates
 
     class Config:
         fields = {

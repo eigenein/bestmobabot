@@ -1,6 +1,7 @@
 import pickle
 from base64 import b85decode
 from calendar import SATURDAY
+from collections import Counter
 from datetime import datetime, time, timedelta, timezone
 from operator import attrgetter
 from random import choice, shuffle
@@ -780,11 +781,18 @@ class Bot:
             for element in LibraryTitanElement.__members__.values()
         }
 
+        # Element (attacker type) usage counter. We'll try to use them evenly across titans.
+        attacker_usage = Counter()
+
         # Clean the dungeon until the first save point.
         while dungeon is not None and not dungeon.floor.should_save_progress:
             logger.info('Floor: {}.', dungeon.floor_number)
             self.log(f'🚇️ *{self.user.name}* на *{dungeon.floor_number}-м* этаже подземелья…')
-            team_number, user_data = min(enumerate(dungeon.floor.user_data), key=lambda item: item[1].power)
+            team_number, user_data = min(
+                enumerate(dungeon.floor.user_data),
+                key=lambda item: attacker_usage[item[1].attacker_type],
+            )
+            logger.info('Using {}.', user_data.attacker_type)
             if user_data.attacker_type == DungeonUnitType.HERO:
                 attacker_ids = hero_ids
                 mode = HeroesJSMode.TOWER
@@ -792,6 +800,8 @@ class Bot:
                 attacker_ids = neutral_titan_ids
                 mode = HeroesJSMode.TITAN
             else:
+                attacker_usage[user_data.attacker_type] += 1
+                logger.debug('Attacker usage: {}', attacker_usage)
                 attacker_ids = element_titan_ids[constants.TITAN_ELEMENTS[user_data.attacker_type]]
                 mode = HeroesJSMode.TITAN
             try:

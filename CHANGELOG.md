@@ -4,6 +4,7 @@
 
 - Fix `farm_expedition` return value
 - Check expeditions 2 times less frequently
+- Change element choice condition in dungeon
 
 ## `3.0b3`
 
