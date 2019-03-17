@@ -11,6 +11,7 @@ import orjson
 from loguru import logger
 
 from bestmobabot import constants
+from bestmobabot.api import NotFoundError
 from bestmobabot.constants import NODEJS_TIMEOUT
 from bestmobabot.enums import HeroesJSMode
 from bestmobabot.resources import get_heroes_js, get_raw_library, get_skills_sc
@@ -35,8 +36,15 @@ def execute_battle_with_retry(
         response, = execute_battles([start_battle()], mode)
         if response['result']['stars'] == n_stars:
             logger.success('Battle succeeded.')
-            return end_battle(response)
-        logger.warning('Battle result: {}.', response['result'])
+            try:
+                return end_battle(response)
+            except NotFoundError as e:
+                # Sometimes API returns something like:
+                # `Battle with type clan_dungeon and typeId #222299`
+                # No idea what it is, but let's just retry.
+                logger.error('Error: {}', e)
+        else:
+            logger.warning('Battle failed: {}.', response['result'])
     raise NotEnoughStars()
 
 

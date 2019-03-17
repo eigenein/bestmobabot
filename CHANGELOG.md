@@ -5,6 +5,7 @@
 - Fix `farm_expedition` return value
 - Check expeditions 2 times less frequently
 - Change element choice condition in dungeon
+- Work around `NotFoundError` `Battle with type clan_dungeon and typeId #XXXXXX`
 
 ## `3.0b3`
 
