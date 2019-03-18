@@ -6,6 +6,7 @@
 - Check expeditions 2 times less frequently
 - Change element choice condition in dungeon
 - Work around `NotFoundError` `Battle with type clan_dungeon and typeId #XXXXXX`
+- Fix arena retries
 
 ## `3.0b3`
 

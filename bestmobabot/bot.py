@@ -400,6 +400,7 @@ class Bot:
         # Retry if win probability is too low.
         if solution.probability < constants.ARENA_MIN_PROBABILITY:
             logger.warning('Win probability is too low.')
+            self.log(f'⚔️ *{self.user.name}* отменил атаку.')
             return now() + constants.ARENA_RETRY_INTERVAL
 
         # Attack!
@@ -416,7 +417,7 @@ class Bot:
         """
         Совершает бой на обычной арене.
         """
-        self.attack_any_arena(
+        return self.attack_any_arena(
             n_heroes=constants.TEAM_SIZE,
             make_solver=lambda model, heroes: ArenaSolver(
                 db=self.db,
@@ -443,7 +444,7 @@ class Bot:
         Совершает бой на гранд арене.
         """
 
-        self.attack_any_arena(
+        return self.attack_any_arena(
             n_heroes=constants.N_GRAND_HEROES,
             make_solver=lambda model, heroes: ArenaSolver(
                 db=self.db,
