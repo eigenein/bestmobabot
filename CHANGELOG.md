@@ -8,6 +8,7 @@
 - Work around `NotFoundError` `Battle with type clan_dungeon and typeId #XXXXXX`
 - Fix arena retries
 - Resources `v0491`
+- Improve `heroes.js` monkeypatch
 
 ## `3.0b3`
 
