@@ -7,6 +7,7 @@
 - Change element choice condition in dungeon
 - Work around `NotFoundError` `Battle with type clan_dungeon and typeId #XXXXXX`
 - Fix arena retries
+- Resources `v0491`
 
 ## `3.0b3`
 
