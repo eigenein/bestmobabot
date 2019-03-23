@@ -93,11 +93,13 @@ class Bot:
             ], execute=self.get_arena_replays),
             Task(at=[
                 time(hour=0, minute=0, tzinfo=self.user.tz),
-                time(hour=4, minute=0, tzinfo=self.user.tz),
-                time(hour=8, minute=0, tzinfo=self.user.tz),
+                time(hour=3, minute=0, tzinfo=self.user.tz),
+                time(hour=6, minute=0, tzinfo=self.user.tz),
+                time(hour=9, minute=0, tzinfo=self.user.tz),
                 time(hour=12, minute=0, tzinfo=self.user.tz),
-                time(hour=16, minute=0, tzinfo=self.user.tz),
-                time(hour=20, minute=0, tzinfo=self.user.tz),
+                time(hour=15, minute=0, tzinfo=self.user.tz),
+                time(hour=18, minute=0, tzinfo=self.user.tz),
+                time(hour=21, minute=0, tzinfo=self.user.tz),
             ], execute=self.raid_missions),
             Task(at=[
                 time(hour=9, minute=30, tzinfo=self.user.tz),

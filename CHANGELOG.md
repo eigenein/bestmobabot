@@ -9,6 +9,7 @@
 - Fix arena retries
 - Resources `v0491`
 - Improve `heroes.js` monkeypatch
+- More frequent `raid_missions`
 
 ## `3.0b3`
 
