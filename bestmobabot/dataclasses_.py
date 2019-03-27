@@ -185,6 +185,20 @@ class Unit(BaseModel):
 @total_ordering
 class Hero(Unit):
     color: int
+    slots: Dict[str, int] = {}
+    skills: Dict[str, int] = {}
+    runes: List[int] = []
+    skins: Dict[str, int] = {}
+    current_skin: Optional[str] = None
+    titan_gift_level: Optional[int] = None
+    artifacts: List[Dict[str, int]] = []
+    scale: int = 1
+
+    class Config:
+        fields = {
+            'current_skin': 'currentSkin',
+            'titan_gift_level': 'titanGiftLevel',
+        }
 
     @property
     def features(self) -> Dict[str, float]:

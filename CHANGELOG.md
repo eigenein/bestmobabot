@@ -10,6 +10,7 @@
 - Resources `v0491`
 - Improve `heroes.js` monkeypatch
 - More frequent `raid_missions`
+- Save additional hero attributes
 
 ## `3.0b3`
 

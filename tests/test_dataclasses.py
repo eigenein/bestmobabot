@@ -91,6 +91,8 @@ def test_replay(response: str):
 
 @mark.parametrize('response', [
     # language=json
+    r'{"id":7,"level":130,"color":13,"star":5}',
+    # language=json
     r'{"id":2,"xp":372120,"level":71,"color":9,"slots":{"1":0,"0":0,"2":0,"3":0,"4":0},"skills":{"270":71,"271":71,"272":71,"273":71},"power":17852,"star":5,"runes":[210,250,10,0,0],"skins":{"2":3},"currentSkin":2,"titanGiftLevel":2,"titanCoinsSpent":{"consumable":{"24":510}},"artifacts":[{"level":15,"star":3},{"level":19,"star":3},{"level":17,"star":2}],"scale":1}',  # noqa
 ])
 def test_hero(response: str):

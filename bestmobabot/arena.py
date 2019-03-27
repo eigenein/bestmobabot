@@ -11,9 +11,7 @@ from typing import Any, Callable, Dict, Iterable, List, MutableMapping, Optional
 
 import numpy
 from loguru import logger
-# noinspection PyUnresolvedReferences
 from numpy import arange, ndarray, vstack
-# noinspection PyUnresolvedReferences
 from numpy.random import choice, permutation, randint
 
 from bestmobabot.constants import TEAM_SIZE
@@ -160,7 +158,8 @@ class ArenaSolver:
             if len(enemy.teams) < self.n_required_teams:
                 logger.warning('Enemy has unknown teams: {}.', enemy.user)
                 continue
-            self.store_enemy(enemy)
+            else:
+                self.store_enemy(enemy)
             if self.user_clan_id and enemy.user.is_from_clans((self.user_clan_id,)):
                 logger.info('Skipped enemy «{}» from your clan.', enemy.user.name)
                 continue
