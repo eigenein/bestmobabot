@@ -91,6 +91,8 @@ def test_replay(response: str):
 
 @mark.parametrize('response', [
     # language=json
+    r'{"id":15,"xp":256129,"level":66,"color":7,"slots":[0],"skills":{"72":48,"73":48,"74":48,"75":64},"power":10083,"star":3,"runes":[100,0,0,0,0],"skins":[],"currentSkin":0,"titanGiftLevel":1,"titanCoinsSpent":{"consumable":{"24":250}},"artifacts":[{"level":3,"star":1},{"level":10,"star":1},{"level":3,"star":1}],"scale":1}',  # noqa
+    # language=json
     r'{"id":7,"level":130,"color":13,"star":5}',
     # language=json
     r'{"id":2,"xp":372120,"level":71,"color":9,"slots":{"1":0,"0":0,"2":0,"3":0,"4":0},"skills":{"270":71,"271":71,"272":71,"273":71},"power":17852,"star":5,"runes":[210,250,10,0,0],"skins":{"2":3},"currentSkin":2,"titanGiftLevel":2,"titanCoinsSpent":{"consumable":{"24":510}},"artifacts":[{"level":15,"star":3},{"level":19,"star":3},{"level":17,"star":2}],"scale":1}',  # noqa

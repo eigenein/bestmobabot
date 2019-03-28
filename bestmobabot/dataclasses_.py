@@ -185,7 +185,7 @@ class Unit(BaseModel):
 @total_ordering
 class Hero(Unit):
     color: int
-    slots: Dict[str, int] = {}
+    slots: List[str] = []
     skills: Dict[str, int] = {}
     runes: List[int] = []
     skins: Dict[str, int] = {}
@@ -199,6 +199,14 @@ class Hero(Unit):
             'current_skin': 'currentSkin',
             'titan_gift_level': 'titanGiftLevel',
         }
+
+    # noinspection PyMethodParameters
+    @validator('slots', pre=True, whole=True)
+    def validate_slots(cls, value: Any):
+        # These odd people sometimes return `{"1": 0, "0": 0}`, sometimes `[0]`.
+        if isinstance(value, dict):
+            return list(value)
+        return value
 
     @property
     def features(self) -> Dict[str, float]:
