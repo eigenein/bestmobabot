@@ -11,6 +11,7 @@
 - Improve `heroes.js` monkeypatch
 - More frequent `raid_missions`
 - Save additional hero attributes
+- Fix: `hall_of_fame` crashes when trophy is empty
 
 ## `3.0b3`
 

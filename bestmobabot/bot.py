@@ -845,11 +845,14 @@ class Bot:
 
         if weekday == SATURDAY:
             logger.info('Farming reward today…')
-            hall_of_fame = self.api.get_hall_of_fame()
-            reward = self.api.farm_hall_of_fame_trophy_reward(hall_of_fame.trophy.week)
-            with self.logger:
-                self.logger.append(f'💨 *{self.user.name}* получил в Турнире Стихий:\n')
-                reward.log(self.logger)
+            trophy = self.api.get_hall_of_fame().trophy
+            if trophy:
+                reward = self.api.farm_hall_of_fame_trophy_reward(trophy.week)
+                with self.logger:
+                    self.logger.append(f'💨 *{self.user.name}* получил в Турнире Стихий:\n')
+                    reward.log(self.logger)
+            else:
+                logger.warning('No trophy.')
         else:
             logger.info('Doing nothing today.')
 

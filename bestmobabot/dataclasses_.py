@@ -580,7 +580,13 @@ class HallOfFameTrophy(BaseModel):
 
 
 class HallOfFame(BaseModel):
-    trophy: HallOfFameTrophy
+    trophy: Optional[HallOfFameTrophy]
+
+    # noinspection PyMethodParameters
+    @validator('trophy', pre=True)
+    def fix_trophy(cls, value):
+        # They return the empty list in case of an empty reward. 🤦
+        return value or None
 
 
 class Result(BaseModel):
