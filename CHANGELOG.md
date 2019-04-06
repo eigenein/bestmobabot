@@ -167,98 +167,98 @@ ALTER TABLE `new` RENAME TO `default`;
 
 **Breaking change.** As I keep adding more and more configuration options, I decided to move them out from the command line and environment variables to a separate configuration file. If you upgraded to this version, make sure you properly move your settings.
 
-* **Introducing configuration file**
-* **Configure maximum number of arena pages during enemy search**
-* **Configure the model hyper-parameters**
-* Distribute stamina evenly between heroic missions
+* **New: introducing configuration file**
+* **New: configure maximum number of arena pages during enemy search**
+* **New: configure the model hyper-parameters**
+* Change: distribute stamina evenly between heroic missions
 
 ## `2.0b`
 
-* **Fix forever cached user info**
-* **Farm shops #8 and #10**
-* **Option to skip particular clans in arena**
-* **Open titan artifact chests**
-* Improve logging code
-* Upgrade to Python 3.7
-* Upgrade game resources
-* Improve parameters validation
+* **Fix: forever cached user info**
+* **New: farm shops #8 and #10**
+* **New: option to skip particular clans in arena**
+* **New: open titan artifact chests**
+* Chore: improve logging code
+* Opt: upgrade to Python 3.7
+* Chore: upgrade game resources
+* Opt: improve parameters validation
 
 ## `1.2`
 
-* **Raid bosses**
-* Fix offer farming
+* **New: raid bosses**
+* Fix: offer farming
 
 ## `1.1`
 
-* Farm offers
-* Simplify expeditions code
-* Check expeditions more frequently
-* Gracefully handle offer farm error
-* Update resources
+* New: farm offers
+* Chore: simplify expeditions code
+* Change: check expeditions more frequently
+* Fix: gracefully handle offer farm error
+* Chore: update resources
 
 ## `1.0` «It's 1.0»
 
-* **Completely redesign raids – spend all stamina**
-* Optimise grand arena by keeping the best solutions during the entire search process
-* Update translations
-* Fix `ValueError: max() arg is an empty sequence` in arena
-* Add `SPAM` logging level
-* Allow stopping the hyper-parameters search process with Command+C
+* **Change: completely redesign raids – spend all stamina**
+* Opt: optimise grand arena by keeping the best solutions during the entire search process
+* Opt: update translations
+* Fix: `ValueError: max() arg is an empty sequence` in arena
+* Chore: add `SPAM` logging level
+* New: allow stopping the hyper-parameters search process with Command+C
 
 ## `0.5` «Playground»
 
 ![](resources/strongford.jpg)
 
-* Use `3.6.5-wee` docker image
-* Switch to `pipenv`
-* Add `ARENA_EARLY_STOP` parameter
-* Add `GRAND_ARENA_GENERATIONS` parameter
-* Add `ARENA_TEAMS_LIMIT` parameter
-* Add `FRIENDS` parameter
-* Model trainer is now using T-test to compare scores – it should decrease `n_estimators` and improve speed
-* Caching selected arena attackers during the search
-* Vacuum the database after training
-* Delete `test` branch
+* Opt: use `3.6.5-wee` docker image
+* Chore: switch to `pipenv`
+* New: add `ARENA_EARLY_STOP` parameter
+* New: ddd `GRAND_ARENA_GENERATIONS` parameter
+* New: add `ARENA_TEAMS_LIMIT` parameter
+* New: add `FRIENDS` parameter
+* New: model trainer is now using T-test to compare scores – it should decrease `n_estimators` and improve speed
+* New: caching selected arena attackers during the search
+* Opt: vacuum the database after training
+* Chore: delete `test` branch
 
 ## `v0.4.1`
 
-* Stability improvements and game translations update
+* Opt: stability improvements and game translations update
 
 ## `v0.4` «Arena Time»
 
 ![](resources/gw_arena_heroes.jpg)
 
-* **Automatic arena model training**
-* **Battle logs are moved to SQLite**
-* **Configurable VK.com token**
-* `BESTMOBABOT_ARENA_OFFSET` option to shift arena schedule
-* TinyDB is replaced with SQLite
-* Added early stop to arena enemy selection, early stop improvements
-* Generated model is removed from the codebase
-* Hardcoded VK.com token is revoked
-* Workaround to speed up arena computations
-* Save hero powers in the battle log
-* Update game locale to `v0351`
-* Shift raid schedules over day
-* Add mirrored battles to the training data set
+* **New: automatic arena model training**
+* **Change: battle logs are moved to SQLite**
+* **New: configurable VK.com token**
+* New: `BESTMOBABOT_ARENA_OFFSET` option to shift arena schedule
+* Change: tinyDB is replaced with SQLite
+* New: added early stop to arena enemy selection, early stop improvements
+* Change: generated model is removed from the codebase
+* Change: hardcoded VK.com token is revoked
+* New: workaround to speed up arena computations
+* New: save hero powers in the battle log
+* Chore: update game locale to `v0351`
+* Change: shift raid schedules over day
+* Opt: add mirrored battles to the training data set
 
 ## `v0.3.1`
 
-* Stability improvements and model updates
+* Opt: stability improvements and model updates
 
 ## `v0.3`
 
-* Grand arena with predictive model
-* Trainer command
-* Shopping
-* Stability improvements
+* New: grand arena with predictive model
+* New: trainer command
+* New: shopping
+* Opt: stability improvements
 
 ## `v0.2` «Machine Learning»
 
 ![](resources/arena.png)
 
-* Bot is able to use the prediction model to attack the best arena enemy
+* New: bot is able to use the prediction model to attack the best arena enemy
 
 ## `v0.1`
 
-* The first pre-release that is more or less stable and performs common everyday tasks
+* New: the first pre-release that is more or less stable and performs common everyday tasks
