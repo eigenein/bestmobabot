@@ -7,7 +7,7 @@
 - Change: element choice condition in dungeon
 - Fix: work around `NotFoundError` `Battle with type clan_dungeon and typeId #XXXXXX`
 - Fix: arena retries
-- Change: resources `v0491`
+- Change: resources `v0497`
 - Opt: improve `heroes.js` monkeypatch
 - Change: more frequent `raid_missions`
 - Change: save additional hero attributes
