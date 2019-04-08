@@ -1,6 +1,6 @@
 # Changelog
 
-## `master`
+## `3.0`
 
 - Fix: `farm_expedition` return value
 - Change: Check expeditions 2 times less frequently
