@@ -1,5 +1,9 @@
 # Changelog
 
+## `master`
+
+- Change: add new features to the prediction model
+
 ## `3.0`
 
 - Fix: `farm_expedition` return value

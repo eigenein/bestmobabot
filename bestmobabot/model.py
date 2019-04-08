@@ -1,7 +1,7 @@
 import pickle
 from base64 import b85encode
 from collections import defaultdict
-from itertools import chain, product
+from itertools import product
 from operator import itemgetter
 from typing import Any, DefaultDict, Dict, Iterable, List, NamedTuple, Optional
 
@@ -63,7 +63,8 @@ class Trainer:
 
         # Print debugging info.
         for column, importance in sorted(zip(x.columns, estimator.feature_importances_), key=itemgetter(1), reverse=True):  # noqa
-            logger.trace(f'Feature {column}: {importance:.7f}')
+            if importance > 0.0001:
+                logger.trace(f'Feature {column}: {importance:.4f}')
 
         logger.info('Saving model…')
         self.db['bot:model'] = b85encode(pickle.dumps(
@@ -100,25 +101,19 @@ class Trainer:
         values.sort(key=lambda value: value.get('start_time', 0.0))
         values = values[-self.n_last_battles:]
         logger.info('Parsing battles…')
-        return list(chain.from_iterable(self.parse_battles(value) for value in values))
+        return [self.parse_battle(value) for value in values]
 
     @staticmethod
     def deduplicate_battles(battles: Iterable[Dict[str, Any]]) -> List[Dict[str, Any]]:
         return list(dict(items) for items in {tuple(sorted(battle.items())) for battle in battles})
 
     @classmethod
-    def parse_battles(cls, battle: Dict[str, Any]) -> Iterable[Dict[str, Any]]:
+    def parse_battle(cls, battle: Dict[str, Any]) -> Dict[str, Any]:
         # Yield battle itself.
         result = defaultdict(int)
         cls.parse_heroes(battle.get('attackers') or battle['player'], +1, result)
         cls.parse_heroes(battle.get('defenders') or battle['enemies'], -1, result)
-        yield {'win': battle['win'], **result}
-
-        # Yield mirrored battle.
-        result = defaultdict(int)
-        cls.parse_heroes(battle.get('attackers') or battle['player'], -1, result)
-        cls.parse_heroes(battle.get('defenders') or battle['enemies'], +1, result)
-        yield {'win': not battle['win'], **result}
+        return {'win': battle['win'], **result}
 
     @staticmethod
     def parse_heroes(heroes: Iterable[Dict[str, int]], multiplier: int, result: DefaultDict[str, int]):

@@ -202,31 +202,50 @@ class Hero(Unit):
 
     # noinspection PyMethodParameters
     @validator('slots', pre=True, whole=True)
-    def validate_slots(cls, value: Any):
+    def fix_slots(cls, value: Any):
         # These odd people sometimes return `{"1": 0, "0": 0}`, sometimes `[0]`.
         if isinstance(value, dict):
             return list(value)
         return value
 
+    # noinspection PyMethodParameters
+    @validator('skins', pre=True)
+    def fix_skins(cls, value):
+        return value or {}  # 🤦‍
+
     @property
     def features(self) -> Dict[str, float]:
         return {
-            f'color_{self.id}': float(self.color),
-            f'level_{self.id}': float(self.level),
-            f'star_{self.id}': float(self.star),
+            'total_color_level': float(self.color) * float(self.level),
+            'total_color_level_star': float(self.color) * float(self.level) * float(self.star),
+            'total_color_star': float(self.color) * float(self.star),
+            'total_colors': float(self.color),
+            'total_colors2': float(self.color ** 2),
+            'total_heroes': 1.0,
+            'total_level_star': float(self.level) * float(self.star),
+            'total_levels': float(self.level),
+            'total_levels2': float(self.level ** 2),
+            'total_stars': float(self.star),
+            'total_stars2': float(self.star ** 2),
+            **{f'artifact_level_{self.id}_{i}': artifact['level'] for i, artifact in enumerate(self.artifacts)},
+            **{f'artifact_star_{self.id}_{i}': artifact['star'] for i, artifact in enumerate(self.artifacts)},
+            **{f'rune_{self.id}_{i}': float(level) for i, level in enumerate(self.runes)},
+            **{f'skill_{self.id}_{skill_id}': float(level) for skill_id, level in self.skills.items()},
+            **{f'slot_{self.id}_{n_slot}': 1.0 for n_slot in self.slots},
             f'color_level_star_{self.id}': float(self.color) * float(self.level) * float(self.star),
             f'color_level_{self.id}': float(self.color) * float(self.level),
             f'color_star_{self.id}': float(self.color) * float(self.star),
+            f'color_{self.id}': float(self.color),
             f'level_star_{self.id}': float(self.level) * float(self.star),
-            'total_color_level_star': float(self.color) * float(self.level) * float(self.star),
-            'total_color_level': float(self.color) * float(self.level),
-            'total_color_star': float(self.color) * float(self.star),
-            'total_level_star': float(self.level) * float(self.star),
-            'total_colors': float(self.color),
-            'total_levels': float(self.level),
-            'total_stars': float(self.star),
-            'total_heroes': 1.0,
+            f'level_{self.id}': float(self.level),
+            f'skin_{self.id}': float(self.skin_level),
+            f'star_{self.id}': float(self.star),
+            f'titan_gift_level_{self.id}': float(self.titan_gift_level or 0.0),
         }
+
+    @property
+    def skin_level(self) -> int:
+        return self.skins.get(self.current_skin, 0)
 
     def __lt__(self, other: Any) -> Any:
         if isinstance(other, Hero):
