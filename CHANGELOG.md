@@ -2,16 +2,17 @@
 
 ## `master`
 
-- Fix `farm_expedition` return value
-- Check expeditions 2 times less frequently
-- Change element choice condition in dungeon
-- Work around `NotFoundError` `Battle with type clan_dungeon and typeId #XXXXXX`
-- Fix arena retries
-- Resources `v0491`
-- Improve `heroes.js` monkeypatch
-- More frequent `raid_missions`
-- Save additional hero attributes
+- Fix: `farm_expedition` return value
+- Change: Check expeditions 2 times less frequently
+- Change: element choice condition in dungeon
+- Fix: work around `NotFoundError` `Battle with type clan_dungeon and typeId #XXXXXX`
+- Fix: arena retries
+- Change: resources `v0491`
+- Opt: improve `heroes.js` monkeypatch
+- Change: more frequent `raid_missions`
+- Change: save additional hero attributes
 - Fix: `hall_of_fame` crashes when trophy is empty
+- Change: remove Google Analytics
 
 ## `3.0b3`
 

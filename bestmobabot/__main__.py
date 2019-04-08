@@ -12,7 +12,6 @@ from bestmobabot.database import Database
 from bestmobabot.logging_ import install_logging, logger
 from bestmobabot.settings import Settings, SettingsFileParamType
 from bestmobabot.telegram import Telegram
-from bestmobabot.tracking import get_version
 from bestmobabot.vk import VK
 
 
@@ -39,7 +38,7 @@ def main(settings: Settings, verbosity: int, shell: bool):
     Hero Wars game bot 🏆
     """
     install_logging(verbosity)
-    logger.info(f'Bot is starting. Version: {get_version()}.')
+    logger.info(f'Bot is starting.')
 
     with Session() as session, Database(constants.DATABASE_NAME) as db:
         session.mount('https://', HTTPAdapter(max_retries=5))

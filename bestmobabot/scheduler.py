@@ -11,7 +11,6 @@ from typing import Callable, DefaultDict, Dict, Iterable, List, NoReturn, Option
 from loguru import logger
 
 import bestmobabot.bot
-from bestmobabot.tracking import send_event
 
 
 @dataclass
@@ -93,7 +92,6 @@ class Scheduler:
                 self.db[f'{self.bot.user.id}:retries'] = list(self.retries.items())
 
     def execute(self, task: Task) -> Optional[datetime]:
-        send_event(category='bot', action=task.execute.__name__, user_id=self.bot.user.id)
         self.bot.api.last_responses.clear()
         try:
             next_run_at = task.execute()

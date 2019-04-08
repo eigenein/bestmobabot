@@ -33,7 +33,6 @@ from bestmobabot.resources import get_heroic_mission_ids, mission_name, shop_nam
 from bestmobabot.scheduler import Scheduler, Task, now
 from bestmobabot.settings import Settings
 from bestmobabot.telegram import Telegram, TelegramLogger
-from bestmobabot.tracking import send_event
 from bestmobabot.trainer import Trainer
 from bestmobabot.vk import VK
 
@@ -137,8 +136,6 @@ class Bot:
         if self.settings.bot.debug:
             logger.warning('Running in debug mode.')
             self.scheduler.add_task(Task(at=[(datetime.now() + timedelta(seconds=15)).time()], execute=self.quack))
-
-        send_event(category='bot', action='start', user_id=self.api.user_id)
 
     def run(self):
         self.scheduler.run()

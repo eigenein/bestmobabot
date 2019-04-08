@@ -44,7 +44,6 @@ from bestmobabot.dataclasses_ import (
 )
 from bestmobabot.enums import BattleType
 from bestmobabot.settings import Settings
-from bestmobabot.tracking import send_event
 
 
 class APIError(Exception):
@@ -199,8 +198,6 @@ class API:
         sleep_time = random.uniform(5.0, 10.0) if random_sleep and self.request_id != 1 else 0.0
         logger.info(f'#{self.request_id}: {name}({arguments or {}}) in {sleep_time:.1f} seconds…')
         sleep(sleep_time)
-
-        send_event(category='api', action=name, user_id=self.user_id)
 
         calls = [{'ident': name, 'name': name, 'args': arguments or {}}]
         data = orjson.dumps({"session": None, "calls": calls}).decode()
