@@ -3,6 +3,7 @@
 ## `master`
 
 - Change: add new features to the prediction model
+- Fix: #7 gracefully handle `NotEnoughError`
 
 ## `3.0`
 

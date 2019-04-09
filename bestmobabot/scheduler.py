@@ -11,6 +11,7 @@ from typing import Callable, DefaultDict, Dict, Iterable, List, NoReturn, Option
 from loguru import logger
 
 import bestmobabot.bot
+from bestmobabot.api import NotEnoughError
 
 
 @dataclass
@@ -95,9 +96,12 @@ class Scheduler:
         self.bot.api.last_responses.clear()
         try:
             next_run_at = task.execute()
+        except NotEnoughError as e:
+            logger.warning('Not enough: {}', e)
+            self.bot.log(f'‼️ *{self.user_name}*: {e}')
         except MemoryError:
             logger.error('Memory error.')
-            self.bot.log(f'‼️ *{self.user_name}* пострадал из-за нехватки памяти.')
+            self.bot.log(f'‼️ *{self.user_name}* не хватило памяти.')
             return now() + timedelta(minutes=uniform(1.0, 10.0))
         except Exception as e:
             self.bot.log(
