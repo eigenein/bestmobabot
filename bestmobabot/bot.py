@@ -15,6 +15,7 @@ from bestmobabot.database import Database
 from bestmobabot.dataclasses_ import (
     ArenaResult,
     Dungeon,
+    DungeonTitanState,
     EndDungeonBattleResponse,
     Hero,
     Mission,
@@ -187,7 +188,7 @@ class Bot:
                 start_battle=lambda: self.api.start_mission(mission_id, hero_ids),
                 end_battle=lambda response: self.api.end_mission(mission_id, response),
                 n_retries=n_retries,
-                n_stars=n_stars,
+                n_min_stars=n_stars,
             )
         except NotEnoughStars:
             logger.error('Not enough stars.')
@@ -776,10 +777,10 @@ class Bot:
         hero_ids = get_unit_ids(naive_select_attackers(self.api.get_all_heroes()))
         titans = self.api.get_all_titans()
         neutral_titan_ids = get_unit_ids(naive_select_attackers(titans))
-        element_titan_ids = {
+        element_titan_ids: Dict[LibraryTitanElement, List[str]] = {
             element: get_unit_ids(naive_select_attackers(titan for titan in titans if titan.element == element))
             for element in LibraryTitanElement.__members__.values()
-        }
+        }  # TODO: simplify this by having sets of IDs for each element, and then by doing set intersection.
 
         # Element (attacker type) usage counter. We'll try to use them evenly across titans.
         attacker_usage = Counter()
@@ -788,36 +789,50 @@ class Bot:
         while dungeon is not None and not dungeon.floor.should_save_progress:
             logger.info('Floor: {}.', dungeon.floor_number)
             self.log(f'🚇️ *{self.user.name}* на *{dungeon.floor_number}-м* этаже подземелья…')
+
+            # Select the least used attacker type.
+            logger.debug('Attacker usage: {}', attacker_usage)
             team_number, user_data = min(
                 enumerate(dungeon.floor.user_data),
                 key=lambda item: attacker_usage[item[1].attacker_type],
             )
             logger.info('Using {}.', user_data.attacker_type)
+
             if user_data.attacker_type == DungeonUnitType.HERO:
                 attacker_ids = hero_ids
                 mode = HeroesJSMode.TOWER
-            elif user_data.attacker_type == DungeonUnitType.NEUTRAL:
-                attacker_ids = neutral_titan_ids
-                mode = HeroesJSMode.TITAN
             else:
-                attacker_usage[user_data.attacker_type] += 1
-                logger.debug('Attacker usage: {}', attacker_usage)
-                attacker_ids = element_titan_ids[constants.TITAN_ELEMENTS[user_data.attacker_type]]
                 mode = HeroesJSMode.TITAN
+                states: Dict[str, DungeonTitanState] = dungeon.states.titans or {}
+                if user_data.attacker_type == DungeonUnitType.NEUTRAL:
+                    attacker_ids = neutral_titan_ids
+                else:
+                    attacker_usage[user_data.attacker_type] += 1
+                    attacker_ids = element_titan_ids[constants.TITAN_ELEMENTS[user_data.attacker_type]]
+                # Filter out dead titans.
+                attacker_ids = [
+                    titan_id
+                    for titan_id in attacker_ids
+                    if not getattr(states.get(titan_id), 'is_dead', False)
+                ]
+            if not attacker_ids:
+                logger.warning('Selected attackers are dead.')
+                break
+
             try:
                 response: EndDungeonBattleResponse = execute_battle_with_retry(
                     mode=mode,
+                    n_min_stars=2,  # let them die from time to time
                     start_battle=lambda: self.api.start_dungeon_battle(attacker_ids, team_number),
-                    end_battle=lambda response_: self.api.end_dungeon_battle(response_)
+                    end_battle=lambda response_: self.api.end_dungeon_battle(response_),
                 )
             except NotEnoughStars:
-                logger.warning('Dungeon is stopped prematurely.')
+                logger.warning('Could not win the battle.')
                 break
-            else:
-                with self.logger:
-                    self.logger.append(f'🚇️ *{self.user.name}* получил на *{dungeon.floor_number}-м* этаже:', '')
-                    response.reward.log(self.logger)
-                dungeon = response.dungeon
+            with self.logger:
+                self.logger.append(f'🚇️ *{self.user.name}* получил на *{dungeon.floor_number}-м* этаже:', '')
+                response.reward.log(self.logger)
+            dungeon = response.dungeon
 
         # Save progress.
         if not dungeon or dungeon.floor.should_save_progress:

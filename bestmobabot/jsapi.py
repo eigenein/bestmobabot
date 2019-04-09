@@ -29,13 +29,13 @@ def execute_battle_with_retry(
     start_battle: Callable[[], Any],
     end_battle: Callable[[Any], Any],
     n_retries: int = 3,
-    n_stars: int = constants.RAID_N_STARS,
+    n_min_stars: int = constants.RAID_N_STARS,
 ) -> Any:
     for i in range(1, n_retries + 1):
         logger.info('Battle attempt #{}.', i)
         response, = execute_battles([start_battle()], mode)
-        if response['result']['stars'] == n_stars:
-            logger.success('Battle succeeded.')
+        if response['result']['stars'] >= n_min_stars:
+            logger.success('Battle succeeded: {}', '⭐️' * response['result']['stars'])
             try:
                 return end_battle(response)
             except NotFoundError as e:

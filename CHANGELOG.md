@@ -4,6 +4,7 @@
 
 - Change: add new features to the prediction model
 - Fix: #7 gracefully handle `NotEnoughError`
+- Change: allow titans to die in the dungeon
 
 ## `3.0`
 

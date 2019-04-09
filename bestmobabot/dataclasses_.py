@@ -546,7 +546,7 @@ class DungeonFloor(BaseModel):
         return self.state == 2
 
 
-class DungeonTitan(BaseModel):
+class DungeonTitanState(BaseModel):
     hp: int
     energy: int
     is_dead: bool
@@ -560,7 +560,7 @@ class DungeonTitan(BaseModel):
 
 
 class DungeonStates(BaseModel):
-    titans: Dict[str, DungeonTitan]
+    titans: Dict[str, DungeonTitanState]
 
 
 class Dungeon(BaseModel):
