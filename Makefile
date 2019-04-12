@@ -58,10 +58,10 @@ deploy/latest: publish/latest
 
 .PHONY: resources
 resources:
-	curl 'https://heroes.cdnvideo.ru/vk/v0498/locale/ru.json.gz?js=1' --output bestmobabot/js/ru.json.gz
-	curl 'https://heroes.cdnvideo.ru/vk/v0497/lib/lib.json.gz?js=1' --output bestmobabot/js/lib.json.gz
-	curl 'https://heroes.cdnvideo.ru/vk/v0497/assets/heroes.js' --output bestmobabot/js/heroes.js
-	curl 'https://heroes.cdnvideo.ru/vk/v0497/assets/hx/skills.sc?js=1' --output bestmobabot/js/skills.sc
+	curl 'https://heroes.cdnvideo.ru/vk/v0499/locale/ru.json.gz?js=1' --output bestmobabot/js/ru.json.gz
+	curl 'https://heroes.cdnvideo.ru/vk/v0499/lib/lib.json.gz?js=1' --output bestmobabot/js/lib.json.gz
+	curl 'https://heroes.cdnvideo.ru/vk/v0501/assets/heroes.js' --output bestmobabot/js/heroes.js
+	curl 'https://heroes.cdnvideo.ru/vk/v0500/assets/hx/skills.sc?js=1' --output bestmobabot/js/skills.sc
 
 docs: book
 	mdbook build
