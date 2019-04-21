@@ -93,13 +93,11 @@ class Bot:
             ], execute=self.get_arena_replays),
             Task(at=[
                 time(hour=0, minute=0, tzinfo=self.user.tz),
-                time(hour=3, minute=0, tzinfo=self.user.tz),
-                time(hour=6, minute=0, tzinfo=self.user.tz),
-                time(hour=9, minute=0, tzinfo=self.user.tz),
+                time(hour=4, minute=0, tzinfo=self.user.tz),
+                time(hour=8, minute=0, tzinfo=self.user.tz),
                 time(hour=12, minute=0, tzinfo=self.user.tz),
-                time(hour=15, minute=0, tzinfo=self.user.tz),
-                time(hour=18, minute=0, tzinfo=self.user.tz),
-                time(hour=21, minute=0, tzinfo=self.user.tz),
+                time(hour=16, minute=0, tzinfo=self.user.tz),
+                time(hour=20, minute=0, tzinfo=self.user.tz),
             ], execute=self.raid_missions),
             Task(at=[
                 time(hour=9, minute=30, tzinfo=self.user.tz),
@@ -108,17 +106,17 @@ class Bot:
             ], execute=self.farm_quests),
 
             Task(at=[time(hour=6, minute=0, tzinfo=self.user.tz)], execute=self.skip_tower),
-            Task(at=[time(hour=8, minute=0, tzinfo=self.user.tz)], execute=self.register),
-            Task(at=[time(hour=8, minute=15, tzinfo=self.user.tz)], execute=self.farm_daily_bonus),
-            Task(at=[time(hour=8, minute=20, tzinfo=timezone.utc)], execute=self.raid_bosses),
-            Task(at=[time(hour=8, minute=30, tzinfo=self.user.tz)], execute=self.buy_chest),
-            Task(at=[time(hour=8, minute=40, tzinfo=timezone.utc)], execute=self.hall_of_fame),
-            Task(at=[time(hour=8, minute=45, tzinfo=self.user.tz)], execute=self.level_up_titan_hero_gift),
-            Task(at=[time(hour=9, minute=0, tzinfo=self.user.tz)], execute=self.send_daily_gift),
-            Task(at=[time(hour=9, minute=15, tzinfo=self.user.tz)], execute=self.open_titan_artifact_chest),
-            Task(at=[time(hour=9, minute=30, tzinfo=self.user.tz)], execute=self.farm_offers),
-            Task(at=[time(hour=10, minute=0, tzinfo=self.user.tz)], execute=self.farm_zeppelin_gift),
-            Task(at=[time(hour=10, minute=15, tzinfo=self.user.tz)], execute=self.clear_dungeon),
+            Task(at=[time(hour=7, minute=0, tzinfo=self.user.tz)], execute=self.register),
+            Task(at=[time(hour=7, minute=10, tzinfo=self.user.tz)], execute=self.farm_daily_bonus),
+            Task(at=[time(hour=7, minute=20, tzinfo=timezone.utc)], execute=self.raid_bosses),
+            Task(at=[time(hour=7, minute=30, tzinfo=self.user.tz)], execute=self.buy_chest),
+            Task(at=[time(hour=7, minute=40, tzinfo=timezone.utc)], execute=self.hall_of_fame),
+            Task(at=[time(hour=7, minute=50, tzinfo=self.user.tz)], execute=self.level_up_titan_hero_gift),
+            Task(at=[time(hour=8, minute=0, tzinfo=self.user.tz)], execute=self.send_daily_gift),
+            Task(at=[time(hour=8, minute=15, tzinfo=self.user.tz)], execute=self.open_titan_artifact_chest),
+            Task(at=[time(hour=8, minute=30, tzinfo=self.user.tz)], execute=self.farm_offers),
+            Task(at=[time(hour=8, minute=45, tzinfo=self.user.tz)], execute=self.farm_zeppelin_gift),
+            Task(at=[time(hour=9, minute=0, tzinfo=self.user.tz)], execute=self.clear_dungeon),
         ])
         if self.settings.bot.shops:
             self.scheduler.add_task(Task(at=[
@@ -131,9 +129,9 @@ class Bot:
         if self.settings.bot.is_trainer:
             self.scheduler.add_task(Task(at=[time(hour=22, minute=0)], execute=self.train_arena_model))
         if self.settings.bot.arena.randomize_grand_defenders:
-            self.scheduler.add_task(Task(at=[time(hour=10, minute=30)], execute=self.randomize_grand_defenders))
+            self.scheduler.add_task(Task(at=[time(hour=8, minute=30)], execute=self.randomize_grand_defenders))
         if self.settings.bot.enchant_rune:
-            self.scheduler.add_task(Task(at=[time(hour=9, minute=0)], execute=self.enchant_rune))
+            self.scheduler.add_task(Task(at=[time(hour=8, minute=0)], execute=self.enchant_rune))
         if self.settings.bot.debug:
             logger.warning('Running in debug mode.')
             self.scheduler.add_task(Task(at=[(datetime.now() + timedelta(seconds=15)).time()], execute=self.quack))
