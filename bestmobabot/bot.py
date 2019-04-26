@@ -116,7 +116,7 @@ class Bot:
             Task(at=[time(hour=8, minute=15, tzinfo=self.user.tz)], execute=self.open_titan_artifact_chest),
             Task(at=[time(hour=8, minute=30, tzinfo=self.user.tz)], execute=self.farm_offers),
             Task(at=[time(hour=8, minute=45, tzinfo=self.user.tz)], execute=self.farm_zeppelin_gift),
-            Task(at=[time(hour=9, minute=0, tzinfo=self.user.tz)], execute=self.clear_dungeon),
+            # Task(at=[time(hour=9, minute=0, tzinfo=self.user.tz)], execute=self.clear_dungeon),
         ])
         if self.settings.bot.shops:
             self.scheduler.add_task(Task(at=[
