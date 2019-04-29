@@ -9,9 +9,9 @@ The project is intended for a Russian-speaking community.
 
 [«Хроники Хаоса»](https://vk.com/app5327745_209336881) – бот для VK.com.
 
-- Документация: https://eigenein.github.io/bestmobabot/
-- Поддержка: https://github.com/eigenein/bestmobabot/issues
-- Список обновлений: https://github.com/eigenein/bestmobabot/releases
+- [Документация](https://eigenein.github.io/bestmobabot/)
+- [Поддержка](https://github.com/eigenein/bestmobabot/issues)
+- [Список обновлений](https://github.com/eigenein/bestmobabot/releases)
 
 ## Авторы
 
