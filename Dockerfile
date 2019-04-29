@@ -8,9 +8,6 @@ ENV \
     PYTHONOPTIMIZE=2 \
     IPYTHONDIR=/app/.ipython
 
-RUN curl -sL https://deb.nodesource.com/setup_11.x | bash -
-RUN apt-get install -y nodejs
-
 COPY requirements.txt /tmp/bestmobabot/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/bestmobabot/requirements.txt
 COPY . /tmp/bestmobabot
