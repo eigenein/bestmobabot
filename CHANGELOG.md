@@ -2,10 +2,13 @@
 
 ## `master`
 
-- Change: remove `jsapi` because they obfuscated the code
-- Change: add new features to the prediction model
-- Fix: #7 gracefully handle `NotEnoughError`
-- Fix: upgrade resources
+Первая общедоступная версия.
+
+- **Новое**: [документация](https://eigenein.github.io/bestmobabot/)
+- **Изменение**: `jsapi` удален из-за обфускации кода разработчиками игры
+- **Изменение**: в предсказательную модель арены добавлены новые признаки
+- **Исправление**: #7 обработка ошибки `NotEnoughError`
+- **Исправление**: обновление `lib.json` и `ru.json`
 
 ## `3.0`
 
