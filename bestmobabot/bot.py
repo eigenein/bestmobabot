@@ -1,7 +1,6 @@
+import calendar
 import pickle
 from base64 import b85decode
-from calendar import SATURDAY
-from collections import Counter
 from datetime import datetime, time, timedelta, timezone
 from operator import attrgetter
 from random import choice, shuffle
@@ -12,22 +11,9 @@ from bestmobabot import constants
 from bestmobabot.api import API, AlreadyError, NotEnoughError, NotFoundError
 from bestmobabot.arena import ArenaSolution, ArenaSolver, reduce_grand_arena, reduce_normal_arena
 from bestmobabot.database import Database
-from bestmobabot.dataclasses_ import (
-    ArenaResult,
-    Dungeon,
-    DungeonTitanState,
-    EndDungeonBattleResponse,
-    Hero,
-    Mission,
-    Quest,
-    Quests,
-    Replay,
-    Reward,
-    User,
-)
-from bestmobabot.enums import BattleType, DungeonUnitType, HeroesJSMode, LibraryTitanElement, TowerFloorType
+from bestmobabot.dataclasses_ import ArenaResult, Hero, Mission, Quest, Quests, Replay, User
+from bestmobabot.enums import BattleType, TowerFloorType
 from bestmobabot.helpers import find_expedition_team, get_teams_unit_ids, get_unit_ids, naive_select_attackers
-from bestmobabot.jsapi import NotEnoughStars, execute_battle_with_retry
 from bestmobabot.logging_ import log_rewards, logger
 from bestmobabot.model import Model
 from bestmobabot.resources import get_heroic_mission_ids, mission_name, shop_name
@@ -116,7 +102,6 @@ class Bot:
             Task(at=[time(hour=8, minute=15, tzinfo=self.user.tz)], execute=self.open_titan_artifact_chest),
             Task(at=[time(hour=8, minute=30, tzinfo=self.user.tz)], execute=self.farm_offers),
             Task(at=[time(hour=8, minute=45, tzinfo=self.user.tz)], execute=self.farm_zeppelin_gift),
-            # Task(at=[time(hour=9, minute=0, tzinfo=self.user.tz)], execute=self.clear_dungeon),
         ])
         if self.settings.bot.shops:
             self.scheduler.add_task(Task(at=[
@@ -174,24 +159,6 @@ class Bot:
             return
         while True:
             yield choice(non_heroic_mission_ids)
-
-    def run_manual_mission(self, mission_id: str, hero_ids: List[str], n_retries=3, n_stars=1):
-        """
-        Attacks the specified mission with the specified heroes.
-        Supposed to be used in the shell.
-        """
-        try:
-            reward = execute_battle_with_retry(
-                mode=HeroesJSMode.TOWER,
-                start_battle=lambda: self.api.start_mission(mission_id, hero_ids),
-                end_battle=lambda response: self.api.end_mission(mission_id, response),
-                n_retries=n_retries,
-                n_min_stars=n_stars,
-            )
-        except NotEnoughStars:
-            logger.error('Not enough stars.')
-        else:
-            reward.log()
 
     # Tasks.
     # ------------------------------------------------------------------------------------------------------------------
@@ -587,7 +554,6 @@ class Bot:
         self.log(f'🗼 *{self.user.name}* проходит башню…')
 
         tower = self.api.get_tower_info()
-        heroes: List[str] = []
 
         # Yeah, it's a bit complicated…
         while tower.floor_number <= 50:
@@ -595,7 +561,7 @@ class Bot:
             self.log(f'🗼 *{self.user.name}* на {tower.floor_number}-м этаже башни…')
 
             if tower.floor_type == TowerFloorType.BATTLE:
-                # If we have the top level, then we can skip the tower entirely.
+                # If we have the topmost level, then we can skip the tower entirely.
                 # But we need to go chest by chest. So go to the next chest.
                 if tower.may_full_skip:
                     tower = self.api.next_tower_chest()
@@ -603,34 +569,18 @@ class Bot:
                 elif tower.floor_number <= tower.may_skip_floor:
                     tower, reward = self.api.skip_tower_floor()
                     reward.log()
-                # Otherwise, we have to simulate the battle.
+                # Otherwise, we're not able to continue.
                 else:
-                    # Fetch the most powerful team, unless already done.
-                    heroes = heroes or get_unit_ids(naive_select_attackers(self.api.get_all_heroes()))
-                    try:
-                        reward: Reward = execute_battle_with_retry(
-                            mode=HeroesJSMode.TOWER,
-                            start_battle=lambda: self.api.start_tower_battle(heroes),
-                            end_battle=lambda response: self.api.end_tower_battle(response),
-                        )
-                    except NotEnoughStars:
-                        # No attempt was successful, stop the tower.
-                        logger.warning('Tower is stopped prematurely.')
-                        break
-                    else:
-                        with self.logger:
-                            self.logger.append(f'🗼 *{self.user.name}* получил на {tower.floor_number}-м этаже:\n')
-                            reward.log(self.logger)
-                        tower = self.api.next_tower_floor()
+                    break
             elif tower.floor_type == TowerFloorType.CHEST:
                 # The simplest one. Just open a random chest.
                 reward, _ = self.api.open_tower_chest(choice([0, 1, 2]))
                 with self.logger:
                     self.logger.append(f'🗼 *{self.user.name}* получил на {tower.floor_number}-м этаже башни:\n')
                     reward.log(self.logger)
-                # If it was the top floor, we have to stop.
+                # If it was the topmost floor, we have to stop.
                 if tower.floor_number == 50:
-                    logger.success('Finished. It was the top floor.')
+                    logger.success('Finished. It was the topmost floor.')
                     break
                 # If we can skip the tower entirely, then go to the next chest.
                 if tower.may_full_skip:
@@ -763,88 +713,6 @@ class Bot:
 
         self.log(f'⚡️ *{self.user.name}* вложил и сбросил искры мощи.')
 
-    def clear_dungeon(self):
-        """
-        Подземелье.
-        """
-        self.log(f'🚇️ *{self.user.name}* идет в подземелье…')
-
-        dungeon: Optional[Dungeon] = self.api.get_dungeon_info()
-
-        # Prepare attacker lists.
-        hero_ids = get_unit_ids(naive_select_attackers(self.api.get_all_heroes()))
-        titans = self.api.get_all_titans()
-        neutral_titan_ids = get_unit_ids(naive_select_attackers(titans))
-        element_titan_ids: Dict[LibraryTitanElement, List[str]] = {
-            element: get_unit_ids(naive_select_attackers(titan for titan in titans if titan.element == element))
-            for element in LibraryTitanElement.__members__.values()
-        }  # TODO: simplify this by having sets of IDs for each element, and then by doing set intersection.
-
-        # Element (attacker type) usage counter. We'll try to use them evenly across titans.
-        attacker_usage = Counter()
-
-        # Clean the dungeon until the first save point.
-        while dungeon is not None and not dungeon.floor.should_save_progress:
-            logger.info('Floor: {}.', dungeon.floor_number)
-            self.log(f'🚇️ *{self.user.name}* на *{dungeon.floor_number}-м* этаже подземелья…')
-
-            # Select the least used attacker type.
-            logger.debug('Attacker usage: {}', attacker_usage)
-            team_number, user_data = min(
-                enumerate(dungeon.floor.user_data),
-                key=lambda item: attacker_usage[item[1].attacker_type],
-            )
-            logger.info('Using {}.', user_data.attacker_type)
-
-            if user_data.attacker_type == DungeonUnitType.HERO:
-                attacker_ids = hero_ids
-                mode = HeroesJSMode.TOWER
-            else:
-                mode = HeroesJSMode.TITAN
-                states: Dict[str, DungeonTitanState] = dungeon.states.titans or {}
-                if user_data.attacker_type == DungeonUnitType.NEUTRAL:
-                    attacker_ids = neutral_titan_ids
-                else:
-                    attacker_usage[user_data.attacker_type] += 1
-                    attacker_ids = element_titan_ids[constants.TITAN_ELEMENTS[user_data.attacker_type]]
-                # Filter out dead titans.
-                attacker_ids = [
-                    titan_id
-                    for titan_id in attacker_ids
-                    if not getattr(states.get(titan_id), 'is_dead', False)
-                ]
-            if not attacker_ids:
-                logger.warning('Selected attackers are dead.')
-                break
-
-            try:
-                response: EndDungeonBattleResponse = execute_battle_with_retry(
-                    mode=mode,
-                    n_min_stars=2,  # let them die from time to time
-                    start_battle=lambda: self.api.start_dungeon_battle(attacker_ids, team_number),
-                    end_battle=lambda response_: self.api.end_dungeon_battle(response_),
-                )
-            except NotEnoughStars:
-                logger.warning('Could not win the battle.')
-                break
-            with self.logger:
-                self.logger.append(f'🚇️ *{self.user.name}* получил на *{dungeon.floor_number}-м* этаже:', '')
-                response.reward.log(self.logger)
-            dungeon = response.dungeon
-
-        # Save progress.
-        if not dungeon or dungeon.floor.should_save_progress:
-            self.log(f'🚇️ *{self.user.name}* сохраняется в подземелье…')
-            response = self.api.save_dungeon_progress()
-            with self.logger:
-                self.logger.append(f'🚇️ *{self.user.name}* получил за сохранение:', '')
-                response.reward.log(self.logger)
-        else:
-            logger.warning('Could not save the dungeon progress.')
-
-        self.log(f'🚇️ *{self.user.name}* сходил в подземелье.')
-        self.farm_quests()
-
     def hall_of_fame(self):
         """
         Турнир Стихий.
@@ -853,7 +721,7 @@ class Bot:
 
         weekday = now().weekday()
 
-        if weekday == SATURDAY:
+        if weekday == calendar.SATURDAY:
             logger.info('Farming reward today…')
             trophy = self.api.get_hall_of_fame().trophy
             if trophy:

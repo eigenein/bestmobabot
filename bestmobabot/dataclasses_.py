@@ -11,7 +11,7 @@ from pydantic.validators import _VALIDATORS
 
 from bestmobabot import resources
 from bestmobabot.constants import COLORS, RAID_N_STARS
-from bestmobabot.enums import DungeonFloorType, DungeonUnitType, LibraryTitanElement, LibraryTitanType, TowerFloorType
+from bestmobabot.enums import LibraryTitanElement, LibraryTitanType, TowerFloorType
 from bestmobabot.telegram import TelegramLogger
 
 _VALIDATORS.append((tzinfo, [lambda value: timezone(timedelta(hours=value))]))
@@ -255,12 +255,6 @@ class Hero(Unit):
     def __str__(self):
         stars = '🌟' if self.star > 5 else '⭐' * self.star
         return f'{stars} {resources.hero_name(self.id)} ({self.level}) {COLORS.get(self.color, self.color)}'
-
-
-class Titan(Unit):
-    @property
-    def element(self) -> LibraryTitanElement:
-        return resources.get_library().titans[self.id].element
 
 
 class BattleResult(BaseModel):
@@ -518,80 +512,6 @@ class Quest(BaseModel):
     @property
     def is_reward_available(self) -> bool:
         return self.state == 2
-
-
-class DungeonUserData(BaseModel):
-    defender_type: DungeonUnitType
-    attacker_type: DungeonUnitType
-    power: int
-
-    class Config:
-        fields = {
-            'attacker_type': 'attackerType',
-            'defender_type': 'defenderType',
-        }
-
-
-class DungeonFloor(BaseModel):
-    user_data: List[DungeonUserData]
-    state: int
-
-    class Config:
-        fields = {
-            'user_data': 'userData',
-        }
-
-    @property
-    def should_save_progress(self) -> bool:
-        return self.state == 2
-
-
-class DungeonTitanState(BaseModel):
-    hp: int
-    energy: int
-    is_dead: bool
-    max_hp: int
-
-    class Config:
-        fields = {
-            'is_dead': 'isDead',
-            'max_hp': 'maxHp',
-        }
-
-
-class DungeonStates(BaseModel):
-    titans: Dict[str, DungeonTitanState]
-
-
-class Dungeon(BaseModel):
-    floor_number: int
-    floor_type: DungeonFloorType
-    floor: DungeonFloor
-    states: DungeonStates
-
-    class Config:
-        fields = {
-            'floor_number': 'floorNumber',
-            'floor_type': 'floorType',
-        }
-
-
-class EndDungeonBattleResponse(BaseModel):
-    reward: Reward
-    reward_multiplier: int
-    activity: int
-    dungeon: Optional[Dungeon]
-
-    class Config:
-        fields = {
-            'reward_multiplier': 'rewardMultiplier',
-            'activity': 'dungeonActivity',
-        }
-
-
-class SaveDungeonProgressResponse(BaseModel):
-    reward: Reward
-    dungeon: Dungeon
 
 
 class HallOfFameTrophy(BaseModel):

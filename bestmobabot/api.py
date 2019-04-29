@@ -22,8 +22,6 @@ from bestmobabot.dataclasses_ import (
     ArenaEnemy,
     ArenaResult,
     Boss,
-    Dungeon,
-    EndDungeonBattleResponse,
     Expedition,
     GrandArenaEnemy,
     HallOfFame,
@@ -36,9 +34,7 @@ from bestmobabot.dataclasses_ import (
     Replay,
     Result,
     Reward,
-    SaveDungeonProgressResponse,
     ShopSlot,
-    Titan,
     Tower,
     User,
 )
@@ -295,9 +291,6 @@ class API:
     def get_all_heroes(self, random_sleep=True) -> List[Hero]:
         return list_of(Hero, self.call('heroGetAll', random_sleep=random_sleep).response)
 
-    def get_all_titans(self) -> List[Titan]:
-        return list_of(Titan, self.call('titanGetAll').response)
-
     # Daily bonus.
     # ------------------------------------------------------------------------------------------------------------------
 
@@ -411,12 +404,6 @@ class API:
     def get_all_missions(self) -> List[Mission]:
         return list_of(Mission, self.call('missionGetAll').response)
 
-    def start_mission(self, mission_id: str, hero_ids: Iterable[str]) -> Any:
-        return self.call('missionStart', {'id': mission_id, 'heroes': list(hero_ids)}).response
-
-    def end_mission(self, mission_id: str, response: Any) -> Reward:
-        return Reward.parse_obj(self.call('missionEnd', {'id': mission_id, **response}).response['reward'] or {})
-
     # Boss.
     # https://github.com/eigenein/bestmobabot/wiki/Boss
     # ------------------------------------------------------------------------------------------------------------------
@@ -465,12 +452,6 @@ class API:
     def next_tower_chest(self) -> Tower:
         return Tower.parse_obj(self.call('towerNextChest').response)
 
-    def start_tower_battle(self, hero_ids: Iterable[str]) -> Any:
-        return self.call('towerStartBattle', {'heroes': list(hero_ids)}).response
-
-    def end_tower_battle(self, response) -> Reward:
-        return Reward.parse_obj(self.call('towerEndBattle', response).response['reward'])
-
     # Offers.
     # ------------------------------------------------------------------------------------------------------------------
 
@@ -511,21 +492,6 @@ class API:
     def drop_titan_hero_gift(self, hero_id: str) -> Tuple[Reward, Quests]:
         result = self.call('heroTitanGiftDrop', {'heroId': hero_id})
         return Reward.parse_obj(result.response), result.quests
-
-    # Dungeon
-    # ------------------------------------------------------------------------------------------------------------------
-
-    def get_dungeon_info(self) -> Dungeon:
-        return Dungeon.parse_obj(self.call('dungeonGetInfo').response)
-
-    def start_dungeon_battle(self, hero_ids: Iterable[str], team_number: int) -> Any:
-        return self.call('dungeonStartBattle', {'heroes': list(hero_ids), 'teamNum': team_number}).response
-
-    def end_dungeon_battle(self, response) -> EndDungeonBattleResponse:
-        return EndDungeonBattleResponse.parse_obj(self.call('dungeonEndBattle', response).response)
-
-    def save_dungeon_progress(self) -> SaveDungeonProgressResponse:
-        return SaveDungeonProgressResponse.parse_obj(self.call('dungeonSaveProgress').response)
 
     # Hall of Fame
     # ------------------------------------------------------------------------------------------------------------------

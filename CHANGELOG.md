@@ -2,9 +2,9 @@
 
 ## `master`
 
+- Change: remove `jsapi` because they obfuscated the code
 - Change: add new features to the prediction model
 - Fix: #7 gracefully handle `NotEnoughError`
-- Change: allow titans to die in the dungeon
 - Fix: upgrade resources
 
 ## `3.0`

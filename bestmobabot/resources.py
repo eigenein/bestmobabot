@@ -4,7 +4,6 @@ Loads and extracts useful constants from the game resources.
 
 from __future__ import annotations
 
-import re
 from functools import lru_cache
 from gzip import decompress
 from typing import Dict, Set
@@ -23,25 +22,6 @@ def get_translations() -> Dict[str, str]:
 @lru_cache(maxsize=None)
 def get_library() -> dataclasses_.Library:
     return dataclasses_.Library.parse_raw(decompress(resource_string('bestmobabot.js', 'lib.json.gz')))
-
-
-@lru_cache(maxsize=None)
-def get_raw_library() -> str:
-    return decompress(resource_string('bestmobabot.js', 'lib.json.gz')).decode()
-
-
-@lru_cache(maxsize=None)
-def get_heroes_js() -> str:
-    return re.sub(
-        r'(\w+)\.AS3=(\w+);', r'\1.AS3=\2;window.h=\1;',
-        resource_string('bestmobabot.js', 'heroes.js').decode(),
-        count=1,
-    )
-
-
-@lru_cache(maxsize=None)
-def get_skills_sc() -> str:
-    return orjson.dumps(list(resource_string('bestmobabot.js', 'skills.sc'))).decode()
 
 
 def hero_name(hero_id: str) -> str:

@@ -60,8 +60,6 @@ deploy/latest: publish/latest
 resources:
 	curl --fail 'https://heroes.cdnvideo.ru/vk/v0506/locale/ru.json.gz?js=1' --output bestmobabot/js/ru.json.gz
 	curl --fail 'https://heroes.cdnvideo.ru/vk/v0506/lib/lib.json.gz?js=1' --output bestmobabot/js/lib.json.gz
-	curl --fail 'https://heroes.cdnvideo.ru/vk/v0506/assets/heroes.js' --output bestmobabot/js/heroes.js
-	curl --fail 'https://heroes.cdnvideo.ru/vk/v0506/assets/hx/skills.sc?js=1' --output bestmobabot/js/skills.sc
 
 docs: book
 	mdbook build
