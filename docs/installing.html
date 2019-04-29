@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Установка - bestmobabot</title>
+        <title>Запуск - bestmobabot</title>
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -75,7 +75,7 @@
         </script>
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
-            <ol class="chapter"><li><a href="index.html"><strong aria-hidden="true">1.</strong> Привет!</a></li><li><a href="installing.html" class="active"><strong aria-hidden="true">2.</strong> Установка</a></li><li><a href="for_developers/index.html"><strong aria-hidden="true">3.</strong> Для разработчиков</a></li><li><ol class="section"><li><a href="for_developers/dungeon.html"><strong aria-hidden="true">3.1.</strong> Подземелье</a></li><li><a href="for_developers/enchant-rune.html"><strong aria-hidden="true">3.2.</strong> Enchant Rune</a></li><li><a href="for_developers/hall-of-fame.html"><strong aria-hidden="true">3.3.</strong> Зал Славы</a></li><li><a href="for_developers/hero-titan-gift-level-up.html"><strong aria-hidden="true">3.4.</strong> Hero Titan Gift Level Up</a></li></ol></li></ol>
+            <ol class="chapter"><li><a href="index.html"><strong aria-hidden="true">1.</strong> Привет!</a></li><li><a href="installing.html" class="active"><strong aria-hidden="true">2.</strong> Запуск</a></li><li><a href="configuring.html"><strong aria-hidden="true">3.</strong> Настройка</a></li><li><a href="todo.html"><strong aria-hidden="true">4.</strong> Непереведенная документация</a></li><li><a href="for_developers/index.html"><strong aria-hidden="true">5.</strong> Для разработчиков</a></li><li><ol class="section"><li><a href="for_developers/dungeon.html"><strong aria-hidden="true">5.1.</strong> Подземелье</a></li><li><a href="for_developers/enchant-rune.html"><strong aria-hidden="true">5.2.</strong> Enchant Rune</a></li><li><a href="for_developers/hall-of-fame.html"><strong aria-hidden="true">5.3.</strong> Зал Славы</a></li><li><a href="for_developers/hero-titan-gift-level-up.html"><strong aria-hidden="true">5.4.</strong> Hero Titan Gift Level Up</a></li></ol></li></ol>
         </nav>
 
         <div id="page-wrapper" class="page-wrapper">
@@ -140,7 +140,27 @@
 
                 <div id="content" class="content">
                     <main>
-                        <a class="header" href="#Установка" id="Установка"><h1>Установка</h1></a>
+                        <a class="header" href="#Запуск" id="Запуск"><h1>Запуск</h1></a>
+<p>В любом случае, вам понадобится конфиг. Детально про него можно почитать в <a href="configuring.html">разделе с настройкой</a>. Создайте текстовый файл <code>settings.yaml</code>. Минимально понадобятся такие настройки:</p>
+<pre><code class="language-yaml">vk:
+  remixsid: ...  # значение cookie `remixsid` с вашего аккаунта на VK.com.
+  access_token: ...  # создайте приложения на VK.com и скопируйте сюда сервисный ключ доступа
+bot:
+  arena: {}
+</code></pre>
+<p>Далее самый простой вариант запуска – это использование <a href="https://www.docker.com/">Docker</a>. С каждым обновлением бота я собираю публикую <a href="https://hub.docker.com/r/eigenein/bestmobabot">готовый образ</a>. Можно, конечно, и без Docker, но про это напишу позже.</p>
+<a class="header" href="#docker" id="docker"><h2>Docker</h2></a>
+<p>Команда для запуска выглядит примерно так:</p>
+<pre><code class="language-bash">docker run \
+    --rm \
+    --name bestmobabot \
+    -it \
+    -e TZ=Europe/Amsterdam \
+    -v /Users/eigenein/GitHub/bestmobabot/settings.yaml:/app/settings.yaml:ro \
+    -v /Users/eigenein/GitHub/bestmobabot/db.sqlite3:/app/db.sqlite3:rw \
+    eigenein/bestmobabot -v
+</code></pre>
+<p>Вам нужно изменить пути к файлам на ваши собственные и указать верный часовой пояс.</p>
 
                     </main>
 
@@ -153,7 +173,7 @@
                         
 
                         
-                            <a rel="next" href="for_developers/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="configuring.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         
@@ -171,7 +191,7 @@
                 
 
                 
-                    <a href="for_developers/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a href="configuring.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
                 

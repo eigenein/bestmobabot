@@ -1,7 +1,9 @@
 # Summary
 
 - [Привет!](README.md)
-- [Установка](installing.md)
+- [Запуск](installing.md)
+- [Настройка](configuring.md)
+- [Непереведенная документация](todo.md)
 - [Для разработчиков](for_developers/README.md)
   - [Подземелье](for_developers/dungeon.md)
   - [Enchant Rune](for_developers/enchant-rune.md)

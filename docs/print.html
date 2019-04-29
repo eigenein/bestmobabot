@@ -75,7 +75,7 @@
         </script>
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
-            <ol class="chapter"><li><a href="index.html"><strong aria-hidden="true">1.</strong> Привет!</a></li><li><a href="installing.html"><strong aria-hidden="true">2.</strong> Установка</a></li><li><a href="for_developers/index.html"><strong aria-hidden="true">3.</strong> Для разработчиков</a></li><li><ol class="section"><li><a href="for_developers/dungeon.html"><strong aria-hidden="true">3.1.</strong> Подземелье</a></li><li><a href="for_developers/enchant-rune.html"><strong aria-hidden="true">3.2.</strong> Enchant Rune</a></li><li><a href="for_developers/hall-of-fame.html"><strong aria-hidden="true">3.3.</strong> Зал Славы</a></li><li><a href="for_developers/hero-titan-gift-level-up.html"><strong aria-hidden="true">3.4.</strong> Hero Titan Gift Level Up</a></li></ol></li></ol>
+            <ol class="chapter"><li><a href="index.html"><strong aria-hidden="true">1.</strong> Привет!</a></li><li><a href="installing.html"><strong aria-hidden="true">2.</strong> Запуск</a></li><li><a href="configuring.html"><strong aria-hidden="true">3.</strong> Настройка</a></li><li><a href="todo.html"><strong aria-hidden="true">4.</strong> Непереведенная документация</a></li><li><a href="for_developers/index.html"><strong aria-hidden="true">5.</strong> Для разработчиков</a></li><li><ol class="section"><li><a href="for_developers/dungeon.html"><strong aria-hidden="true">5.1.</strong> Подземелье</a></li><li><a href="for_developers/enchant-rune.html"><strong aria-hidden="true">5.2.</strong> Enchant Rune</a></li><li><a href="for_developers/hall-of-fame.html"><strong aria-hidden="true">5.3.</strong> Зал Славы</a></li><li><a href="for_developers/hero-titan-gift-level-up.html"><strong aria-hidden="true">5.4.</strong> Hero Titan Gift Level Up</a></li></ol></li></ol>
         </nav>
 
         <div id="page-wrapper" class="page-wrapper">
@@ -144,10 +144,100 @@
 <p>Это бот для <a href="https://vk.com/app5327745_209336881">«Хроник Хаоса»</a> на VK.com. Долгое время он существовал в закрытом виде во избежание массового банхамера от разработчиков. Благодаря последним обновлениям играть в игру стало совершенно не выносимо, поэтому теперь бот открыт для всех.</p>
 <a class="header" href="#disclaimer" id="disclaimer"><h2>Disclaimer</h2></a>
 <ul>
-<li>В любом случае, вы сами отвечаете за любой эффекто, вызванный работой бота. Неочевидные моменты можно уточнять в <a href="https://github.com/eigenein/bestmobabot/issues">GitHub Issues</a>.</li>
-<li>Использование подобных ботов запрещено правилами игры. Бот пытается обойти аналитику Nexters, но пожизненный бан в игре не исключен. Nexters «очень добрые» и никого не прощают.</li>
+<li>В любом случае, вы сами отвечаете за любые эффекты, вызванный работой бота. Неочевидные моменты можно уточнять в <a href="https://github.com/eigenein/bestmobabot/issues">GitHub Issues</a>. И конечно, никто не застрахован от багов. У меня не было возможности протестировать бота на большом числе разных аккаунтов.</li>
+<li>Использование подобных ботов запрещено правилами игры. Бот пытается обойти аналитику Nexters, но пожизненный бан в игре не исключен. Nexters «очень добрые» и никого не прощают. <strong>Изменять исходный код нужно аккуратно, практически все сделано с расчетом на незаметность бота для аналитики.</strong></li>
 </ul>
-<a class="header" href="#Установка" id="Установка"><h1>Установка</h1></a>
+<a class="header" href="#Что-умеет-бот" id="Что-умеет-бот"><h2>Что умеет бот?</h2></a>
+<ul>
+<li>Атаковать арену и гранд-арену в авто-режиме</li>
+<li>Собирать награды из писем</li>
+<li>Собирать подарки со <a href="https://vk.com/bestmobagroup">страницы сообщества на VK.com</a></li>
+<li>Отправлять экспедиции и собирать с них награды</li>
+<li>Сливать энергию в рейды по миссиям</li>
+<li>Собирать награды с выполненных задач</li>
+<li>Проходить башню по доступным пропусками этажей</li>
+<li>Собирать ежедневные награды</li>
+<li>Рейдить боссов Запределья</li>
+<li>Открывать все сундуки</li>
+<li>Собирать награду с Турнира Стихий</li>
+<li>Вкладывать и сбрасывать искры мощи</li>
+<li>Отправлять ежедневные подарки друзьям</li>
+<li>Покупать указанные товары в магазинах</li>
+<li>Зачаровывать руну</li>
+<li>Для гиков есть встроенная консоль, где можно все повызывать вручную</li>
+</ul>
+<a class="header" href="#Как-это-работает" id="Как-это-работает"><h2>Как это работает?</h2></a>
+<p>Тупо: есть расписание, по которому бот просыпается и делает свое дело. Награды с экспедиций собираются сразу по завершении.</p>
+<a class="header" href="#Запуск" id="Запуск"><h1>Запуск</h1></a>
+<p>В любом случае, вам понадобится конфиг. Детально про него можно почитать в <a href="configuring.html">разделе с настройкой</a>. Создайте текстовый файл <code>settings.yaml</code>. Минимально понадобятся такие настройки:</p>
+<pre><code class="language-yaml">vk:
+  remixsid: ...  # значение cookie `remixsid` с вашего аккаунта на VK.com.
+  access_token: ...  # создайте приложения на VK.com и скопируйте сюда сервисный ключ доступа
+bot:
+  arena: {}
+</code></pre>
+<p>Далее самый простой вариант запуска – это использование <a href="https://www.docker.com/">Docker</a>. С каждым обновлением бота я собираю публикую <a href="https://hub.docker.com/r/eigenein/bestmobabot">готовый образ</a>. Можно, конечно, и без Docker, но про это напишу позже.</p>
+<a class="header" href="#docker" id="docker"><h2>Docker</h2></a>
+<p>Команда для запуска выглядит примерно так:</p>
+<pre><code class="language-bash">docker run \
+    --rm \
+    --name bestmobabot \
+    -it \
+    -e TZ=Europe/Amsterdam \
+    -v /Users/eigenein/GitHub/bestmobabot/settings.yaml:/app/settings.yaml:ro \
+    -v /Users/eigenein/GitHub/bestmobabot/db.sqlite3:/app/db.sqlite3:rw \
+    eigenein/bestmobabot -v
+</code></pre>
+<p>Вам нужно изменить пути к файлам на ваши собственные и указать верный часовой пояс.</p>
+<a class="header" href="#Настройка" id="Настройка"><h1>Настройка</h1></a>
+<p>TODO</p>
+<a class="header" href="#Непереведенная-документация" id="Непереведенная-документация"><h1>Непереведенная документация</h1></a>
+<a class="header" href="#settings" id="settings"><h2>Settings</h2></a>
+<p>At the moment settings are described only in <code>settings.py</code>. Here is an example of <code>settings.yaml</code>:</p>
+<pre><code class="language-yaml">vk:
+  remixsid: &lt;VK.com `remixsid` cookie&gt;
+  access_token: &lt;VK.com API access token&gt;
+bot:
+  no_experience: no  # do not farm experience quests
+  is_trainer: yes  # train arena prediction model nightly
+  arena:
+    schedule_offset: 01:00:00  # shift time from the default one
+  friend_ids:
+  - 123456789
+  - 123456790
+  shops:
+  - Печать пастыря
+  - Орион
+  - Йорген
+  - Зелье титана
+  - Драконий щит - рецепт
+  - Рука славы
+  - Изначальное слово - рецепт
+  raid_missions:
+  - Чащоба Каданг
+</code></pre>
+<a class="header" href="#trainer" id="trainer"><h2>Trainer</h2></a>
+<p>Trainer is enabled by setting <code>is_trainer</code> to <code>true</code>. Typically, you only need one trainer per a single database. It will perform training for all bots using the same database.</p>
+<p>Arena model trainer could be run manually via:</p>
+<pre><code class="language-bash">python -m bestmobabot.trainer -v
+</code></pre>
+<p>Trained model is then saved back to the database.</p>
+<a class="header" href="#prediction-model" id="prediction-model"><h2>Prediction model</h2></a>
+<p>Random forest classifier is used to predict probability to win an arena (grand arena) battle. The input for this classifier is features of attackers and defenders such as: hero level, hero color and hero stars. <a href="https://en.wikipedia.org/wiki/Secretary_problem">Secretary problem</a> optimal policy is then used to maximise win probability across possible enemies. The model is trained on past battles from the arena and grand arena journals.</p>
+<a class="header" href="#arena-and-grand-arena-optimisation" id="arena-and-grand-arena-optimisation"><h2>Arena and grand arena optimisation</h2></a>
+<p>A sort of genetic algorithm is used to find the best attackers (local optimum perhaps).</p>
+<a class="header" href="#storage" id="storage"><h2>Storage</h2></a>
+<p>SQLite database is used as a sort of key-value store to preserve state between restarts:</p>
+<ul>
+<li>Arena and grand arena battle results</li>
+<li>Arena and grand arena enemies</li>
+<li>Authentication credentials</li>
+<li>API session</li>
+<li>Picked up gifts</li>
+<li>Arena win probability prediction model</li>
+</ul>
+<p>The same database can be used by multiple bots. Actually, it is <em>recommended</em> that multiple bots use the same database in order to share the arena prediction model.</p>
+<p><strong>Warning.</strong> The database contains user IDs and Hero Wars API authentication tokens. Make sure that you remove them manually should you share your database.</p>
 <a class="header" href="#Для-разработчиков" id="Для-разработчиков"><h1>Для разработчиков</h1></a>
 <p>Здесь находятся неструктурированные заметки для разработчиков бота.</p>
 <a class="header" href="#Подземелье" id="Подземелье"><h1>Подземелье</h1></a>
