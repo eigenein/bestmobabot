@@ -1,5 +1,7 @@
 # `bestmobabot`
 
+The project is intended for Russian-speaking community.
+
 [«Хроники Хаоса»](https://vk.com/app5327745_209336881) – бот для VK.com
 
 [![Build Status](https://travis-ci.com/eigenein/bestmobabot.svg?branch=master)](https://travis-ci.com/eigenein/bestmobabot)
