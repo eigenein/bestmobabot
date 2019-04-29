@@ -2,7 +2,8 @@
 
 - [Привет!](README.md)
 - [Запуск](installing.md)
-- [Настройка](configuring.md)
+- [Настройка](configuring/README.md)
+  - [Арена](configuring/arena.md)
 - [Непереведенная документация](todo.md)
 - [Для разработчиков](for_developers/README.md)
   - [Подземелье](for_developers/dungeon.md)

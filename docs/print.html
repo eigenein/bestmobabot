@@ -75,7 +75,7 @@
         </script>
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
-            <ol class="chapter"><li><a href="index.html"><strong aria-hidden="true">1.</strong> Привет!</a></li><li><a href="installing.html"><strong aria-hidden="true">2.</strong> Запуск</a></li><li><a href="configuring.html"><strong aria-hidden="true">3.</strong> Настройка</a></li><li><a href="todo.html"><strong aria-hidden="true">4.</strong> Непереведенная документация</a></li><li><a href="for_developers/index.html"><strong aria-hidden="true">5.</strong> Для разработчиков</a></li><li><ol class="section"><li><a href="for_developers/dungeon.html"><strong aria-hidden="true">5.1.</strong> Подземелье</a></li><li><a href="for_developers/enchant-rune.html"><strong aria-hidden="true">5.2.</strong> Enchant Rune</a></li><li><a href="for_developers/hall-of-fame.html"><strong aria-hidden="true">5.3.</strong> Зал Славы</a></li><li><a href="for_developers/hero-titan-gift-level-up.html"><strong aria-hidden="true">5.4.</strong> Hero Titan Gift Level Up</a></li></ol></li></ol>
+            <ol class="chapter"><li><a href="index.html"><strong aria-hidden="true">1.</strong> Привет!</a></li><li><a href="installing.html"><strong aria-hidden="true">2.</strong> Запуск</a></li><li><a href="configuring/index.html"><strong aria-hidden="true">3.</strong> Настройка</a></li><li><ol class="section"><li><a href="configuring/arena.html"><strong aria-hidden="true">3.1.</strong> Арена</a></li></ol></li><li><a href="todo.html"><strong aria-hidden="true">4.</strong> Непереведенная документация</a></li><li><a href="for_developers/index.html"><strong aria-hidden="true">5.</strong> Для разработчиков</a></li><li><ol class="section"><li><a href="for_developers/dungeon.html"><strong aria-hidden="true">5.1.</strong> Подземелье</a></li><li><a href="for_developers/enchant-rune.html"><strong aria-hidden="true">5.2.</strong> Enchant Rune</a></li><li><a href="for_developers/hall-of-fame.html"><strong aria-hidden="true">5.3.</strong> Зал Славы</a></li><li><a href="for_developers/hero-titan-gift-level-up.html"><strong aria-hidden="true">5.4.</strong> Hero Titan Gift Level Up</a></li></ol></li></ol>
         </nav>
 
         <div id="page-wrapper" class="page-wrapper">
@@ -190,6 +190,20 @@ bot:
 </code></pre>
 <p>Вам нужно изменить пути к файлам на ваши собственные и указать верный часовой пояс.</p>
 <a class="header" href="#Настройка" id="Настройка"><h1>Настройка</h1></a>
+<a class="header" href="#Арена" id="Арена"><h1>Арена</h1></a>
+<a class="header" href="#Как-это-работает-1" id="Как-это-работает-1"><h2>Как это работает?</h2></a>
+<a class="header" href="#tldr" id="tldr"><h3>TL;DR</h3></a>
+<ul>
+<li>Журналы боев с арен сохраняются в базу данных</li>
+<li>Один раз в день бот можно переобучать предсказывать победу в бою на основе этих журналов</li>
+<li>Чем больше журналов сохранено, тем лучше составляются команды на арене</li>
+<li>Поначалу все будет плохо</li>
+</ul>
+<a class="header" href="#Подробнее" id="Подробнее"><h3>Подробнее</h3></a>
+<p>Несколько раз в день бот сохраняет к себе в базу данных журналы арен. Это не очень много, несколько десятков боев в день. Сохраняются доступные признаки героев типа цвета, уровня и звездности и так далее. Сохраняется и результат боя. Раз в сутки бот перестраивает модель машинного обучения для предсказания исхода боя, если известны обе команды.</p>
+<p>Когда бот идет на арену, то для каждого противника он пытается подобрать лучшую команду для атаки. Полный перебор сделать невозможно, поэтому используется генетический алгоритм.</p>
+<p>Бот перебирает противников, пока не найдет наилучшего – с максимальной вероятностью победы. Если вероятность победы для выбранного противника менее 50%, то атака отменяется и откладывается на попозже. Атака на позиции выше 100-ой на гранд-арене пока не реализована. Но уже сейчас бот сохраняет увиденные команды противников, чтобы в будущем оценивать скрытые команды.</p>
+<a class="header" href="#Настройка-1" id="Настройка-1"><h2>Настройка</h2></a>
 <p>TODO</p>
 <a class="header" href="#Непереведенная-документация" id="Непереведенная-документация"><h1>Непереведенная документация</h1></a>
 <a class="header" href="#settings" id="settings"><h2>Settings</h2></a>
@@ -222,10 +236,6 @@ bot:
 <pre><code class="language-bash">python -m bestmobabot.trainer -v
 </code></pre>
 <p>Trained model is then saved back to the database.</p>
-<a class="header" href="#prediction-model" id="prediction-model"><h2>Prediction model</h2></a>
-<p>Random forest classifier is used to predict probability to win an arena (grand arena) battle. The input for this classifier is features of attackers and defenders such as: hero level, hero color and hero stars. <a href="https://en.wikipedia.org/wiki/Secretary_problem">Secretary problem</a> optimal policy is then used to maximise win probability across possible enemies. The model is trained on past battles from the arena and grand arena journals.</p>
-<a class="header" href="#arena-and-grand-arena-optimisation" id="arena-and-grand-arena-optimisation"><h2>Arena and grand arena optimisation</h2></a>
-<p>A sort of genetic algorithm is used to find the best attackers (local optimum perhaps).</p>
 <a class="header" href="#storage" id="storage"><h2>Storage</h2></a>
 <p>SQLite database is used as a sort of key-value store to preserve state between restarts:</p>
 <ul>
