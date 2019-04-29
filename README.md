@@ -7,12 +7,17 @@
 
 The project is intended for a Russian-speaking community.
 
-[«Хроники Хаоса»](https://vk.com/app5327745_209336881) – бот для VK.com
+[«Хроники Хаоса»](https://vk.com/app5327745_209336881) – бот для VK.com.
 
 - Документация: https://eigenein.github.io/bestmobabot/
 - Поддержка: https://github.com/eigenein/bestmobabot/issues
+- Список обновлений: https://github.com/eigenein/bestmobabot/releases
 
-## Settings
+## Старая документация
+
+Со временем я переведу старую закрытую документацию на русский язык.
+
+### Settings
 
 At the moment settings are described only in `settings.py`. Here is an example of `settings.yaml`:
 
@@ -40,7 +45,7 @@ bot:
   - Чащоба Каданг
 ```
 
-## `docker-compose.yml`
+### `docker-compose.yml`
 
 ```yaml
 version: '3.7'
@@ -78,13 +83,13 @@ volumes:
 
 You may also need to run `chown nobody:nogroup bestmobabot.sqlite3`.
 
-## Tasks
+### Tasks
 
 Bot uses its own cron-like scheduler to perform game tasks. The tasks are spread over a day to decrease game API requests frequency.
 
 Also, for expeditions the bot tries to pick up a reward and start the next expedition as soon as possible, given that the bot is not restarted in the meantime.
 
-## Trainer
+### Trainer
 
 Trainer is enabled by setting `is_trainer` to `true`. Typically, you only need one trainer per a single database. It will perform training for all bots using the same database.
 
@@ -104,7 +109,7 @@ Random forest classifier is used to predict probability to win an arena (grand a
 
 A sort of genetic algorithm is used to find the best attackers (local optimum perhaps).
 
-## Storage
+### Storage
 
 SQLite database is used as a sort of key-value store to preserve state between restarts:
 
@@ -119,12 +124,12 @@ The same database can be used by multiple bots. Actually, it is _recommended_ th
 
 **Warning.** The database contains user IDs and Hero Wars API authentication tokens. Make sure that you remove them manually should you share your database.
 
-## Authors
+## Авторы
 
 * [Pavel Perestoronin](https://github.com/eigenein)
 
-## License
+## Лицензия
 
-This work is licensed under a [Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License](http://creativecommons.org/licenses/by-nc-nd/4.0/).
+[Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License](http://creativecommons.org/licenses/by-nc-nd/4.0/).
 
 [![Creative Commons License](https://i.creativecommons.org/l/by-nc-nd/4.0/88x31.png)](https://creativecommons.org/licenses/by-nc-nd/2.0/)
