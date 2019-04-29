@@ -61,5 +61,5 @@ resources:
 	curl --fail 'https://heroes.cdnvideo.ru/vk/v0506/locale/ru.json.gz?js=1' --output bestmobabot/js/ru.json.gz
 	curl --fail 'https://heroes.cdnvideo.ru/vk/v0506/lib/lib.json.gz?js=1' --output bestmobabot/js/lib.json.gz
 
-docs: book
+docs: book book.toml
 	mdbook build
