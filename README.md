@@ -120,12 +120,12 @@ The same database can be used by multiple bots. Actually, it is _recommended_ th
 
 **Warning.** The database contains user IDs and Hero Wars API authentication tokens. Make sure that you remove them manually should you share your database.
 
-## Authors
+## Авторы
 
 * [Pavel Perestoronin](https://github.com/eigenein)
 
-## License
+## Лицензия
 
-This work is licensed under a [Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License](http://creativecommons.org/licenses/by-nc-nd/4.0/).
+[Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License](http://creativecommons.org/licenses/by-nc-nd/4.0/).
 
 [![Creative Commons License](https://i.creativecommons.org/l/by-nc-nd/4.0/88x31.png)](https://creativecommons.org/licenses/by-nc-nd/2.0/)
