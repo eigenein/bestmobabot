@@ -4,6 +4,7 @@
 
 [![Build Status](https://travis-ci.com/eigenein/bestmobabot.svg?branch=master)](https://travis-ci.com/eigenein/bestmobabot)
 [![Docker Pulls](https://img.shields.io/docker/pulls/eigenein/bestmobabot.svg)](https://hub.docker.com/r/eigenein/bestmobabot)
+[![License](https://img.shields.io/badge/license-CC%20BY--NC--ND%202.0-red.svg)](https://creativecommons.org/licenses/by-nc-nd/2.0/)
 
 ## Settings
 
@@ -134,4 +135,4 @@ The same database can be used by multiple bots. Actually, it is _recommended_ th
 
 This work is licensed under a [Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License](http://creativecommons.org/licenses/by-nc-nd/4.0/).
 
-![Creative Commons License](https://i.creativecommons.org/l/by-nc-nd/4.0/88x31.png)
+[![Creative Commons License](https://i.creativecommons.org/l/by-nc-nd/4.0/88x31.png)](https://creativecommons.org/licenses/by-nc-nd/2.0/)
