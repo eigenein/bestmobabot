@@ -1,6 +1,9 @@
 # `bestmobabot`
 
-Bot playing a MOBA-like game on [VK.com](https://vk.com). The bot uses pure reverse-engineered Hero Wars JSON API. No Flash-emulator is used. No browser is needed.
+[«Хроники Хаоса»](https://vk.com/app5327745_209336881) – бот для VK.com
+
+[![Build Status](https://travis-ci.com/eigenein/bestmobabot.svg?branch=master)](https://travis-ci.com/eigenein/bestmobabot)
+[![Docker Pulls](https://img.shields.io/docker/pulls/eigenein/bestmobabot.svg)](https://hub.docker.com/r/eigenein/bestmobabot)
 
 ## Settings
 
