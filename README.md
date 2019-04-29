@@ -1,12 +1,12 @@
 # `bestmobabot`
 
-The project is intended for Russian-speaking community.
-
-[«Хроники Хаоса»](https://vk.com/app5327745_209336881) – бот для VK.com
-
 [![Build Status](https://travis-ci.com/eigenein/bestmobabot.svg?branch=master)](https://travis-ci.com/eigenein/bestmobabot)
 [![Docker Pulls](https://img.shields.io/docker/pulls/eigenein/bestmobabot.svg)](https://hub.docker.com/r/eigenein/bestmobabot)
 [![License](https://img.shields.io/badge/license-CC%20BY--NC--ND%202.0-red.svg)](https://creativecommons.org/licenses/by-nc-nd/2.0/)
+
+The project is intended for a Russian-speaking community.
+
+[«Хроники Хаоса»](https://vk.com/app5327745_209336881) – бот для VK.com
 
 ## Settings
 
