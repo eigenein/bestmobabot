@@ -40,21 +40,7 @@ bot:
   - Чащоба Каданг
 ```
 
-## Running with Docker
-
-```bash
-docker volume create bestmobabot
-sudo nano /var/lib/docker/volumes/bestmobabot/_data/settings.yaml
-docker run \
-    --detach \
-    --restart always \
-    --name bestmobabot \
-    -v bestmobabot:/app \
-    -e TZ=Europe/Amsterdam
-    eigenein/bestmobabot -v --settings settings.yaml
-```
-
-### `docker-compose.yml`
+## `docker-compose.yml`
 
 ```yaml
 version: '3.7'
