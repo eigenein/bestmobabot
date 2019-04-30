@@ -1,5 +1,6 @@
 # `bestmobabot`
 
+[![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/eigenein/bestmobabot.svg)](https://github.com/eigenein/bestmobabot/releases)
 [![Build Status](https://travis-ci.com/eigenein/bestmobabot.svg?branch=master)](https://travis-ci.com/eigenein/bestmobabot)
 [![Docker Pulls](https://img.shields.io/docker/pulls/eigenein/bestmobabot.svg)](https://hub.docker.com/r/eigenein/bestmobabot)
 [![GitHub issues](https://img.shields.io/github/issues/eigenein/bestmobabot.svg)](https://github.com/eigenein/bestmobabot/issues)
