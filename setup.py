@@ -5,7 +5,7 @@ import setuptools
 
 setuptools.setup(
     name='bestmobabot',
-    version='3.0',
+    version='3.1.0',
     author='Pavel Perestoronin',
     author_email='eigenein@gmail.com',
     description='Hero Wars game bot 🏆',
