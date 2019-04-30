@@ -8,7 +8,7 @@
 - Один раз в день бот можно переобучать предсказывать победу в бою на основе этих журналов
 - Чем больше журналов сохранено, тем лучше составляются команды на арене
 - Поначалу все будет плохо
-- Через месяц-другой будет круто
+- Через месяц-другой будет круто – даже лучше, чем вручную
 - Может быть, я встрою в бота готовую модель
 
 ### Подробнее
@@ -39,13 +39,23 @@
 
 ### `last_battles`
 
+TODO
+
 ### `normal_max_pages` & `grand_max_pages`
+
+TODO
 
 ### `normal_generations_count_down` & `grand_generations_count_down`
 
+TODO
+
 ### `normal_generate_solutions` & `grand_generate_solutions`
 
+TODO
+
 ### `normal_keep_solutions` & `grand_keep_solutions`
+
+TODO
 
 ### `randomize_grand_defenders`
 
