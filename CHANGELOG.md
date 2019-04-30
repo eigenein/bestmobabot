@@ -2,6 +2,8 @@
 
 ## `master`
 
+## `3.1.0`
+
 Первая общедоступная версия.
 
 - **Новое**: [документация](https://eigenein.github.io/bestmobabot/)
