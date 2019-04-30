@@ -23,5 +23,3 @@ The project is intended for a Russian-speaking community.
 [Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License](http://creativecommons.org/licenses/by-nc-nd/4.0/).
 
 [![Creative Commons License](https://i.creativecommons.org/l/by-nc-nd/4.0/88x31.png)](https://creativecommons.org/licenses/by-nc-nd/2.0/)
-
-<img src="https://www.google-analytics.com/collect?v=1&tid=UA-65034198-8&cid=555&t=event&ec=github&ea=open&dt=README.md">
