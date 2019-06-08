@@ -111,11 +111,13 @@ class API:
         self.db = db
         self.remixsid = settings.vk.remixsid  # initial `remixsid`, not the actual one
         try:
-            # Try to fetch actual `remixsid`.
-            session.cookies['remixsid'] = self.db[f'api:{self.remixsid}:remixsid']
+            # Try to fetch actual cookies.
+            session.cookies.update(self.db[f'api:{self.remixsid}:cookies'])
         except KeyError:
-            # Start with the initial one.
+            # Start with the initial `remixsid`.
             session.cookies['remixsid'] = settings.vk.remixsid
+        else:
+            logger.info('Using saved cookies.')
 
         # Store last API results for debugging.
         self.last_responses: List[str] = []
@@ -169,8 +171,8 @@ class API:
             'auth_token': self.auth_token,
             'session_id': self.session_id,
         }
-        # Store actual (maybe different) `remixsid` for the next restart.
-        self.db[f'api:{self.remixsid}:remixsid'] = self.session.cookies['remixsid']
+        # Store actual cookies for the next restart.
+        self.db[f'api:{self.remixsid}:cookies'] = dict(self.session.cookies)
 
     def call(
         self,
