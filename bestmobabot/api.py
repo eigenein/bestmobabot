@@ -139,7 +139,7 @@ class API:
 
         logger.debug('Loading game page on VK.com…')
         with self.session.get(API.GAME_URL, timeout=constants.API_TIMEOUT) as response:
-            logger.info('Status: {}.', response.status_code)
+            logger.info('Status: {} {}.', response.status_code, response.url)
             response.raise_for_status()
             app_page = response.text
 
@@ -152,7 +152,7 @@ class API:
         # Load the proxy page and look for Hero Wars authentication token.
         logger.debug('Authenticating in Hero Wars…')
         with self.session.get(API.IFRAME_URL, params=params, timeout=constants.API_TIMEOUT) as response:
-            logger.info('Status: {}.', response.status_code)
+            logger.info('Status: {} {}.', response.status_code, response.url)
             response.raise_for_status()
             iframe_new = response.text
         match = re.search(r'auth_key=([a-zA-Z0-9.\-]+)', iframe_new)
