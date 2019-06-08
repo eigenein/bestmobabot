@@ -11,7 +11,6 @@ from time import sleep, time
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Type, TypeVar, Union
 
 import orjson
-import requests
 from loguru import logger
 from pydantic import BaseModel
 from requests import Session
@@ -102,14 +101,21 @@ class API:
     IFRAME_URL = 'https://i-heroes-vk.nextersglobal.com/iframe/vkontakte/iframe.new.php'
     API_URL = 'https://heroes-vk.nextersglobal.com/api/'
 
+    auth_token: str
+    user_id: str
+    request_id: int
+    session_id: str
+
     def __init__(self, session: Session, db: Database, settings: Settings):
-        self.db = db
-        self.remixsid = settings.vk.remixsid
-        self.auth_token: str = None
-        self.user_id: str = None
-        self.request_id: int = None
-        self.session_id: str = None
         self.session = session
+        self.db = db
+        self.remixsid = settings.vk.remixsid  # initial `remixsid`, not the actual one
+        try:
+            # Try to fetch actual `remixsid`.
+            session.cookies['remixsid'] = self.db[f'api:{self.remixsid}:remixsid']
+        except KeyError:
+            # Start with the initial one.
+            session.cookies['remixsid'] = settings.vk.remixsid
 
         # Store last API results for debugging.
         self.last_responses: List[str] = []
@@ -131,33 +137,27 @@ class API:
                     self.request_id = 0
                 return
 
-        logger.info('Authenticating…')
-        with requests.Session() as session:
-            logger.debug('Loading game page on VK.com…')
-            with session.get(
-                API.GAME_URL,
-                cookies={'remixsid': self.remixsid},
-                timeout=constants.API_TIMEOUT,
-            ) as response:
-                logger.info('Status: {}.', response.status_code)
-                response.raise_for_status()
-                app_page = response.text
+        logger.debug('Loading game page on VK.com…')
+        with self.session.get(API.GAME_URL, timeout=constants.API_TIMEOUT) as response:
+            logger.info('Status: {}.', response.status_code)
+            response.raise_for_status()
+            app_page = response.text
 
-            # Look for params variable in the script.
-            match = re.search(r'var params\s?=\s?({[^\}]+\})', app_page)
-            assert match, 'params not found, perhaps invalid remixsid?'
-            params = orjson.loads(match.group(1))
-            logger.trace('params: {}', params)
+        # Look for params variable in the script.
+        match = re.search(r'var params\s?=\s?({[^\}]+\})', app_page)
+        assert match, 'params not found, perhaps invalid remixsid?'
+        params = orjson.loads(match.group(1))
+        logger.trace('params: {}', params)
 
-            # Load the proxy page and look for Hero Wars authentication token.
-            logger.debug('Authenticating in Hero Wars…')
-            with session.get(API.IFRAME_URL, params=params, timeout=constants.API_TIMEOUT) as response:
-                logger.info('Status: {}.', response.status_code)
-                response.raise_for_status()
-                iframe_new = response.text
-            match = re.search(r'auth_key=([a-zA-Z0-9.\-]+)', iframe_new)
-            assert match, f'authentication key is not found: {iframe_new}'
-            self.auth_token = match.group(1)
+        # Load the proxy page and look for Hero Wars authentication token.
+        logger.debug('Authenticating in Hero Wars…')
+        with self.session.get(API.IFRAME_URL, params=params, timeout=constants.API_TIMEOUT) as response:
+            logger.info('Status: {}.', response.status_code)
+            response.raise_for_status()
+            iframe_new = response.text
+        match = re.search(r'auth_key=([a-zA-Z0-9.\-]+)', iframe_new)
+        assert match, f'authentication key is not found: {iframe_new}'
+        self.auth_token = match.group(1)
 
         logger.debug('Authentication token: {}', self.auth_token)
         self.user_id = str(params['viewer_id'])
@@ -169,6 +169,8 @@ class API:
             'auth_token': self.auth_token,
             'session_id': self.session_id,
         }
+        # Store actual (maybe different) `remixsid` for the next restart.
+        self.db[f'api:{self.remixsid}:remixsid'] = self.session.cookies['remixsid']
 
     def call(
         self,
