@@ -97,6 +97,7 @@ class InvalidSignatureError(APIError):
 
 
 class API:
+    LOGIN_URL = 'https://vk.com/login.php'
     GAME_URL = 'https://vk.com/app5327745'
     IFRAME_URL = 'https://i-heroes-vk.nextersglobal.com/iframe/vkontakte/iframe.new.php'
     API_URL = 'https://heroes-vk.nextersglobal.com/api/'
@@ -138,6 +139,11 @@ class API:
                 except KeyError:
                     self.request_id = 0
                 return
+
+        # Refresh VK.com cookies.
+        logger.debug('Loading login page on VK.com…')
+        with self.session.get(API.LOGIN_URL) as response:
+            logger.info('Status: {} {}.', response.status_code, response.url)
 
         logger.debug('Loading game page on VK.com…')
         with self.session.get(API.GAME_URL, timeout=constants.API_TIMEOUT) as response:
