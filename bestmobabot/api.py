@@ -208,7 +208,6 @@ class API:
         calls = [{'ident': name, 'name': name, 'args': arguments or {}}]
         data = orjson.dumps({"session": None, "calls": calls}).decode()
         headers = {
-            'User-Agent': constants.USER_AGENT,
             'X-Auth-Application-Id': '5327745',
             'X-Auth-Network-Ident': 'vkontakte',
             'X-Auth-Session-Id': self.session_id,

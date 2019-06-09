@@ -42,6 +42,7 @@ def main(settings: Settings, verbosity: int, shell: bool):
 
     with Session() as session, Database(constants.DATABASE_NAME) as db:
         session.mount('https://', HTTPAdapter(max_retries=5))
+        session.headers['User-Agent'] = constants.USER_AGENT
 
         telegram = Telegram(session, settings.telegram) if settings.telegram else None
         api = API(session, db, settings)
