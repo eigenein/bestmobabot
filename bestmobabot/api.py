@@ -178,7 +178,7 @@ class API:
             'session_id': self.session_id,
         }
         # Store actual cookies for the next restart.
-        self.db[f'api:{self.remixsid}:cookies'] = dict(self.session.cookies)
+        self.db[f'api:{self.remixsid}:cookies'] = dict(self.session.cookies.items())
 
     def call(
         self,
