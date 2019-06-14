@@ -1,5 +1,6 @@
 *.yml
 *.yaml
+!.travis.yml
 bestmobabot/js/lib.json
 bestmobabot/js/ru.json
 
