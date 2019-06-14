@@ -115,8 +115,14 @@ class API:
             # Try to fetch actual cookies.
             session.cookies.update(self.db[f'api:{self.remixsid}:cookies'])
         except KeyError:
-            # Start with the initial `remixsid`.
-            session.cookies['remixsid'] = settings.vk.remixsid
+            # Start with the initial cookies.
+            session.cookies.update({
+                'remixsid': settings.vk.remixsid,
+                'remixstid': settings.vk.remixstid,
+                'remixgp': settings.vk.remixgp,
+                'remixttpid': settings.vk.remixttpid,
+                'remixusid': settings.vk.remixusid,
+            })
         else:
             logger.info('Using saved cookies.')
 
@@ -139,11 +145,6 @@ class API:
                 except KeyError:
                     self.request_id = 0
                 return
-
-        # Refresh VK.com cookies.
-        logger.debug('Loading login page on VK.com…')
-        with self.session.get(API.LOGIN_URL) as response:
-            logger.info('Status: {} {}.', response.status_code, response.url)
 
         logger.debug('Loading game page on VK.com…')
         with self.session.get(API.GAME_URL, timeout=constants.API_TIMEOUT) as response:

@@ -13,6 +13,10 @@ from bestmobabot import constants
 
 class VKSettings(BaseModel):
     remixsid: str  # VK.com remixsid cookie
+    remixgp: str
+    remixstid: str
+    remixttpid: str
+    remixusid: str
     access_token: str  # VK.com API access token
 
 
