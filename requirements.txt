@@ -16,23 +16,24 @@ idna==2.8                 # via requests
 ipython-genutils==0.2.0   # via traitlets
 ipython==7.5.0
 jedi==0.13.3              # via ipython
+joblib==0.13.2            # via scikit-learn
 loguru==0.2.5
-numpy==1.16.2
-orjson==2.0.1
-pandas==0.24.1
-parso==0.4.0
+numpy==1.16.4
+orjson==2.0.6
+pandas==0.24.2
+parso==0.4.0              # via jedi
 pexpect==4.6.0            # via ipython
 pickleshare==0.7.5        # via ipython
 prompt-toolkit==2.0.9     # via ipython
 ptyprocess==0.6.0         # via pexpect
-pydantic==0.20.1
+pydantic==0.28
 pygments==2.3.1           # via better-exceptions-fork, ipython
 python-dateutil==2.8.0    # via pandas
 pytz==2018.9              # via pandas
-pyyaml==3.13
-requests==2.21.0
-scikit-learn==0.20.2
-scipy==1.2.1
+pyyaml==5.1.1
+requests==2.22.0
+scikit-learn==0.21.2
+scipy==1.3.0
 six==1.12.0               # via prompt-toolkit, python-dateutil, traitlets
 traitlets==4.3.2          # via ipython
 urllib3==1.24.2           # via requests
