@@ -28,7 +28,6 @@ setuptools.setup(
         'scipy',
         'ipython',
         'loguru',
-        'orjson',
         'beautifulsoup4',
     ],
     tests_require=['pytest'],

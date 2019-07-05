@@ -2,11 +2,11 @@
 Database wrapper.
 """
 
+import json
 import sqlite3
 from contextlib import AbstractContextManager, closing
 from typing import Any, Iterable, Iterator, MutableMapping, Tuple, TypeVar
 
-import orjson
 from loguru import logger
 
 T = TypeVar('T')
@@ -30,7 +30,7 @@ class Database(AbstractContextManager, MutableMapping[str, Any]):
         """
         with closing(self.connection.cursor()) as cursor:  # type: sqlite3.Cursor
             cursor.execute("SELECT `key`, `value` FROM `default` WHERE `key` LIKE ? || '%'", (prefix,))
-            return ((key, orjson.loads(value)) for key, value in cursor.fetchall())
+            return ((key, json.loads(value)) for key, value in cursor.fetchall())
 
     def vacuum(self):
         with closing(self.connection.cursor()) as cursor:  # type: sqlite3.Cursor
@@ -48,7 +48,7 @@ class Database(AbstractContextManager, MutableMapping[str, Any]):
             row = cursor.fetchone()
             if not row:
                 raise KeyError(key)
-            return orjson.loads(row[0])
+            return json.loads(row[0])
 
     def __setitem__(self, key: str, value: Any) -> None:
         logger.trace('set {} = {!s:.40}…', key, value)
@@ -56,7 +56,7 @@ class Database(AbstractContextManager, MutableMapping[str, Any]):
             cursor.execute('''
                 INSERT OR REPLACE INTO `default` (`key`, `value`)
                 VALUES (?, ?)
-            ''', (key, orjson.dumps(value).decode()))
+            ''', (key, json.dumps(value)))
 
     def __len__(self) -> int:
         raise NotImplementedError()

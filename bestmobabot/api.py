@@ -3,6 +3,7 @@ Game API wrapper.
 """
 
 import hashlib
+import json
 import random
 import re
 import string
@@ -10,8 +11,7 @@ from datetime import datetime
 from time import sleep, time
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Type, TypeVar, Union
 
-import orjson
-from bs4 import Tag, BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 from loguru import logger
 from pydantic import BaseModel
 from requests import Session
@@ -154,7 +154,7 @@ class API:
         # Look for params variable in the script.
         match = re.search(r'var params\s?=\s?({[^\}]+\})', app_page)
         assert match, 'params not found, perhaps invalid remixsid?'
-        params = orjson.loads(match.group(1))
+        params = json.loads(match.group(1))
         logger.trace('params: {}', params)
 
         # Load the proxy page and look for Hero Wars authentication token.
@@ -204,7 +204,7 @@ class API:
         sleep(sleep_time)
 
         calls = [{'ident': name, 'name': name, 'args': arguments or {}}]
-        data = orjson.dumps({"session": None, "calls": calls}).decode()
+        data = json.dumps({"session": None, "calls": calls})
         headers = {
             'X-Auth-Application-Id': '5327745',
             'X-Auth-Network-Ident': 'vkontakte',

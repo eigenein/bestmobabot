@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from orjson import loads
+from json import loads
+
 from pytest import mark
 
 from bestmobabot import dataclasses_
