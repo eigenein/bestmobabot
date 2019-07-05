@@ -12,11 +12,8 @@ from bestmobabot import constants
 
 
 class VKSettings(BaseModel):
-    remixsid: str  # VK.com remixsid cookie
-    remixgp: str
-    remixstid: str
-    remixttpid: str
-    remixusid: str
+    email: str
+    password: str
     access_token: str  # VK.com API access token
 
 
@@ -89,7 +86,7 @@ class SettingsFileParamType(click.ParamType):
     def convert(self, value, param, ctx) -> TModel:
         fp = self.file_param.convert(value, param, ctx)
         try:
-            raw = yaml.load(fp)
+            raw = yaml.load(fp, Loader=yaml.FullLoader)
         except yaml.YAMLError as e:
             self.fail(f'{os.linesep}{e}', param, ctx)
         try:

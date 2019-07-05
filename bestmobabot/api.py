@@ -11,6 +11,7 @@ from time import sleep, time
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Type, TypeVar, Union
 
 import orjson
+from bs4 import Tag, BeautifulSoup
 from loguru import logger
 from pydantic import BaseModel
 from requests import Session
@@ -97,7 +98,7 @@ class InvalidSignatureError(APIError):
 
 
 class API:
-    LOGIN_URL = 'https://vk.com/login.php'
+    VK_URL = 'https://vk.com/'
     GAME_URL = 'https://vk.com/app5327745'
     IFRAME_URL = 'https://i-heroes-vk.nextersglobal.com/iframe/vkontakte/iframe.new.php'
     API_URL = 'https://heroes-vk.nextersglobal.com/api/'
@@ -110,21 +111,7 @@ class API:
     def __init__(self, session: Session, db: Database, settings: Settings):
         self.session = session
         self.db = db
-        self.remixsid = settings.vk.remixsid  # initial `remixsid`, not the actual one
-        try:
-            # Try to fetch actual cookies.
-            session.cookies.update(self.db[f'api:{self.remixsid}:cookies'])
-        except KeyError:
-            # Start with the initial cookies.
-            session.cookies.update({
-                'remixsid': settings.vk.remixsid,
-                'remixstid': settings.vk.remixstid,
-                'remixgp': settings.vk.remixgp,
-                'remixttpid': settings.vk.remixttpid,
-                'remixusid': settings.vk.remixusid,
-            })
-        else:
-            logger.info('Using saved cookies.')
+        self.settings = settings
 
         # Store last API results for debugging.
         self.last_responses: List[str] = []
@@ -132,7 +119,7 @@ class API:
     def prepare(self, invalidate_session: bool = False):
         if not invalidate_session:
             try:
-                state: Dict[str, Any] = self.db[f'api:{self.remixsid}:state']
+                state: Dict[str, Any] = self.db[f'api:{self.settings.vk.email}:state']
             except KeyError:
                 logger.info('Previously saved state is missing.')
             else:
@@ -141,10 +128,22 @@ class API:
                 self.auth_token = state['auth_token']
                 self.session_id = state['session_id']
                 try:
-                    self.request_id = self.db[f'api:{self.remixsid}:request_id']
+                    self.request_id = self.db[f'api:{self.settings.vk.email}:request_id']
                 except KeyError:
                     self.request_id = 0
                 return
+
+        logger.debug('Logging into VK.com…')
+        with self.session.get(self.VK_URL, timeout=constants.API_TIMEOUT) as response:
+            response.raise_for_status()
+            soup = BeautifulSoup(response.text, features='html.parser')
+        form: Tag = soup.find('form')
+        data = {field.get('name'): field.get('value') for field in form.find_all('input')}
+        data['email'] = self.settings.vk.email
+        data['pass'] = self.settings.vk.password
+        with self.session.post(form['action'], data=data, timeout=constants.API_TIMEOUT) as response:
+            logger.info('Status: {} {}.', response.status_code, response.url)
+            response.raise_for_status()
 
         logger.debug('Loading game page on VK.com…')
         with self.session.get(API.GAME_URL, timeout=constants.API_TIMEOUT) as response:
@@ -173,13 +172,11 @@ class API:
         self.session_id = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(14))
         self.request_id = 0
 
-        self.db[f'api:{self.remixsid}:state'] = {
+        self.db[f'api:{self.settings.vk.email}:state'] = {
             'user_id': self.user_id,
             'auth_token': self.auth_token,
             'session_id': self.session_id,
         }
-        # Store actual cookies for the next restart.
-        self.db[f'api:{self.remixsid}:cookies'] = dict(self.session.cookies.items())
 
     def call(
         self,
@@ -199,7 +196,7 @@ class API:
 
     def _call(self, name: str, *, arguments: Optional[Dict[str, Any]], random_sleep, log_result) -> Result:
         self.request_id += 1
-        self.db[f'api:{self.remixsid}:request_id'] = self.request_id
+        self.db[f'api:{self.settings.vk.email}:request_id'] = self.request_id
 
         # Emulate human behavior a little bit.
         sleep_time = random.uniform(5.0, 10.0) if random_sleep and self.request_id != 1 else 0.0
