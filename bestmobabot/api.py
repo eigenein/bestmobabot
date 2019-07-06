@@ -133,17 +133,7 @@ class API:
                     self.request_id = 0
                 return
 
-        logger.debug('Logging into VK.com…')
-        with self.session.get(self.VK_URL, timeout=constants.API_TIMEOUT) as response:
-            response.raise_for_status()
-            soup = BeautifulSoup(response.text, features='html.parser')
-        form: Tag = soup.find('form')
-        data = {field.get('name'): field.get('value') for field in form.find_all('input')}
-        data['email'] = self.settings.vk.email
-        data['pass'] = self.settings.vk.password
-        with self.session.post(form['action'], data=data, timeout=constants.API_TIMEOUT) as response:
-            logger.info('Status: {} {}.', response.status_code, response.url)
-            response.raise_for_status()
+        self.authenticate_vk()
 
         logger.debug('Loading game page on VK.com…')
         with self.session.get(API.GAME_URL, timeout=constants.API_TIMEOUT) as response:
@@ -177,6 +167,23 @@ class API:
             'auth_token': self.auth_token,
             'session_id': self.session_id,
         }
+
+    def authenticate_vk(self):
+        logger.debug('Logging into VK.com…')
+        with self.session.get(self.VK_URL, timeout=constants.API_TIMEOUT) as response:
+            response.raise_for_status()
+            if response.url.endswith('feed'):
+                logger.debug('Already logged in.')
+                return
+            soup = BeautifulSoup(response.text, features='html.parser')
+
+        form: Tag = soup.find('form')
+        data = {field.get('name'): field.get('value') for field in form.find_all('input')}
+        data['email'] = self.settings.vk.email
+        data['pass'] = self.settings.vk.password
+        with self.session.post(form['action'], data=data, timeout=constants.API_TIMEOUT) as response:
+            logger.info('Status: {} {}.', response.status_code, response.url)
+            response.raise_for_status()
 
     def call(
         self,
