@@ -59,15 +59,16 @@ class BotSettings(BaseModel):
     enchant_rune: Optional[EnchantRuneSettings] = None
     arena: ArenaSettings
 
-    @validator('raid_missions')
+    @validator('raid_missions', each_item=True)
     def lower_raids(cls, value: str) -> str:
         return value.lower()
 
-    @validator('shops')
+    @validator('shops', each_item=True)
     def lower_shops(cls, value: str) -> str:
         return value.lower()
 
 
+# TODO: unit tests.
 class Settings(BaseModel):
     vk: VKSettings
     bot: BotSettings
