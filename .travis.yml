@@ -5,4 +5,4 @@ install:
   - pip install flake8
 script:
   - pytest
-  - flake8 bestmobabot tests
+  # - flake8 bestmobabot tests
