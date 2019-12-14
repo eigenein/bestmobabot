@@ -12,7 +12,7 @@ FLAKE8 := $(BIN)/flake8
 .PHONY: venv
 venv:
 	@rm -rf $@
-	@virtualenv -p python3.7 $@
+	@python3.8 -m venv $@
 	@$(PIP) install -r requirements.txt
 	@$(PIP) install pip-tools isort pytest flake8
 	@$(PIP) install -e .
@@ -42,10 +42,9 @@ docker:
 	@docker build -t eigenein/bestmobabot .
 
 .PHONY: publish
-publish: docker
+publish: docker publish/latest
 	@$(eval VERSION = $(shell $(PYTHON) setup.py --version))
 	@docker tag 'eigenein/bestmobabot:latest' 'eigenein/bestmobabot:$(VERSION)'
-	@docker push 'eigenein/bestmobabot:latest'
 	@docker push 'eigenein/bestmobabot:$(VERSION)'
 
 .PHONY: publish/latest

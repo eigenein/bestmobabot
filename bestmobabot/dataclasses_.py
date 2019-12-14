@@ -201,7 +201,7 @@ class Hero(Unit):
         }
 
     # noinspection PyMethodParameters
-    @validator('slots', pre=True, whole=True)
+    @validator('slots', pre=True, each_item=False)
     def fix_slots(cls, value: Any):
         # These odd people sometimes return `{"1": 0, "0": 0}`, sometimes `[0]`.
         if isinstance(value, dict):

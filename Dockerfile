@@ -1,4 +1,4 @@
-FROM python:3.7
+FROM python:3.8-slim
 MAINTAINER Pavel Perestoronin <eigenein@gmail.com>
 
 ENV \
