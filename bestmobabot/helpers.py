@@ -30,7 +30,7 @@ def naive_select_attackers(units: Iterable[TUnit], count: int = constants.TEAM_S
 
 
 def find_expedition_team(heroes: Iterable[Hero], min_power: int) -> Optional[Sequence[Hero]]:
-    best_power = None
+    best_power: Optional[int] = None
     best_team = None
 
     for team in combinations(heroes, constants.TEAM_SIZE):

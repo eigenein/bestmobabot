@@ -37,7 +37,7 @@ class VK:
         for item in payload['response']['items']:
             yield from self.GIFT_ID_RE.findall(item['text'])
             for url in self.VK_CC_RE.findall(item['text']):
-                # HEAD is not supported by VK.com. Use streaming to obtain just the headers.
+                # HEAD is unsupported by VK.com. Use streaming to obtain just the headers.
                 with self.session.get(url, stream=True, timeout=constants.API_TIMEOUT) as response:
                     logger.info('Get {}: {}.', url, response.status_code)
                     yield from self.GIFT_ID_RE.findall(response.url)

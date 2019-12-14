@@ -5,7 +5,7 @@ More `itertools`.
 from __future__ import annotations
 
 import math
-from typing import Any, Iterable, Iterator, List, TypeVar
+from typing import Any, Iterable, Iterator, List, Optional, TypeVar
 
 from loguru import logger
 
@@ -48,7 +48,7 @@ def secretary_max(items: Iterable[T], n: int, early_stop: Any = None) -> T:
     """
     r = int(n / math.e) + 1
 
-    max_item = None
+    max_item: Optional[T] = None
 
     for i, item in enumerate(items, start=1):
         # Check early stop condition.

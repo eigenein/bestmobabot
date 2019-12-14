@@ -41,6 +41,7 @@ class Bot:
     def prepare(self):
         self.user = self.api.get_user_info()
 
+        # noinspection DuplicatedCode
         self.scheduler.add_tasks([
             Task(at=[
                 time(hour=0, minute=0, tzinfo=self.user.tz),
@@ -288,8 +289,7 @@ class Bot:
         """
         logger.info('Farming mail…')
         self.log(f'📩 *{self.user.name}* читает почту…')
-        letters = self.api.get_all_mail()
-        if letters:
+        if letters := self.api.get_all_mail():
             logger.info(f'{len(letters)} letters.')
             with self.logger:
                 self.logger.append(f'📩 *{self.user.name}* получил из почты:\n')
