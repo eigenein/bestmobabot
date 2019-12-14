@@ -1,0 +1,26 @@
+name: Check
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.8
+    - name: Install Requirements
+      run: |
+        pip install -r requirements.txt
+    - name: Test
+      run: |
+        pip install pytest
+        pytest
+    - name: Check Imports
+      run: |
+        pip install isort
+        isort -rc -c bestmobabot tests
