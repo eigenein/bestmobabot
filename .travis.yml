@@ -1,8 +1,0 @@
-language: python
-python: "3.8"
-install:
-  - pip install -r requirements.txt
-  - pip install flake8
-script:
-  - pytest
-  # - flake8 bestmobabot tests
