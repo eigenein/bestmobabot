@@ -141,8 +141,7 @@ class ArenaSolver:
         for n_page in count(1):
             logger.debug('Fetching enemies…')
             self.callback(n_page)
-            enemies = list(self.filter_enemies(self.get_enemies()))
-            if enemies:
+            if enemies := list(self.filter_enemies(self.get_enemies())):
                 yield max(self.solve_enemy_cached(enemy) for enemy in enemies)
             else:
                 logger.debug('All enemies are filtered out on the current page.')
@@ -156,8 +155,12 @@ class ArenaSolver:
                 logger.debug('Skipped empty user #{}.', enemy.user_id)
                 continue
             if len(enemy.teams) < self.n_required_teams:
-                logger.warning('Enemy has unknown teams: {}.', enemy.user)
-                continue
+                if teams := self.db.get(f'{self.enemy_key(enemy)}:teams'):
+                    logger.warning('Using stored teams for this enemy.')
+                    enemy.teams = [[Hero(**hero) for hero in team] for team in teams]
+                else:
+                    logger.warning('Enemy has unknown teams: {}.', enemy.user)
+                    continue
             else:
                 self.store_enemy(enemy)
             if self.user_clan_id and enemy.user.is_from_clans((self.user_clan_id,)):
@@ -168,11 +171,17 @@ class ArenaSolver:
                 continue
             yield enemy
 
+    def enemy_key(self, enemy: BaseArenaEnemy) -> str:
+        """
+        Database key to store the enemy info.
+        """
+        return f'arena:{self.n_required_teams}:{enemy.user.server_id}:{enemy.user_id}'
+
     def store_enemy(self, enemy: BaseArenaEnemy):
         """
         Store enemy teams and place to be able to guess their hidden teams in Top 100.
         """
-        enemy_key = f'arena:{self.n_required_teams}:{enemy.user.server_id}:{enemy.user_id}'
+        enemy_key = self.enemy_key(enemy)
         self.db[f'{enemy_key}:teams'] = [[hero.dict() for hero in team] for team in enemy.teams]
         self.db[f'{enemy_key}:place'] = enemy.place
 

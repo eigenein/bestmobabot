@@ -322,6 +322,10 @@ class BaseArenaEnemy(BaseModel, ABC):
     def teams(self) -> List[List[Hero]]:
         raise NotImplementedError()
 
+    @teams.setter
+    def teams(self, teams: List[List[Hero]]):
+        raise NotImplementedError()
+
     def __str__(self) -> str:
         return f'{self.user} at place {self.place}'
 
@@ -333,6 +337,10 @@ class ArenaEnemy(BaseArenaEnemy):
     def teams(self) -> List[List[Hero]]:
         return [self.heroes]
 
+    @teams.setter
+    def teams(self, teams: List[List[Hero]]):
+        self.heroes = teams[0]
+
 
 class GrandArenaEnemy(BaseArenaEnemy):
     heroes: List[List[Hero]]
@@ -340,6 +348,10 @@ class GrandArenaEnemy(BaseArenaEnemy):
     @property
     def teams(self) -> List[List[Hero]]:
         return self.heroes
+
+    @teams.setter
+    def teams(self, teams: List[List[Hero]]):
+        self.heroes = teams
 
 
 class ArenaState(BaseModel, Loggable):

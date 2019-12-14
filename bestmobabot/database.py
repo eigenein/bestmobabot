@@ -45,10 +45,9 @@ class Database(AbstractContextManager, MutableMapping[str, Any]):
         logger.trace('get {}', key)
         with closing(self.connection.cursor()) as cursor:  # type: sqlite3.Cursor
             cursor.execute('SELECT value FROM `default` WHERE `key` = ?', (key,))
-            row = cursor.fetchone()
-            if not row:
-                raise KeyError(key)
-            return json.loads(row[0])
+            if row := cursor.fetchone():
+                return json.loads(row[0])
+            raise KeyError(key)
 
     def __setitem__(self, key: str, value: Any) -> None:
         logger.trace('set {} = {!s:.40}…', key, value)

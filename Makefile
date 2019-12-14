@@ -24,7 +24,8 @@ requirements.txt:
 .PHONY: test
 test:
 	@$(PYTEST)
-	@$(FLAKE8) bestmobabot tests
+	# TODO: disabled until PEP 572 is supported.
+	# TODO: @$(FLAKE8) bestmobabot tests
 	@$(ISORT) -rc -c bestmobabot tests
 
 .PHONY: tag
