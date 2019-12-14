@@ -58,8 +58,8 @@ deploy/latest: publish/latest
 
 .PHONY: resources
 resources:
-	curl --fail 'https://heroes.cdnvideo.ru/vk/v0538/locale/ru.json.gz?js=1' --output bestmobabot/js/ru.json.gz
-	curl --fail 'https://heroes.cdnvideo.ru/vk/v0538/lib/lib.json.gz?js=1' --output bestmobabot/js/lib.json.gz
+	curl --fail 'https://heroes.cdnvideo.ru/vk/v0588/locale/ru.json.gz?js=1' --output bestmobabot/js/ru.json.gz
+	curl --fail 'https://heroes.cdnvideo.ru/vk/v0588/lib/lib.json.gz?js=1' --output bestmobabot/js/lib.json.gz
 
 .PHONY: docs
 docs:
