@@ -1,9 +1,13 @@
 <!DOCTYPE HTML>
-<html lang="en" class="sidebar-visible no-js">
+<html lang="en" class="sidebar-visible no-js light">
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
         <title>bestmobabot</title>
+        
+        <meta name="robots" content="noindex" />
+        
+
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -30,11 +34,11 @@
 
         
     </head>
-    <body class="light">
+    <body>
         <!-- Provide site root to javascript -->
         <script type="text/javascript">
             var path_to_root = "";
-            var default_theme = "light";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "light" : "light";
         </script>
 
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
@@ -58,8 +62,11 @@
             var theme;
             try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
             if (theme === null || theme === undefined) { theme = default_theme; }
-            document.body.className = theme;
-            document.querySelector('html').className = theme + ' js';
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
         </script>
 
         <!-- Hide / unhide sidebar before it is displayed -->
@@ -75,8 +82,8 @@
         </script>
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
-            <div class="sidebar-scrollbox">
-                <ol class="chapter"><li><a href="index.html"><strong aria-hidden="true">1.</strong> Привет!</a></li><li><a href="installing.html"><strong aria-hidden="true">2.</strong> Запуск</a></li><li><a href="configuring/index.html"><strong aria-hidden="true">3.</strong> Настройка</a></li><li><ol class="section"><li><a href="configuring/arena.html"><strong aria-hidden="true">3.1.</strong> Арена</a></li></ol></li><li><a href="todo.html"><strong aria-hidden="true">4.</strong> Непереведенная документация</a></li><li><a href="for_developers/index.html"><strong aria-hidden="true">5.</strong> Для разработчиков</a></li><li><ol class="section"><li><a href="for_developers/dungeon.html"><strong aria-hidden="true">5.1.</strong> Подземелье</a></li><li><a href="for_developers/enchant-rune.html"><strong aria-hidden="true">5.2.</strong> Enchant Rune</a></li><li><a href="for_developers/hall-of-fame.html"><strong aria-hidden="true">5.3.</strong> Зал Славы</a></li><li><a href="for_developers/hero-titan-gift-level-up.html"><strong aria-hidden="true">5.4.</strong> Hero Titan Gift Level Up</a></li></ol></li></ol>
+            <div id="sidebar-scrollbox" class="sidebar-scrollbox">
+                <ol class="chapter"><li class="expanded "><a href="index.html"><strong aria-hidden="true">1.</strong> Привет!</a></li><li class="expanded "><a href="installing.html"><strong aria-hidden="true">2.</strong> Запуск</a></li><li class="expanded "><a href="configuring/index.html"><strong aria-hidden="true">3.</strong> Настройка</a></li><li><ol class="section"><li class="expanded "><a href="configuring/arena.html"><strong aria-hidden="true">3.1.</strong> Арена</a></li></ol></li><li class="expanded "><a href="todo.html"><strong aria-hidden="true">4.</strong> Непереведенная документация</a></li><li class="expanded "><a href="for_developers/index.html"><strong aria-hidden="true">5.</strong> Для разработчиков</a></li><li><ol class="section"><li class="expanded "><a href="for_developers/dungeon.html"><strong aria-hidden="true">5.1.</strong> Подземелье</a></li><li class="expanded "><a href="for_developers/enchant-rune.html"><strong aria-hidden="true">5.2.</strong> Enchant Rune</a></li><li class="expanded "><a href="for_developers/hall-of-fame.html"><strong aria-hidden="true">5.3.</strong> Зал Славы</a></li><li class="expanded "><a href="for_developers/hero-titan-gift-level-up.html"><strong aria-hidden="true">5.4.</strong> Hero Titan Gift Level Up</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -147,15 +154,15 @@
 
                 <div id="content" class="content">
                     <main>
-                        <a class="header" href="#Привет" id="Привет"><h1>Привет!</h1></a>
+                        <h1><a class="header" href="#Привет" id="Привет">Привет!</a></h1>
 <p>Это бот для <a href="https://vk.com/app5327745_209336881">«Хроник Хаоса»</a> на VK.com. Долгое время он существовал в закрытом виде во избежание массового банхамера от разработчиков. Благодаря последним обновлениям играть в игру стало совершенно не выносимо, поэтому теперь бот открыт для всех.</p>
 <p><strong>Бот бесплатен для личного использования.</strong> Если кто-то пытается вам продать его – не ведитесь.</p>
-<a class="header" href="#disclaimer" id="disclaimer"><h2>Disclaimer</h2></a>
+<h2><a class="header" href="#disclaimer" id="disclaimer">Disclaimer</a></h2>
 <ul>
 <li>В любом случае, вы сами отвечаете за любые эффекты, вызванный работой бота. Неочевидные моменты можно уточнять в <a href="https://github.com/eigenein/bestmobabot/issues">GitHub Issues</a>. И конечно, никто не застрахован от багов. У меня не было возможности протестировать бота на большом числе разных аккаунтов.</li>
 <li>Использование подобных ботов запрещено правилами игры. Бот пытается обойти аналитику Nexters, но пожизненный бан в игре не исключен. Nexters «очень добрые» и никого не прощают. <strong>Изменять исходный код нужно аккуратно, практически все сделано с расчетом на незаметность бота для аналитики.</strong></li>
 </ul>
-<a class="header" href="#Что-умеет-бот" id="Что-умеет-бот"><h2>Что умеет бот?</h2></a>
+<h2><a class="header" href="#Что-умеет-бот" id="Что-умеет-бот">Что умеет бот?</a></h2>
 <ul>
 <li>Атаковать арену и гранд-арену в авто-режиме</li>
 <li>Собирать награды из писем</li>
@@ -176,24 +183,24 @@
 </ul>
 <p>Браузер для работы бота не нужен в принципе.</p>
 <p>Все писалось и отлаживалось без VIP, поэтому привилегии VIP не используются.</p>
-<a class="header" href="#Как-это-работает" id="Как-это-работает"><h2>Как это работает?</h2></a>
+<h2><a class="header" href="#Как-это-работает" id="Как-это-работает">Как это работает?</a></h2>
 <ul>
 <li>В исходниках есть расписание, по которому бот просыпается и делает свое дело</li>
 <li>Награды с экспедиций собираются сразу по завершении</li>
 </ul>
-<a class="header" href="#Чего-точно-не-будет" id="Чего-точно-не-будет"><h2>Чего точно не будет</h2></a>
-<a class="header" href="#Подземелье-и-другие-бои-на-стороне-клиента" id="Подземелье-и-другие-бои-на-стороне-клиента"><h3>Подземелье и другие бои на стороне клиента</h3></a>
+<h2><a class="header" href="#Чего-точно-не-будет" id="Чего-точно-не-будет">Чего точно не будет</a></h2>
+<h3><a class="header" href="#Подземелье-и-другие-бои-на-стороне-клиента" id="Подземелье-и-другие-бои-на-стороне-клиента">Подземелье и другие бои на стороне клиента</a></h3>
 <p>Для этого нужно полностью просчитать бой, его результат проверяется на сервере с точностью до каждого HP. Да, даже в авто-режиме.</p>
 <p>По той же причине не будет прохождения Башни, если не доступны пропуски этажей.</p>
 <p>По той же причине не будет прохождения Турнира Стихий.</p>
 <p>Но если вы готовы это реализовать и <strong>поддерживать</strong>, то добро пожаловать в Pull Requests.</p>
-<a class="header" href="#Офф-топик" id="Офф-топик"><h4>Офф-топик</h4></a>
+<h4><a class="header" href="#Офф-топик" id="Офф-топик">Офф-топик</a></h4>
 <p>Однажды я реализовал это, и оно было в боте. Но Nexters заобфусцировали эту часть кода. Технически, и это не 100%-ое препятствие, но обновлять бота вслед за каждым обновлением игры у меня нет времени. А возвращаться к ручному прохождению было уже очень грустно. Что, кстати говоря, и явилось поводом для публикации бота.</p>
 <p>Привет, Nexters, ваш гейм-дизайнер очень крутой! Я никогда не проводил время лучше, чем в Подземелье!</p>
-<a class="header" href="#Как-сообщить-о-баге-или-попросить-фичу" id="Как-сообщить-о-баге-или-попросить-фичу"><h2>Как сообщить о баге или попросить фичу?</h2></a>
+<h2><a class="header" href="#Как-сообщить-о-баге-или-попросить-фичу" id="Как-сообщить-о-баге-или-попросить-фичу">Как сообщить о баге или попросить фичу?</a></h2>
 <p>В <a href="https://github.com/eigenein/bestmobabot/issues">GitHub Issues</a>.</p>
 <p>Быструю реализацию не обещаю, поэтому если вы разработчик, то часто будет проще сразу обсудить реализацию и предложить Pull Request.</p>
-<a class="header" href="#Запуск" id="Запуск"><h1>Запуск</h1></a>
+<h1><a class="header" href="#Запуск" id="Запуск">Запуск</a></h1>
 <p>В любом случае, вам понадобится конфиг. Детально про него можно почитать в <a href="configuring/README.html">разделе с настройкой</a>. Создайте текстовый файл <code>settings.yaml</code>. Минимально понадобятся такие настройки:</p>
 <pre><code class="language-yaml">vk:
   remixsid: ...  # значение cookie `remixsid` с вашего аккаунта на VK.com.
@@ -202,7 +209,7 @@ bot:
   arena: {}
 </code></pre>
 <p>Далее самый простой вариант запуска – это использование <a href="https://www.docker.com/">Docker</a>. С каждым обновлением бота я собираю публикую <a href="https://hub.docker.com/r/eigenein/bestmobabot">готовый образ</a>. Можно, конечно, и без Docker, но про это напишу позже.</p>
-<a class="header" href="#docker" id="docker"><h2>Docker</h2></a>
+<h2><a class="header" href="#docker" id="docker">Docker</a></h2>
 <p>Команда для запуска выглядит примерно так:</p>
 <pre><code class="language-bash">docker run \
     --rm \
@@ -213,47 +220,47 @@ bot:
     -v /Users/eigenein/GitHub/bestmobabot/db.sqlite3:/app/db.sqlite3:rw \
     eigenein/bestmobabot -v
 </code></pre>
-<p>Вам нужно изменить пути к файлам на ваши собственные и указать верный часовой пояс.</p>
-<a class="header" href="#Настройка" id="Настройка"><h1>Настройка</h1></a>
+<p>Вам нужно изменить пути к файлам на ваши собственные и указать верный часовой пояс. </p>
+<h1><a class="header" href="#Настройка" id="Настройка">Настройка</a></h1>
 <p>TODO</p>
-<a class="header" href="#Арена" id="Арена"><h1>Арена</h1></a>
-<a class="header" href="#Как-это-работает-1" id="Как-это-работает-1"><h2>Как это работает?</h2></a>
-<a class="header" href="#tldr" id="tldr"><h3>TL;DR</h3></a>
+<h1><a class="header" href="#Арена" id="Арена">Арена</a></h1>
+<h2><a class="header" href="#Как-это-работает-1" id="Как-это-работает-1">Как это работает?</a></h2>
+<h3><a class="header" href="#tldr" id="tldr">TL;DR</a></h3>
 <ul>
 <li>Журналы боев с арен сохраняются в базу данных</li>
-<li>Один раз в день бот можно переобучать предсказывать победу в бою на основе этих журналов</li>
+<li>Один раз в день бот может переобучать предсказывать победу в бою на основе этих журналов</li>
 <li>Чем больше журналов сохранено, тем лучше составляются команды на арене</li>
 <li>Поначалу все будет плохо</li>
 <li>Через месяц-другой будет круто – даже лучше, чем вручную</li>
 <li>Может быть, я встрою в бота готовую модель</li>
 </ul>
-<a class="header" href="#Подробнее" id="Подробнее"><h3>Подробнее</h3></a>
+<h3><a class="header" href="#Подробнее" id="Подробнее">Подробнее</a></h3>
 <p>Несколько раз в день бот сохраняет к себе в базу данных журналы арен. Это не очень много, несколько десятков боев в день. Сохраняются доступные признаки героев типа цвета, уровня и звездности и так далее. Сохраняется и результат боя. Раз в сутки бот перестраивает модель машинного обучения для предсказания исхода боя, если известны обе команды.</p>
 <p>Когда бот идет на арену, то для каждого противника он пытается подобрать лучшую команду для атаки. Полный перебор сделать невозможно, поэтому используется генетический алгоритм.</p>
 <p>Бот перебирает противников, пока не найдет наилучшего – с максимальной вероятностью победы. Если вероятность победы для выбранного противника менее 50%, то атака отменяется и откладывается на попозже. Атака на позиции выше 100-ой на гранд-арене пока не реализована. Но уже сейчас бот сохраняет увиденные команды противников, чтобы в будущем оценивать скрытые команды.</p>
-<a class="header" href="#Настройка-1" id="Настройка-1"><h2>Настройка</h2></a>
-<a class="header" href="#schedule_offset" id="schedule_offset"><h3><code>schedule_offset</code></h3></a>
+<h2><a class="header" href="#Настройка-1" id="Настройка-1">Настройка</a></h2>
+<h3><a class="header" href="#schedule_offset" id="schedule_offset"><code>schedule_offset</code></a></h3>
 <p>Это костыль, который позволяет указать сдвиг во времени относительно расписания арены по умолчанию. Может быть полезно для слабого железа, на котором выполняются несколько ботов. Тогда можно развести арены этих ботов на разное время.</p>
 <p>Например: <code>schedule_offset: 01:00:00</code></p>
-<a class="header" href="#friendly_clans" id="friendly_clans"><h3><code>friendly_clans</code></h3></a>
+<h3><a class="header" href="#friendly_clans" id="friendly_clans"><code>friendly_clans</code></a></h3>
 <p>Список из ID или названий кланов, которые нельзя атаковать на арене.</p>
-<a class="header" href="#early_stop" id="early_stop"><h3><code>early_stop</code></h3></a>
+<h3><a class="header" href="#early_stop" id="early_stop"><code>early_stop</code></a></h3>
 <p>Бот остановит перебор противников, если вероятность победы будет выше указанного здесь значения. Чем оно меньше, тем меньше противников перебирает бот, но качество выбора падает. Если значение выше, то все наоборот.</p>
 <p>Например: <code>early_stop: 0.95</code></p>
-<a class="header" href="#last_battles" id="last_battles"><h3><code>last_battles</code></h3></a>
+<h3><a class="header" href="#last_battles" id="last_battles"><code>last_battles</code></a></h3>
 <p>TODO</p>
-<a class="header" href="#normal_max_pages--grand_max_pages" id="normal_max_pages--grand_max_pages"><h3><code>normal_max_pages</code> &amp; <code>grand_max_pages</code></h3></a>
+<h3><a class="header" href="#normal_max_pages--grand_max_pages" id="normal_max_pages--grand_max_pages"><code>normal_max_pages</code> &amp; <code>grand_max_pages</code></a></h3>
 <p>TODO</p>
-<a class="header" href="#normal_generations_count_down--grand_generations_count_down" id="normal_generations_count_down--grand_generations_count_down"><h3><code>normal_generations_count_down</code> &amp; <code>grand_generations_count_down</code></h3></a>
+<h3><a class="header" href="#normal_generations_count_down--grand_generations_count_down" id="normal_generations_count_down--grand_generations_count_down"><code>normal_generations_count_down</code> &amp; <code>grand_generations_count_down</code></a></h3>
 <p>TODO</p>
-<a class="header" href="#normal_generate_solutions--grand_generate_solutions" id="normal_generate_solutions--grand_generate_solutions"><h3><code>normal_generate_solutions</code> &amp; <code>grand_generate_solutions</code></h3></a>
+<h3><a class="header" href="#normal_generate_solutions--grand_generate_solutions" id="normal_generate_solutions--grand_generate_solutions"><code>normal_generate_solutions</code> &amp; <code>grand_generate_solutions</code></a></h3>
 <p>TODO</p>
-<a class="header" href="#normal_keep_solutions--grand_keep_solutions" id="normal_keep_solutions--grand_keep_solutions"><h3><code>normal_keep_solutions</code> &amp; <code>grand_keep_solutions</code></h3></a>
+<h3><a class="header" href="#normal_keep_solutions--grand_keep_solutions" id="normal_keep_solutions--grand_keep_solutions"><code>normal_keep_solutions</code> &amp; <code>grand_keep_solutions</code></a></h3>
 <p>TODO</p>
-<a class="header" href="#randomize_grand_defenders" id="randomize_grand_defenders"><h3><code>randomize_grand_defenders</code></h3></a>
+<h3><a class="header" href="#randomize_grand_defenders" id="randomize_grand_defenders"><code>randomize_grand_defenders</code></a></h3>
 <p>Если <code>true</code>, то раз в день бот будет случайно выставлять на гранд-арену 15 самых сильных ваших героев.</p>
-<a class="header" href="#Непереведенная-документация" id="Непереведенная-документация"><h1>Непереведенная документация</h1></a>
-<a class="header" href="#settings" id="settings"><h2>Settings</h2></a>
+<h1><a class="header" href="#Непереведенная-документация" id="Непереведенная-документация">Непереведенная документация</a></h1>
+<h2><a class="header" href="#settings" id="settings">Settings</a></h2>
 <p>At the moment settings are described only in <code>settings.py</code>. Here is an example of <code>settings.yaml</code>:</p>
 <pre><code class="language-yaml">vk:
   remixsid: &lt;VK.com `remixsid` cookie&gt;
@@ -277,13 +284,13 @@ bot:
   raid_missions:
   - Чащоба Каданг
 </code></pre>
-<a class="header" href="#trainer" id="trainer"><h2>Trainer</h2></a>
+<h2><a class="header" href="#trainer" id="trainer">Trainer</a></h2>
 <p>Trainer is enabled by setting <code>is_trainer</code> to <code>true</code>. Typically, you only need one trainer per a single database. It will perform training for all bots using the same database.</p>
 <p>Arena model trainer could be run manually via:</p>
 <pre><code class="language-bash">python -m bestmobabot.trainer -v
 </code></pre>
 <p>Trained model is then saved back to the database.</p>
-<a class="header" href="#storage" id="storage"><h2>Storage</h2></a>
+<h2><a class="header" href="#storage" id="storage">Storage</a></h2>
 <p>SQLite database is used as a sort of key-value store to preserve state between restarts:</p>
 <ul>
 <li>Arena and grand arena battle results</li>
@@ -295,18 +302,18 @@ bot:
 </ul>
 <p>The same database can be used by multiple bots. Actually, it is <em>recommended</em> that multiple bots use the same database in order to share the arena prediction model.</p>
 <p><strong>Warning.</strong> The database contains user IDs and Hero Wars API authentication tokens. Make sure that you remove them manually should you share your database.</p>
-<a class="header" href="#Для-разработчиков" id="Для-разработчиков"><h1>Для разработчиков</h1></a>
+<h1><a class="header" href="#Для-разработчиков" id="Для-разработчиков">Для разработчиков</a></h1>
 <p>Здесь находятся неструктурированные заметки для разработчиков бота.</p>
-<a class="header" href="#Подземелье" id="Подземелье"><h1>Подземелье</h1></a>
-<a class="header" href="#clangetactivitystat" id="clangetactivitystat"><h2><code>clanGetActivityStat</code></h2></a>
+<h1><a class="header" href="#Подземелье" id="Подземелье">Подземелье</a></h1>
+<h2><a class="header" href="#clangetactivitystat" id="clangetactivitystat"><code>clanGetActivityStat</code></a></h2>
 <pre><code class="language-json">{&quot;name&quot;:&quot;clanGetActivityStat&quot;,&quot;args&quot;:{},&quot;ident&quot;:&quot;group_1_body&quot;}
 </code></pre>
 <pre><code class="language-json">{&quot;clanActivity&quot;:8918,&quot;dungeonActivity&quot;:842,&quot;stat&quot;:{&quot;todayActivity&quot;:148,&quot;activitySum&quot;:148,&quot;dungeonActivitySum&quot;:150,&quot;todayRaid&quot;:[],&quot;todayItemsActivity&quot;:0,&quot;todayDungeonActivity&quot;:150,&quot;activityForRuneAvailable&quot;:false}}
 </code></pre>
-<a class="header" href="#titangetall" id="titangetall"><h2><code>titanGetAll</code></h2></a>
+<h2><a class="header" href="#titangetall" id="titangetall"><code>titanGetAll</code></a></h2>
 <pre><code class="language-json">{&quot;ident&quot;:&quot;titanGetAll&quot;,&quot;result&quot;:{&quot;response&quot;:{&quot;4001&quot;:{&quot;id&quot;:4001,&quot;xp&quot;:30420,&quot;level&quot;:54,&quot;star&quot;:4,&quot;skills&quot;:{&quot;4003&quot;:54},&quot;power&quot;:12648,&quot;artifacts&quot;:[{&quot;level&quot;:34,&quot;star&quot;:2},{&quot;level&quot;:1,&quot;star&quot;:1},{&quot;level&quot;:1,&quot;star&quot;:1}],&quot;scale&quot;:0.80000000000000004},&quot;4020&quot;:{&quot;id&quot;:4020,&quot;xp&quot;:32210,&quot;level&quot;:55,&quot;star&quot;:4,&quot;skills&quot;:{&quot;4019&quot;:55},&quot;power&quot;:14063,&quot;artifacts&quot;:[{&quot;level&quot;:43,&quot;star&quot;:2},{&quot;level&quot;:4,&quot;star&quot;:2},{&quot;level&quot;:10,&quot;star&quot;:1}],&quot;scale&quot;:0.80000000000000004},&quot;4002&quot;:{&quot;id&quot;:4002,&quot;xp&quot;:6580,&quot;level&quot;:29,&quot;star&quot;:3,&quot;skills&quot;:{&quot;4005&quot;:29},&quot;power&quot;:3333,&quot;artifacts&quot;:[{&quot;level&quot;:1,&quot;star&quot;:0},{&quot;level&quot;:1,&quot;star&quot;:0},{&quot;level&quot;:1,&quot;star&quot;:0}],&quot;scale&quot;:0.80000000000000004},&quot;4010&quot;:{&quot;id&quot;:4010,&quot;xp&quot;:32210,&quot;level&quot;:55,&quot;star&quot;:3,&quot;skills&quot;:{&quot;4010&quot;:55},&quot;power&quot;:11042,&quot;artifacts&quot;:[{&quot;level&quot;:42,&quot;star&quot;:1},{&quot;level&quot;:10,&quot;star&quot;:1},{&quot;level&quot;:1,&quot;star&quot;:1}],&quot;scale&quot;:0.80000000000000004},&quot;4012&quot;:{&quot;id&quot;:4012,&quot;xp&quot;:30420,&quot;level&quot;:54,&quot;star&quot;:4,&quot;skills&quot;:{&quot;4014&quot;:54},&quot;power&quot;:12653,&quot;artifacts&quot;:[{&quot;level&quot;:28,&quot;star&quot;:3},{&quot;level&quot;:3,&quot;star&quot;:1},{&quot;level&quot;:2,&quot;star&quot;:1}],&quot;scale&quot;:0.80000000000000004},&quot;4011&quot;:{&quot;id&quot;:4011,&quot;xp&quot;:2310,&quot;level&quot;:15,&quot;star&quot;:2,&quot;skills&quot;:{&quot;4012&quot;:15},&quot;power&quot;:1015,&quot;artifacts&quot;:[{&quot;level&quot;:1,&quot;star&quot;:0},{&quot;level&quot;:1,&quot;star&quot;:0},{&quot;level&quot;:1,&quot;star&quot;:0}],&quot;scale&quot;:0.80000000000000004},&quot;4022&quot;:{&quot;id&quot;:4022,&quot;xp&quot;:3060,&quot;level&quot;:18,&quot;star&quot;:2,&quot;skills&quot;:{&quot;4023&quot;:18},&quot;power&quot;:1290,&quot;artifacts&quot;:[{&quot;level&quot;:1,&quot;star&quot;:0},{&quot;level&quot;:1,&quot;star&quot;:0},{&quot;level&quot;:1,&quot;star&quot;:0}],&quot;scale&quot;:0.80000000000000004},&quot;4000&quot;:{&quot;id&quot;:4000,&quot;xp&quot;:19200,&quot;level&quot;:46,&quot;star&quot;:3,&quot;skills&quot;:{&quot;4001&quot;:46},&quot;power&quot;:8545,&quot;artifacts&quot;:[{&quot;level&quot;:37,&quot;star&quot;:1},{&quot;level&quot;:7,&quot;star&quot;:1},{&quot;level&quot;:2,&quot;star&quot;:1}],&quot;scale&quot;:0.80000000000000004},&quot;4013&quot;:{&quot;id&quot;:4013,&quot;xp&quot;:32210,&quot;level&quot;:55,&quot;star&quot;:3,&quot;skills&quot;:{&quot;4016&quot;:55,&quot;4017&quot;:55},&quot;power&quot;:11260,&quot;artifacts&quot;:[{&quot;level&quot;:37,&quot;star&quot;:3},{&quot;level&quot;:7,&quot;star&quot;:1},{&quot;level&quot;:1,&quot;star&quot;:1}],&quot;scale&quot;:0.80000000000000004},&quot;4021&quot;:{&quot;id&quot;:4021,&quot;xp&quot;:0,&quot;level&quot;:1,&quot;star&quot;:2,&quot;skills&quot;:{&quot;4021&quot;:1},&quot;power&quot;:162,&quot;artifacts&quot;:[{&quot;level&quot;:1,&quot;star&quot;:0},{&quot;level&quot;:1,&quot;star&quot;:0},{&quot;level&quot;:1,&quot;star&quot;:0}],&quot;scale&quot;:0.80000000000000004}}}}
 </code></pre>
-<a class="header" href="#dungeongetinfo" id="dungeongetinfo"><h2><code>dungeonGetInfo</code></h2></a>
+<h2><a class="header" href="#dungeongetinfo" id="dungeongetinfo"><code>dungeonGetInfo</code></a></h2>
 <pre><code class="language-json">{&quot;name&quot;:&quot;dungeonGetInfo&quot;,&quot;args&quot;:{},&quot;ident&quot;:&quot;group_1_body&quot;}
 </code></pre>
 <pre><code class="language-json">{
@@ -540,14 +547,14 @@ bot:
     ]
 }
 </code></pre>
-<a class="header" href="#dungeonstartbattle" id="dungeonstartbattle"><h2><code>dungeonStartBattle</code></h2></a>
+<h2><a class="header" href="#dungeonstartbattle" id="dungeonstartbattle"><code>dungeonStartBattle</code></a></h2>
 <pre><code class="language-json">{&quot;calls&quot;:[{&quot;name&quot;:&quot;dungeonStartBattle&quot;,&quot;args&quot;:{&quot;heroes&quot;:[39,25,35,13,29],&quot;teamNum&quot;:0},&quot;ident&quot;:&quot;body&quot;}]}
 </code></pre>
 <pre><code class="language-json">{&quot;name&quot;:&quot;dungeonStartBattle&quot;,&quot;args&quot;:{&quot;heroes&quot;:[4021,4022,4020],&quot;teamNum&quot;:0},&quot;ident&quot;:&quot;group_1_body&quot;}
 </code></pre>
 <pre><code class="language-json">{&quot;name&quot;:&quot;dungeonStartBattle&quot;,&quot;args&quot;:{&quot;heroes&quot;:[4021,4022,4020],&quot;teamNum&quot;:1},&quot;ident&quot;:&quot;group_1_body&quot;}
 </code></pre>
-<a class="header" href="#dungeonendbattle" id="dungeonendbattle"><h2><code>dungeonEndBattle</code></h2></a>
+<h2><a class="header" href="#dungeonendbattle" id="dungeonendbattle"><code>dungeonEndBattle</code></a></h2>
 <pre><code class="language-json">{
     &quot;date&quot;: 1551617810.169543,
     &quot;results&quot;: [
@@ -914,7 +921,7 @@ bot:
     ]
 }
 </code></pre>
-<a class="header" href="#dungeonsaveprogress" id="dungeonsaveprogress"><h2><code>dungeonSaveProgress</code></h2></a>
+<h2><a class="header" href="#dungeonsaveprogress" id="dungeonsaveprogress"><code>dungeonSaveProgress</code></a></h2>
 <pre><code class="language-json">{&quot;calls&quot;:[{&quot;name&quot;:&quot;dungeonSaveProgress&quot;,&quot;args&quot;:{},&quot;ident&quot;:&quot;body&quot;}]}
 </code></pre>
 <pre><code class="language-json">{
@@ -1142,13 +1149,13 @@ bot:
     ]
 }
 </code></pre>
-<a class="header" href="#enchant-rune" id="enchant-rune"><h1>Enchant Rune</h1></a>
+<h1><a class="header" href="#enchant-rune" id="enchant-rune">Enchant Rune</a></h1>
 <pre><code class="language-json">{&quot;calls&quot;:[{&quot;name&quot;:&quot;heroEnchantRune&quot;,&quot;args&quot;:{&quot;heroId&quot;:39,&quot;tier&quot;:2,&quot;items&quot;:{&quot;consumable&quot;:{&quot;1&quot;:1}}},&quot;ident&quot;:&quot;body&quot;}]}
 </code></pre>
 <pre><code class="language-json">{&quot;date&quot;:1550923502.2710991,&quot;results&quot;:[{&quot;ident&quot;:&quot;body&quot;,&quot;result&quot;:{&quot;response&quot;:10,&quot;quests&quot;:[{&quot;id&quot;:10013,&quot;state&quot;:2,&quot;progress&quot;:880,&quot;reward&quot;:{&quot;consumable&quot;:{&quot;1&quot;:&quot;10&quot;},&quot;gold&quot;:1500}},{&quot;id&quot;:10014,&quot;state&quot;:1,&quot;progress&quot;:880,&quot;reward&quot;:{&quot;consumable&quot;:{&quot;2&quot;:&quot;15&quot;},&quot;gold&quot;:3000}},{&quot;id&quot;:10032,&quot;state&quot;:1,&quot;progress&quot;:880,&quot;reward&quot;:{&quot;consumable&quot;:{&quot;3&quot;:&quot;10&quot;},&quot;gold&quot;:5000}}]}}]}
 </code></pre>
-<a class="header" href="#Зал-Славы" id="Зал-Славы"><h1>Зал Славы</h1></a>
-<a class="header" href="#get" id="get"><h2>Get</h2></a>
+<h1><a class="header" href="#Зал-Славы" id="Зал-Славы">Зал Славы</a></h1>
+<h2><a class="header" href="#get" id="get">Get</a></h2>
 <pre><code class="language-json">{
     &quot;calls&quot;: [
         {
@@ -1451,7 +1458,7 @@ bot:
     ]
 }
 </code></pre>
-<a class="header" href="#farm" id="farm"><h2>Farm</h2></a>
+<h2><a class="header" href="#farm" id="farm">Farm</a></h2>
 <pre><code class="language-json">{
     &quot;calls&quot;: [
         {
@@ -1482,7 +1489,7 @@ bot:
     ]
 }
 </code></pre>
-<a class="header" href="#hero-titan-gift-level-up" id="hero-titan-gift-level-up"><h1>Hero Titan Gift Level Up</h1></a>
+<h1><a class="header" href="#hero-titan-gift-level-up" id="hero-titan-gift-level-up">Hero Titan Gift Level Up</a></h1>
 <pre><code class="language-json">{&quot;calls&quot;:[{&quot;name&quot;:&quot;heroTitanGiftLevelUp&quot;,&quot;args&quot;:{&quot;heroId&quot;:43},&quot;ident&quot;:&quot;body&quot;}]}
 </code></pre>
 <pre><code class="language-json">{&quot;date&quot;:1551212398.459389,&quot;results&quot;:[{&quot;ident&quot;:&quot;body&quot;,&quot;result&quot;:{&quot;response&quot;:null,&quot;quests&quot;:[{&quot;id&quot;:309,&quot;state&quot;:3,&quot;progress&quot;:7,&quot;reward&quot;:{&quot;gold&quot;:30000}},{&quot;id&quot;:10023,&quot;state&quot;:2,&quot;progress&quot;:1,&quot;reward&quot;:{&quot;consumable&quot;:{&quot;20&quot;:&quot;300&quot;}}}]}}]}
@@ -1531,6 +1538,14 @@ bot:
                 ga('create', 'UA-65034198-8', 'auto');
                 ga('send', 'pageview');
             }
+        </script>
+        
+
+        
+        
+        
+        <script type="text/javascript">
+            window.playpen_copyable = true;
         </script>
         
 

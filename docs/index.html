@@ -1,9 +1,11 @@
 <!DOCTYPE HTML>
-<html lang="en" class="sidebar-visible no-js">
+<html lang="en" class="sidebar-visible no-js light">
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
         <title>Привет! - bestmobabot</title>
+        
+
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -30,11 +32,11 @@
 
         
     </head>
-    <body class="light">
+    <body>
         <!-- Provide site root to javascript -->
         <script type="text/javascript">
             var path_to_root = "";
-            var default_theme = "light";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "light" : "light";
         </script>
 
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
@@ -58,8 +60,11 @@
             var theme;
             try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
             if (theme === null || theme === undefined) { theme = default_theme; }
-            document.body.className = theme;
-            document.querySelector('html').className = theme + ' js';
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
         </script>
 
         <!-- Hide / unhide sidebar before it is displayed -->
@@ -75,8 +80,8 @@
         </script>
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
-            <div class="sidebar-scrollbox">
-                <ol class="chapter"><li><a href="index.html"><strong aria-hidden="true">1.</strong> Привет!</a></li><li><a href="installing.html"><strong aria-hidden="true">2.</strong> Запуск</a></li><li><a href="configuring/index.html"><strong aria-hidden="true">3.</strong> Настройка</a></li><li><ol class="section"><li><a href="configuring/arena.html"><strong aria-hidden="true">3.1.</strong> Арена</a></li></ol></li><li><a href="todo.html"><strong aria-hidden="true">4.</strong> Непереведенная документация</a></li><li><a href="for_developers/index.html"><strong aria-hidden="true">5.</strong> Для разработчиков</a></li><li><ol class="section"><li><a href="for_developers/dungeon.html"><strong aria-hidden="true">5.1.</strong> Подземелье</a></li><li><a href="for_developers/enchant-rune.html"><strong aria-hidden="true">5.2.</strong> Enchant Rune</a></li><li><a href="for_developers/hall-of-fame.html"><strong aria-hidden="true">5.3.</strong> Зал Славы</a></li><li><a href="for_developers/hero-titan-gift-level-up.html"><strong aria-hidden="true">5.4.</strong> Hero Titan Gift Level Up</a></li></ol></li></ol>
+            <div id="sidebar-scrollbox" class="sidebar-scrollbox">
+                <ol class="chapter"><li class="expanded "><a href="index.html" class="active"><strong aria-hidden="true">1.</strong> Привет!</a></li><li class="expanded "><a href="installing.html"><strong aria-hidden="true">2.</strong> Запуск</a></li><li class="expanded "><a href="configuring/index.html"><strong aria-hidden="true">3.</strong> Настройка</a></li><li><ol class="section"><li class="expanded "><a href="configuring/arena.html"><strong aria-hidden="true">3.1.</strong> Арена</a></li></ol></li><li class="expanded "><a href="todo.html"><strong aria-hidden="true">4.</strong> Непереведенная документация</a></li><li class="expanded "><a href="for_developers/index.html"><strong aria-hidden="true">5.</strong> Для разработчиков</a></li><li><ol class="section"><li class="expanded "><a href="for_developers/dungeon.html"><strong aria-hidden="true">5.1.</strong> Подземелье</a></li><li class="expanded "><a href="for_developers/enchant-rune.html"><strong aria-hidden="true">5.2.</strong> Enchant Rune</a></li><li class="expanded "><a href="for_developers/hall-of-fame.html"><strong aria-hidden="true">5.3.</strong> Зал Славы</a></li><li class="expanded "><a href="for_developers/hero-titan-gift-level-up.html"><strong aria-hidden="true">5.4.</strong> Hero Titan Gift Level Up</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -147,15 +152,15 @@
 
                 <div id="content" class="content">
                     <main>
-                        <a class="header" href="#Привет" id="Привет"><h1>Привет!</h1></a>
+                        <h1><a class="header" href="#Привет" id="Привет">Привет!</a></h1>
 <p>Это бот для <a href="https://vk.com/app5327745_209336881">«Хроник Хаоса»</a> на VK.com. Долгое время он существовал в закрытом виде во избежание массового банхамера от разработчиков. Благодаря последним обновлениям играть в игру стало совершенно не выносимо, поэтому теперь бот открыт для всех.</p>
 <p><strong>Бот бесплатен для личного использования.</strong> Если кто-то пытается вам продать его – не ведитесь.</p>
-<a class="header" href="#disclaimer" id="disclaimer"><h2>Disclaimer</h2></a>
+<h2><a class="header" href="#disclaimer" id="disclaimer">Disclaimer</a></h2>
 <ul>
 <li>В любом случае, вы сами отвечаете за любые эффекты, вызванный работой бота. Неочевидные моменты можно уточнять в <a href="https://github.com/eigenein/bestmobabot/issues">GitHub Issues</a>. И конечно, никто не застрахован от багов. У меня не было возможности протестировать бота на большом числе разных аккаунтов.</li>
 <li>Использование подобных ботов запрещено правилами игры. Бот пытается обойти аналитику Nexters, но пожизненный бан в игре не исключен. Nexters «очень добрые» и никого не прощают. <strong>Изменять исходный код нужно аккуратно, практически все сделано с расчетом на незаметность бота для аналитики.</strong></li>
 </ul>
-<a class="header" href="#Что-умеет-бот" id="Что-умеет-бот"><h2>Что умеет бот?</h2></a>
+<h2><a class="header" href="#Что-умеет-бот" id="Что-умеет-бот">Что умеет бот?</a></h2>
 <ul>
 <li>Атаковать арену и гранд-арену в авто-режиме</li>
 <li>Собирать награды из писем</li>
@@ -176,21 +181,21 @@
 </ul>
 <p>Браузер для работы бота не нужен в принципе.</p>
 <p>Все писалось и отлаживалось без VIP, поэтому привилегии VIP не используются.</p>
-<a class="header" href="#Как-это-работает" id="Как-это-работает"><h2>Как это работает?</h2></a>
+<h2><a class="header" href="#Как-это-работает" id="Как-это-работает">Как это работает?</a></h2>
 <ul>
 <li>В исходниках есть расписание, по которому бот просыпается и делает свое дело</li>
 <li>Награды с экспедиций собираются сразу по завершении</li>
 </ul>
-<a class="header" href="#Чего-точно-не-будет" id="Чего-точно-не-будет"><h2>Чего точно не будет</h2></a>
-<a class="header" href="#Подземелье-и-другие-бои-на-стороне-клиента" id="Подземелье-и-другие-бои-на-стороне-клиента"><h3>Подземелье и другие бои на стороне клиента</h3></a>
+<h2><a class="header" href="#Чего-точно-не-будет" id="Чего-точно-не-будет">Чего точно не будет</a></h2>
+<h3><a class="header" href="#Подземелье-и-другие-бои-на-стороне-клиента" id="Подземелье-и-другие-бои-на-стороне-клиента">Подземелье и другие бои на стороне клиента</a></h3>
 <p>Для этого нужно полностью просчитать бой, его результат проверяется на сервере с точностью до каждого HP. Да, даже в авто-режиме.</p>
 <p>По той же причине не будет прохождения Башни, если не доступны пропуски этажей.</p>
 <p>По той же причине не будет прохождения Турнира Стихий.</p>
 <p>Но если вы готовы это реализовать и <strong>поддерживать</strong>, то добро пожаловать в Pull Requests.</p>
-<a class="header" href="#Офф-топик" id="Офф-топик"><h4>Офф-топик</h4></a>
+<h4><a class="header" href="#Офф-топик" id="Офф-топик">Офф-топик</a></h4>
 <p>Однажды я реализовал это, и оно было в боте. Но Nexters заобфусцировали эту часть кода. Технически, и это не 100%-ое препятствие, но обновлять бота вслед за каждым обновлением игры у меня нет времени. А возвращаться к ручному прохождению было уже очень грустно. Что, кстати говоря, и явилось поводом для публикации бота.</p>
 <p>Привет, Nexters, ваш гейм-дизайнер очень крутой! Я никогда не проводил время лучше, чем в Подземелье!</p>
-<a class="header" href="#Как-сообщить-о-баге-или-попросить-фичу" id="Как-сообщить-о-баге-или-попросить-фичу"><h2>Как сообщить о баге или попросить фичу?</h2></a>
+<h2><a class="header" href="#Как-сообщить-о-баге-или-попросить-фичу" id="Как-сообщить-о-баге-или-попросить-фичу">Как сообщить о баге или попросить фичу?</a></h2>
 <p>В <a href="https://github.com/eigenein/bestmobabot/issues">GitHub Issues</a>.</p>
 <p>Быструю реализацию не обещаю, поэтому если вы разработчик, то часто будет проще сразу обсудить реализацию и предложить Pull Request.</p>
 
@@ -201,6 +206,10 @@
                         
 
                         
+                            <a rel="next" href="installing.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
 
                         <div style="clear: both"></div>
                     </nav>
@@ -210,6 +219,10 @@
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                 
 
+                
+                    <a href="installing.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
                 
             </nav>
 
@@ -233,6 +246,14 @@
                 ga('create', 'UA-65034198-8', 'auto');
                 ga('send', 'pageview');
             }
+        </script>
+        
+
+        
+        
+        
+        <script type="text/javascript">
+            window.playpen_copyable = true;
         </script>
         
 

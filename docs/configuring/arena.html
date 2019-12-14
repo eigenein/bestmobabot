@@ -1,9 +1,11 @@
 <!DOCTYPE HTML>
-<html lang="en" class="sidebar-visible no-js">
+<html lang="en" class="sidebar-visible no-js light">
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
         <title>Арена - bestmobabot</title>
+        
+
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -30,11 +32,11 @@
 
         
     </head>
-    <body class="light">
+    <body>
         <!-- Provide site root to javascript -->
         <script type="text/javascript">
             var path_to_root = "../";
-            var default_theme = "light";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "light" : "light";
         </script>
 
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
@@ -58,8 +60,11 @@
             var theme;
             try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
             if (theme === null || theme === undefined) { theme = default_theme; }
-            document.body.className = theme;
-            document.querySelector('html').className = theme + ' js';
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
         </script>
 
         <!-- Hide / unhide sidebar before it is displayed -->
@@ -75,8 +80,8 @@
         </script>
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
-            <div class="sidebar-scrollbox">
-                <ol class="chapter"><li><a href="../index.html"><strong aria-hidden="true">1.</strong> Привет!</a></li><li><a href="../installing.html"><strong aria-hidden="true">2.</strong> Запуск</a></li><li><a href="../configuring/index.html"><strong aria-hidden="true">3.</strong> Настройка</a></li><li><ol class="section"><li><a href="../configuring/arena.html" class="active"><strong aria-hidden="true">3.1.</strong> Арена</a></li></ol></li><li><a href="../todo.html"><strong aria-hidden="true">4.</strong> Непереведенная документация</a></li><li><a href="../for_developers/index.html"><strong aria-hidden="true">5.</strong> Для разработчиков</a></li><li><ol class="section"><li><a href="../for_developers/dungeon.html"><strong aria-hidden="true">5.1.</strong> Подземелье</a></li><li><a href="../for_developers/enchant-rune.html"><strong aria-hidden="true">5.2.</strong> Enchant Rune</a></li><li><a href="../for_developers/hall-of-fame.html"><strong aria-hidden="true">5.3.</strong> Зал Славы</a></li><li><a href="../for_developers/hero-titan-gift-level-up.html"><strong aria-hidden="true">5.4.</strong> Hero Titan Gift Level Up</a></li></ol></li></ol>
+            <div id="sidebar-scrollbox" class="sidebar-scrollbox">
+                <ol class="chapter"><li class="expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Привет!</a></li><li class="expanded "><a href="../installing.html"><strong aria-hidden="true">2.</strong> Запуск</a></li><li class="expanded "><a href="../configuring/index.html"><strong aria-hidden="true">3.</strong> Настройка</a></li><li><ol class="section"><li class="expanded "><a href="../configuring/arena.html" class="active"><strong aria-hidden="true">3.1.</strong> Арена</a></li></ol></li><li class="expanded "><a href="../todo.html"><strong aria-hidden="true">4.</strong> Непереведенная документация</a></li><li class="expanded "><a href="../for_developers/index.html"><strong aria-hidden="true">5.</strong> Для разработчиков</a></li><li><ol class="section"><li class="expanded "><a href="../for_developers/dungeon.html"><strong aria-hidden="true">5.1.</strong> Подземелье</a></li><li class="expanded "><a href="../for_developers/enchant-rune.html"><strong aria-hidden="true">5.2.</strong> Enchant Rune</a></li><li class="expanded "><a href="../for_developers/hall-of-fame.html"><strong aria-hidden="true">5.3.</strong> Зал Славы</a></li><li class="expanded "><a href="../for_developers/hero-titan-gift-level-up.html"><strong aria-hidden="true">5.4.</strong> Hero Titan Gift Level Up</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -147,41 +152,41 @@
 
                 <div id="content" class="content">
                     <main>
-                        <a class="header" href="#Арена" id="Арена"><h1>Арена</h1></a>
-<a class="header" href="#Как-это-работает" id="Как-это-работает"><h2>Как это работает?</h2></a>
-<a class="header" href="#tldr" id="tldr"><h3>TL;DR</h3></a>
+                        <h1><a class="header" href="#Арена" id="Арена">Арена</a></h1>
+<h2><a class="header" href="#Как-это-работает" id="Как-это-работает">Как это работает?</a></h2>
+<h3><a class="header" href="#tldr" id="tldr">TL;DR</a></h3>
 <ul>
 <li>Журналы боев с арен сохраняются в базу данных</li>
-<li>Один раз в день бот можно переобучать предсказывать победу в бою на основе этих журналов</li>
+<li>Один раз в день бот может переобучать предсказывать победу в бою на основе этих журналов</li>
 <li>Чем больше журналов сохранено, тем лучше составляются команды на арене</li>
 <li>Поначалу все будет плохо</li>
 <li>Через месяц-другой будет круто – даже лучше, чем вручную</li>
 <li>Может быть, я встрою в бота готовую модель</li>
 </ul>
-<a class="header" href="#Подробнее" id="Подробнее"><h3>Подробнее</h3></a>
+<h3><a class="header" href="#Подробнее" id="Подробнее">Подробнее</a></h3>
 <p>Несколько раз в день бот сохраняет к себе в базу данных журналы арен. Это не очень много, несколько десятков боев в день. Сохраняются доступные признаки героев типа цвета, уровня и звездности и так далее. Сохраняется и результат боя. Раз в сутки бот перестраивает модель машинного обучения для предсказания исхода боя, если известны обе команды.</p>
 <p>Когда бот идет на арену, то для каждого противника он пытается подобрать лучшую команду для атаки. Полный перебор сделать невозможно, поэтому используется генетический алгоритм.</p>
 <p>Бот перебирает противников, пока не найдет наилучшего – с максимальной вероятностью победы. Если вероятность победы для выбранного противника менее 50%, то атака отменяется и откладывается на попозже. Атака на позиции выше 100-ой на гранд-арене пока не реализована. Но уже сейчас бот сохраняет увиденные команды противников, чтобы в будущем оценивать скрытые команды.</p>
-<a class="header" href="#Настройка" id="Настройка"><h2>Настройка</h2></a>
-<a class="header" href="#schedule_offset" id="schedule_offset"><h3><code>schedule_offset</code></h3></a>
+<h2><a class="header" href="#Настройка" id="Настройка">Настройка</a></h2>
+<h3><a class="header" href="#schedule_offset" id="schedule_offset"><code>schedule_offset</code></a></h3>
 <p>Это костыль, который позволяет указать сдвиг во времени относительно расписания арены по умолчанию. Может быть полезно для слабого железа, на котором выполняются несколько ботов. Тогда можно развести арены этих ботов на разное время.</p>
 <p>Например: <code>schedule_offset: 01:00:00</code></p>
-<a class="header" href="#friendly_clans" id="friendly_clans"><h3><code>friendly_clans</code></h3></a>
+<h3><a class="header" href="#friendly_clans" id="friendly_clans"><code>friendly_clans</code></a></h3>
 <p>Список из ID или названий кланов, которые нельзя атаковать на арене.</p>
-<a class="header" href="#early_stop" id="early_stop"><h3><code>early_stop</code></h3></a>
+<h3><a class="header" href="#early_stop" id="early_stop"><code>early_stop</code></a></h3>
 <p>Бот остановит перебор противников, если вероятность победы будет выше указанного здесь значения. Чем оно меньше, тем меньше противников перебирает бот, но качество выбора падает. Если значение выше, то все наоборот.</p>
 <p>Например: <code>early_stop: 0.95</code></p>
-<a class="header" href="#last_battles" id="last_battles"><h3><code>last_battles</code></h3></a>
+<h3><a class="header" href="#last_battles" id="last_battles"><code>last_battles</code></a></h3>
 <p>TODO</p>
-<a class="header" href="#normal_max_pages--grand_max_pages" id="normal_max_pages--grand_max_pages"><h3><code>normal_max_pages</code> &amp; <code>grand_max_pages</code></h3></a>
+<h3><a class="header" href="#normal_max_pages--grand_max_pages" id="normal_max_pages--grand_max_pages"><code>normal_max_pages</code> &amp; <code>grand_max_pages</code></a></h3>
 <p>TODO</p>
-<a class="header" href="#normal_generations_count_down--grand_generations_count_down" id="normal_generations_count_down--grand_generations_count_down"><h3><code>normal_generations_count_down</code> &amp; <code>grand_generations_count_down</code></h3></a>
+<h3><a class="header" href="#normal_generations_count_down--grand_generations_count_down" id="normal_generations_count_down--grand_generations_count_down"><code>normal_generations_count_down</code> &amp; <code>grand_generations_count_down</code></a></h3>
 <p>TODO</p>
-<a class="header" href="#normal_generate_solutions--grand_generate_solutions" id="normal_generate_solutions--grand_generate_solutions"><h3><code>normal_generate_solutions</code> &amp; <code>grand_generate_solutions</code></h3></a>
+<h3><a class="header" href="#normal_generate_solutions--grand_generate_solutions" id="normal_generate_solutions--grand_generate_solutions"><code>normal_generate_solutions</code> &amp; <code>grand_generate_solutions</code></a></h3>
 <p>TODO</p>
-<a class="header" href="#normal_keep_solutions--grand_keep_solutions" id="normal_keep_solutions--grand_keep_solutions"><h3><code>normal_keep_solutions</code> &amp; <code>grand_keep_solutions</code></h3></a>
+<h3><a class="header" href="#normal_keep_solutions--grand_keep_solutions" id="normal_keep_solutions--grand_keep_solutions"><code>normal_keep_solutions</code> &amp; <code>grand_keep_solutions</code></a></h3>
 <p>TODO</p>
-<a class="header" href="#randomize_grand_defenders" id="randomize_grand_defenders"><h3><code>randomize_grand_defenders</code></h3></a>
+<h3><a class="header" href="#randomize_grand_defenders" id="randomize_grand_defenders"><code>randomize_grand_defenders</code></a></h3>
 <p>Если <code>true</code>, то раз в день бот будет случайно выставлять на гранд-арену 15 самых сильных ваших героев.</p>
 
                     </main>
@@ -239,6 +244,14 @@
                 ga('create', 'UA-65034198-8', 'auto');
                 ga('send', 'pageview');
             }
+        </script>
+        
+
+        
+        
+        
+        <script type="text/javascript">
+            window.playpen_copyable = true;
         </script>
         
 

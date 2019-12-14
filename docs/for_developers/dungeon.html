@@ -1,9 +1,11 @@
 <!DOCTYPE HTML>
-<html lang="en" class="sidebar-visible no-js">
+<html lang="en" class="sidebar-visible no-js light">
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
         <title>Подземелье - bestmobabot</title>
+        
+
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -30,11 +32,11 @@
 
         
     </head>
-    <body class="light">
+    <body>
         <!-- Provide site root to javascript -->
         <script type="text/javascript">
             var path_to_root = "../";
-            var default_theme = "light";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "light" : "light";
         </script>
 
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
@@ -58,8 +60,11 @@
             var theme;
             try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
             if (theme === null || theme === undefined) { theme = default_theme; }
-            document.body.className = theme;
-            document.querySelector('html').className = theme + ' js';
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
         </script>
 
         <!-- Hide / unhide sidebar before it is displayed -->
@@ -75,8 +80,8 @@
         </script>
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
-            <div class="sidebar-scrollbox">
-                <ol class="chapter"><li><a href="../index.html"><strong aria-hidden="true">1.</strong> Привет!</a></li><li><a href="../installing.html"><strong aria-hidden="true">2.</strong> Запуск</a></li><li><a href="../configuring/index.html"><strong aria-hidden="true">3.</strong> Настройка</a></li><li><ol class="section"><li><a href="../configuring/arena.html"><strong aria-hidden="true">3.1.</strong> Арена</a></li></ol></li><li><a href="../todo.html"><strong aria-hidden="true">4.</strong> Непереведенная документация</a></li><li><a href="../for_developers/index.html"><strong aria-hidden="true">5.</strong> Для разработчиков</a></li><li><ol class="section"><li><a href="../for_developers/dungeon.html" class="active"><strong aria-hidden="true">5.1.</strong> Подземелье</a></li><li><a href="../for_developers/enchant-rune.html"><strong aria-hidden="true">5.2.</strong> Enchant Rune</a></li><li><a href="../for_developers/hall-of-fame.html"><strong aria-hidden="true">5.3.</strong> Зал Славы</a></li><li><a href="../for_developers/hero-titan-gift-level-up.html"><strong aria-hidden="true">5.4.</strong> Hero Titan Gift Level Up</a></li></ol></li></ol>
+            <div id="sidebar-scrollbox" class="sidebar-scrollbox">
+                <ol class="chapter"><li class="expanded "><a href="../index.html"><strong aria-hidden="true">1.</strong> Привет!</a></li><li class="expanded "><a href="../installing.html"><strong aria-hidden="true">2.</strong> Запуск</a></li><li class="expanded "><a href="../configuring/index.html"><strong aria-hidden="true">3.</strong> Настройка</a></li><li><ol class="section"><li class="expanded "><a href="../configuring/arena.html"><strong aria-hidden="true">3.1.</strong> Арена</a></li></ol></li><li class="expanded "><a href="../todo.html"><strong aria-hidden="true">4.</strong> Непереведенная документация</a></li><li class="expanded "><a href="../for_developers/index.html"><strong aria-hidden="true">5.</strong> Для разработчиков</a></li><li><ol class="section"><li class="expanded "><a href="../for_developers/dungeon.html" class="active"><strong aria-hidden="true">5.1.</strong> Подземелье</a></li><li class="expanded "><a href="../for_developers/enchant-rune.html"><strong aria-hidden="true">5.2.</strong> Enchant Rune</a></li><li class="expanded "><a href="../for_developers/hall-of-fame.html"><strong aria-hidden="true">5.3.</strong> Зал Славы</a></li><li class="expanded "><a href="../for_developers/hero-titan-gift-level-up.html"><strong aria-hidden="true">5.4.</strong> Hero Titan Gift Level Up</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -147,16 +152,16 @@
 
                 <div id="content" class="content">
                     <main>
-                        <a class="header" href="#Подземелье" id="Подземелье"><h1>Подземелье</h1></a>
-<a class="header" href="#clangetactivitystat" id="clangetactivitystat"><h2><code>clanGetActivityStat</code></h2></a>
+                        <h1><a class="header" href="#Подземелье" id="Подземелье">Подземелье</a></h1>
+<h2><a class="header" href="#clangetactivitystat" id="clangetactivitystat"><code>clanGetActivityStat</code></a></h2>
 <pre><code class="language-json">{&quot;name&quot;:&quot;clanGetActivityStat&quot;,&quot;args&quot;:{},&quot;ident&quot;:&quot;group_1_body&quot;}
 </code></pre>
 <pre><code class="language-json">{&quot;clanActivity&quot;:8918,&quot;dungeonActivity&quot;:842,&quot;stat&quot;:{&quot;todayActivity&quot;:148,&quot;activitySum&quot;:148,&quot;dungeonActivitySum&quot;:150,&quot;todayRaid&quot;:[],&quot;todayItemsActivity&quot;:0,&quot;todayDungeonActivity&quot;:150,&quot;activityForRuneAvailable&quot;:false}}
 </code></pre>
-<a class="header" href="#titangetall" id="titangetall"><h2><code>titanGetAll</code></h2></a>
+<h2><a class="header" href="#titangetall" id="titangetall"><code>titanGetAll</code></a></h2>
 <pre><code class="language-json">{&quot;ident&quot;:&quot;titanGetAll&quot;,&quot;result&quot;:{&quot;response&quot;:{&quot;4001&quot;:{&quot;id&quot;:4001,&quot;xp&quot;:30420,&quot;level&quot;:54,&quot;star&quot;:4,&quot;skills&quot;:{&quot;4003&quot;:54},&quot;power&quot;:12648,&quot;artifacts&quot;:[{&quot;level&quot;:34,&quot;star&quot;:2},{&quot;level&quot;:1,&quot;star&quot;:1},{&quot;level&quot;:1,&quot;star&quot;:1}],&quot;scale&quot;:0.80000000000000004},&quot;4020&quot;:{&quot;id&quot;:4020,&quot;xp&quot;:32210,&quot;level&quot;:55,&quot;star&quot;:4,&quot;skills&quot;:{&quot;4019&quot;:55},&quot;power&quot;:14063,&quot;artifacts&quot;:[{&quot;level&quot;:43,&quot;star&quot;:2},{&quot;level&quot;:4,&quot;star&quot;:2},{&quot;level&quot;:10,&quot;star&quot;:1}],&quot;scale&quot;:0.80000000000000004},&quot;4002&quot;:{&quot;id&quot;:4002,&quot;xp&quot;:6580,&quot;level&quot;:29,&quot;star&quot;:3,&quot;skills&quot;:{&quot;4005&quot;:29},&quot;power&quot;:3333,&quot;artifacts&quot;:[{&quot;level&quot;:1,&quot;star&quot;:0},{&quot;level&quot;:1,&quot;star&quot;:0},{&quot;level&quot;:1,&quot;star&quot;:0}],&quot;scale&quot;:0.80000000000000004},&quot;4010&quot;:{&quot;id&quot;:4010,&quot;xp&quot;:32210,&quot;level&quot;:55,&quot;star&quot;:3,&quot;skills&quot;:{&quot;4010&quot;:55},&quot;power&quot;:11042,&quot;artifacts&quot;:[{&quot;level&quot;:42,&quot;star&quot;:1},{&quot;level&quot;:10,&quot;star&quot;:1},{&quot;level&quot;:1,&quot;star&quot;:1}],&quot;scale&quot;:0.80000000000000004},&quot;4012&quot;:{&quot;id&quot;:4012,&quot;xp&quot;:30420,&quot;level&quot;:54,&quot;star&quot;:4,&quot;skills&quot;:{&quot;4014&quot;:54},&quot;power&quot;:12653,&quot;artifacts&quot;:[{&quot;level&quot;:28,&quot;star&quot;:3},{&quot;level&quot;:3,&quot;star&quot;:1},{&quot;level&quot;:2,&quot;star&quot;:1}],&quot;scale&quot;:0.80000000000000004},&quot;4011&quot;:{&quot;id&quot;:4011,&quot;xp&quot;:2310,&quot;level&quot;:15,&quot;star&quot;:2,&quot;skills&quot;:{&quot;4012&quot;:15},&quot;power&quot;:1015,&quot;artifacts&quot;:[{&quot;level&quot;:1,&quot;star&quot;:0},{&quot;level&quot;:1,&quot;star&quot;:0},{&quot;level&quot;:1,&quot;star&quot;:0}],&quot;scale&quot;:0.80000000000000004},&quot;4022&quot;:{&quot;id&quot;:4022,&quot;xp&quot;:3060,&quot;level&quot;:18,&quot;star&quot;:2,&quot;skills&quot;:{&quot;4023&quot;:18},&quot;power&quot;:1290,&quot;artifacts&quot;:[{&quot;level&quot;:1,&quot;star&quot;:0},{&quot;level&quot;:1,&quot;star&quot;:0},{&quot;level&quot;:1,&quot;star&quot;:0}],&quot;scale&quot;:0.80000000000000004},&quot;4000&quot;:{&quot;id&quot;:4000,&quot;xp&quot;:19200,&quot;level&quot;:46,&quot;star&quot;:3,&quot;skills&quot;:{&quot;4001&quot;:46},&quot;power&quot;:8545,&quot;artifacts&quot;:[{&quot;level&quot;:37,&quot;star&quot;:1},{&quot;level&quot;:7,&quot;star&quot;:1},{&quot;level&quot;:2,&quot;star&quot;:1}],&quot;scale&quot;:0.80000000000000004},&quot;4013&quot;:{&quot;id&quot;:4013,&quot;xp&quot;:32210,&quot;level&quot;:55,&quot;star&quot;:3,&quot;skills&quot;:{&quot;4016&quot;:55,&quot;4017&quot;:55},&quot;power&quot;:11260,&quot;artifacts&quot;:[{&quot;level&quot;:37,&quot;star&quot;:3},{&quot;level&quot;:7,&quot;star&quot;:1},{&quot;level&quot;:1,&quot;star&quot;:1}],&quot;scale&quot;:0.80000000000000004},&quot;4021&quot;:{&quot;id&quot;:4021,&quot;xp&quot;:0,&quot;level&quot;:1,&quot;star&quot;:2,&quot;skills&quot;:{&quot;4021&quot;:1},&quot;power&quot;:162,&quot;artifacts&quot;:[{&quot;level&quot;:1,&quot;star&quot;:0},{&quot;level&quot;:1,&quot;star&quot;:0},{&quot;level&quot;:1,&quot;star&quot;:0}],&quot;scale&quot;:0.80000000000000004}}}}
 </code></pre>
-<a class="header" href="#dungeongetinfo" id="dungeongetinfo"><h2><code>dungeonGetInfo</code></h2></a>
+<h2><a class="header" href="#dungeongetinfo" id="dungeongetinfo"><code>dungeonGetInfo</code></a></h2>
 <pre><code class="language-json">{&quot;name&quot;:&quot;dungeonGetInfo&quot;,&quot;args&quot;:{},&quot;ident&quot;:&quot;group_1_body&quot;}
 </code></pre>
 <pre><code class="language-json">{
@@ -390,14 +395,14 @@
     ]
 }
 </code></pre>
-<a class="header" href="#dungeonstartbattle" id="dungeonstartbattle"><h2><code>dungeonStartBattle</code></h2></a>
+<h2><a class="header" href="#dungeonstartbattle" id="dungeonstartbattle"><code>dungeonStartBattle</code></a></h2>
 <pre><code class="language-json">{&quot;calls&quot;:[{&quot;name&quot;:&quot;dungeonStartBattle&quot;,&quot;args&quot;:{&quot;heroes&quot;:[39,25,35,13,29],&quot;teamNum&quot;:0},&quot;ident&quot;:&quot;body&quot;}]}
 </code></pre>
 <pre><code class="language-json">{&quot;name&quot;:&quot;dungeonStartBattle&quot;,&quot;args&quot;:{&quot;heroes&quot;:[4021,4022,4020],&quot;teamNum&quot;:0},&quot;ident&quot;:&quot;group_1_body&quot;}
 </code></pre>
 <pre><code class="language-json">{&quot;name&quot;:&quot;dungeonStartBattle&quot;,&quot;args&quot;:{&quot;heroes&quot;:[4021,4022,4020],&quot;teamNum&quot;:1},&quot;ident&quot;:&quot;group_1_body&quot;}
 </code></pre>
-<a class="header" href="#dungeonendbattle" id="dungeonendbattle"><h2><code>dungeonEndBattle</code></h2></a>
+<h2><a class="header" href="#dungeonendbattle" id="dungeonendbattle"><code>dungeonEndBattle</code></a></h2>
 <pre><code class="language-json">{
     &quot;date&quot;: 1551617810.169543,
     &quot;results&quot;: [
@@ -764,7 +769,7 @@
     ]
 }
 </code></pre>
-<a class="header" href="#dungeonsaveprogress" id="dungeonsaveprogress"><h2><code>dungeonSaveProgress</code></h2></a>
+<h2><a class="header" href="#dungeonsaveprogress" id="dungeonsaveprogress"><code>dungeonSaveProgress</code></a></h2>
 <pre><code class="language-json">{&quot;calls&quot;:[{&quot;name&quot;:&quot;dungeonSaveProgress&quot;,&quot;args&quot;:{},&quot;ident&quot;:&quot;body&quot;}]}
 </code></pre>
 <pre><code class="language-json">{
@@ -1048,6 +1053,14 @@
                 ga('create', 'UA-65034198-8', 'auto');
                 ga('send', 'pageview');
             }
+        </script>
+        
+
+        
+        
+        
+        <script type="text/javascript">
+            window.playpen_copyable = true;
         </script>
         
 
