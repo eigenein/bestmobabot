@@ -31,7 +31,6 @@ class Trainer:
         """
         Train the model. If `params` is not set, hyper-parameters search will be performed.
         """
-        # noinspection PyUnresolvedReferences
         numpy.random.seed(42)
 
         # Read battles.

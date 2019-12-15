@@ -295,7 +295,6 @@ class ArenaSolver:
         """
         Make hero features 1D-array.
         """
-        # noinspection PyUnresolvedReferences
         return numpy.fromiter((hero.features.get(name, 0.0) for name in self.model.feature_names), numpy.float)
 
     def make_team_features(self, team: List[Hero]) -> ndarray:
