@@ -1,9 +1,10 @@
 # `bestmobabot`
 
+![Python 3.8](https://img.shields.io/badge/python-3.8-blue)
 [![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/eigenein/bestmobabot.svg)](https://github.com/eigenein/bestmobabot/releases)
 [![Build Status](https://travis-ci.com/eigenein/bestmobabot.svg?branch=master)](https://travis-ci.com/eigenein/bestmobabot)
-[![Docker Pulls](https://img.shields.io/docker/pulls/eigenein/bestmobabot.svg)](https://hub.docker.com/r/eigenein/bestmobabot)
 [![GitHub issues](https://img.shields.io/github/issues/eigenein/bestmobabot.svg)](https://github.com/eigenein/bestmobabot/issues)
+[![Docker Pulls](https://img.shields.io/docker/pulls/eigenein/bestmobabot.svg)](https://hub.docker.com/r/eigenein/bestmobabot)
 [![License](https://img.shields.io/badge/license-CC%20BY--NC--ND%204.0-red.svg)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
 
 The project is intended for a Russian-speaking community.
