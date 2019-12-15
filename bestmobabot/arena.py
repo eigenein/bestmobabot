@@ -157,7 +157,7 @@ class ArenaSolver:
             if len(enemy.teams) < self.n_required_teams:
                 if teams := self.db.get(f'{self.enemy_key(enemy)}:teams'):
                     logger.warning('Using stored teams for this enemy.')
-                    enemy.teams = [[Hero(**hero) for hero in team] for team in teams]
+                    enemy.set_teams([[Hero(**hero) for hero in team] for team in teams])
                 else:
                     logger.warning('Enemy has unknown teams: {}.', enemy.user)
                     continue

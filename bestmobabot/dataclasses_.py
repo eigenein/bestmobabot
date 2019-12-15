@@ -319,11 +319,12 @@ class BaseArenaEnemy(BaseModel, ABC):
         }
 
     @property
+    @abstractmethod
     def teams(self) -> List[List[Hero]]:
         raise NotImplementedError()
 
-    @teams.setter
-    def teams(self, teams: List[List[Hero]]):
+    @abstractmethod
+    def set_teams(self, teams: List[List[Hero]]):
         raise NotImplementedError()
 
     def __str__(self) -> str:
@@ -337,8 +338,7 @@ class ArenaEnemy(BaseArenaEnemy):
     def teams(self) -> List[List[Hero]]:
         return [self.heroes]
 
-    @teams.setter
-    def teams(self, teams: List[List[Hero]]):
+    def set_teams(self, teams: List[List[Hero]]):
         self.heroes = teams[0]
 
 
@@ -349,8 +349,7 @@ class GrandArenaEnemy(BaseArenaEnemy):
     def teams(self) -> List[List[Hero]]:
         return self.heroes
 
-    @teams.setter
-    def teams(self, teams: List[List[Hero]]):
+    def set_teams(self, teams: List[List[Hero]]):
         self.heroes = teams
 
 
