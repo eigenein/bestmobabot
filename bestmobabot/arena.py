@@ -136,7 +136,7 @@ class ArenaSolver:
 
     def yield_solutions(self) -> Iterable[ArenaSolution]:
         """
-        Yield best solution from each `get_enemies` call.
+        Yield the best solution from each `get_enemies` call.
         """
         for n_page in count(1):
             logger.debug('Fetching enemies…')
@@ -205,7 +205,7 @@ class ArenaSolver:
         logger.debug('Solving arena for {}…', enemy)
 
         n_heroes = len(self.heroes)
-        n_actual_teams = len(enemy.teams)  # at first we will generate the same number of attacker teams
+        n_actual_teams = len(enemy.teams)  # at first, we will generate the same number of attacker teams
         n_attackers = n_actual_teams * TEAM_SIZE
 
         hero_features = self.make_team_features(self.heroes)
@@ -216,11 +216,11 @@ class ArenaSolver:
 
         # Generate all possible (per)mutations of a single solution.
         # We will use it to speed up mutation process by selecting random rows from the `swaps` array.
-        # Each permutation swaps two particular elements so that the heroes are interchanged in the teams.
+        # Each permutation swaps two particular elements so that the heroes get interchanged in the teams.
         # In total `n_teams + 1` groups.
         groups = [
             *[range(selector.start, selector.stop) for selector in team_selectors],
-            range(n_attackers, n_heroes),  # fake group to keep unused heroes in
+            range(n_attackers, n_heroes),  # fake group to keep there unused heroes
         ]
         logger.trace('{} hero groups.', len(groups))
         swaps = vstack([
