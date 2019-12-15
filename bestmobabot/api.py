@@ -205,7 +205,7 @@ class API:
         self.request_id += 1
         self.db[f'api:{self.settings.vk.email}:request_id'] = self.request_id
 
-        # Emulate human behavior a little bit.
+        # Emulate human behavior a little.
         sleep_time = random.uniform(5.0, 10.0) if random_sleep and self.request_id != 1 else 0.0
         logger.info(f'#{self.request_id}: {name}({arguments or {}}) in {sleep_time:.1f} seconds…')
         sleep(sleep_time)
@@ -529,7 +529,7 @@ def list_of(type_: Type[TModel], items: Iterable) -> List[TModel]:
     This often happens with the game updates.
     """
     if isinstance(items, dict):
-        # Equally treat lists and dictionaries. Because there're two possibilities in the responses:
+        # Treat lists and dictionaries equally, because there're two possibilities in the responses:
         # 1. `[{"id": "1", ...}]`
         # 2. `{"1": {"id": "1"}, ...}`
         items = items.values()
