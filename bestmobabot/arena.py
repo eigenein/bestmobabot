@@ -4,18 +4,25 @@ Arena hero selection logic.
 
 from __future__ import annotations
 
+import pickle
+from base64 import b85decode
 from dataclasses import dataclass
 from functools import total_ordering
 from itertools import combinations, count, product
+from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, List, MutableMapping, Optional, TypeVar
 
+import click
 import numpy
 from loguru import logger
 from numpy import arange, ndarray, vstack
 from numpy.random import choice, permutation, randint
 
+import bestmobabot.logging_
+from bestmobabot import constants
 from bestmobabot.constants import TEAM_SIZE
-from bestmobabot.dataclasses_ import BaseArenaEnemy, Hero, Loggable
+from bestmobabot.database import Database
+from bestmobabot.dataclasses_ import ArenaEnemy, BaseArenaEnemy, GrandArenaEnemy, Hero, Loggable
 from bestmobabot.itertools_ import CountDown, secretary_max, slices
 from bestmobabot.model import Model
 
@@ -130,9 +137,13 @@ class ArenaSolver:
         self.solutions = numpy.array([[]])
 
     def solve(self) -> ArenaSolution:
+        self.initialize()
+        return secretary_max(self.yield_solutions(), self.max_iterations, early_stop=self.early_stop)
+
+    def initialize(self) -> ArenaSolver:
         logger.debug('Generating initial solutions…')
         self.solutions = vstack([permutation(len(self.heroes)) for _ in range(self.n_keep_solutions)])
-        return secretary_max(self.yield_solutions(), self.max_iterations, early_stop=self.early_stop)
+        return self
 
     def yield_solutions(self) -> Iterable[ArenaSolution]:
         """
@@ -325,3 +336,64 @@ def reduce_grand_arena(y1: ndarray, y2: ndarray, y3: ndarray) -> ndarray:
     Gives probability to win at least two of three battles.
     """
     return y1 * y2 * y3 + y1 * y2 * (1.0 - y3) + y2 * y3 * (1.0 - y1) + y1 * y3 * (1.0 - y2)
+
+
+# Tester.
+# ----------------------------------------------------------------------------------------------------------------------
+
+@click.command()
+@click.option('verbosity', '-v', '--verbose', count=True, help='Increase verbosity.')
+def main(verbosity: int):
+    """Test the solver on the pre-dumped data."""
+    bestmobabot.logging_.install_logging(verbosity)
+
+    logger.info('Loading the dumps…')
+    with Database(constants.DATABASE_NAME) as db:
+        model: Model = pickle.loads(b85decode(db['bot:model']))
+    heroes: List[Hero] = pickle.loads((Path('dumps') / 'heroes.pkl').read_bytes())
+    arena_enemies: List[ArenaEnemy] = pickle.loads((Path('dumps') / 'arena_enemies.pkl').read_bytes())
+    grand_enemies: List[GrandArenaEnemy] = pickle.loads((Path('dumps') / 'grand_enemies.pkl').read_bytes())
+
+    logger.info('')
+    for enemy in arena_enemies:
+        solution = ArenaSolver(
+            db={},
+            model=model,
+            user_clan_id=None,
+            heroes=heroes,
+            n_required_teams=1,
+            max_iterations=0,
+            n_keep_solutions=50,
+            n_generate_solutions=100,
+            n_generations_count_down=25,
+            early_stop=0.95,
+            get_enemies=list,
+            friendly_clans=[],
+            reduce_probabilities=reduce_normal_arena,
+            callback=lambda: None,
+        ).initialize().solve_enemy(enemy)
+        logger.info('{}', solution)
+
+    logger.info('')
+    for enemy in grand_enemies:
+        solution = ArenaSolver(
+            db={},
+            model=model,
+            user_clan_id=None,
+            heroes=heroes,
+            n_required_teams=constants.N_GRAND_TEAMS,
+            max_iterations=0,
+            n_keep_solutions=50,
+            n_generate_solutions=500,
+            n_generations_count_down=50,
+            early_stop=0.95,
+            get_enemies=list,
+            friendly_clans=[],
+            reduce_probabilities=reduce_grand_arena,
+            callback=lambda: None,
+        ).initialize().solve_enemy(enemy)
+        logger.info('{}', solution)
+
+
+if __name__ == '__main__':
+    main()

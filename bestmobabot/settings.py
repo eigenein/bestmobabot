@@ -31,15 +31,15 @@ class ArenaSettings(BaseModel):
 
     # Normal arena.
     normal_max_pages: conint(ge=1) = 15  # maximal number of pages during normal enemy search
-    normal_generations_count_down: conint(ge=1) = 5
-    normal_generate_solutions: conint(ge=1) = 750
-    normal_keep_solutions: conint(ge=1) = 250
+    normal_generations_count_down: conint(ge=1) = 25
+    normal_generate_solutions: conint(ge=1) = 100
+    normal_keep_solutions: conint(ge=1) = 50
 
     # Grand arena.
     grand_max_pages: conint(ge=1) = 15  # maximal number of pages during grand enemy search
-    grand_generations_count_down: conint(ge=1) = 25  # maximum number of GA iterations without any improvement
-    grand_generate_solutions: conint(ge=1) = 1250
-    grand_keep_solutions: conint(ge=1) = 250
+    grand_generations_count_down: conint(ge=1) = 50  # maximum number of GA iterations without any improvement
+    grand_generate_solutions: conint(ge=1) = 500
+    grand_keep_solutions: conint(ge=1) = 50
     randomize_grand_defenders: bool = False
 
 
