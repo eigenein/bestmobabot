@@ -166,9 +166,10 @@ class ArenaSolver:
                 logger.debug('Skipped empty user #{}.', enemy.user_id)
                 continue
             if len(enemy.teams) < self.n_required_teams:
-                if teams := self.db.get(f'{self.enemy_key(enemy)}:teams'):
-                    logger.warning('Using stored teams for enemy {}.', enemy.user)
-                    enemy.set_teams([[Hero(**hero) for hero in team] for team in teams])
+                if value := self.db.get(f'{self.enemy_key(enemy)}:teams'):
+                    logger.warning('Using cached teams for enemy {}.', enemy.user)
+                    cached_teams = [[Hero(**hero) for hero in team] for team in value]
+                    enemy.set_teams([*enemy.teams, *cached_teams[len(enemy.teams):]])
                 else:
                     logger.warning('Enemy has unknown teams: {}.', enemy.user)
                     continue
