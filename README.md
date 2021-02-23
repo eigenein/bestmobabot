@@ -7,7 +7,7 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/eigenein/bestmobabot.svg)](https://hub.docker.com/r/eigenein/bestmobabot)
 [![License](https://img.shields.io/badge/license-CC%20BY--NC--ND%204.0-red.svg)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
 
-The project is intended for a Russian-speaking community.
+⚠️ Я перестал играть и забросил развитие бота. Тем не менее, **я готов отвечать на [вопросы](https://github.com/eigenein/bestmobabot/discussions), рассказывать как всё устроено и принимать [правки](https://github.com/eigenein/bestmobabot/pulls)**. ⚠️
 
 [«Хроники Хаоса»](https://vk.com/app5327745_209336881) – бот для VK.com.
 
