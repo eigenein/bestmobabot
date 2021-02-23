@@ -38,7 +38,7 @@ def main(settings: Settings, verbosity: int, shell: bool):
     Hero Wars game bot 🏆
     """
     install_logging(verbosity)
-    logger.info(f'Bot is starting.')
+    logger.info('Bot is starting.')
 
     with Session() as session, Database(constants.DATABASE_NAME) as db:
         session.mount('https://', HTTPAdapter(max_retries=5))

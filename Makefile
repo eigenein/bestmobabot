@@ -13,8 +13,9 @@ FLAKE8 := $(BIN)/flake8
 venv:
 	@rm -rf $@
 	@python3.8 -m venv $@
-	@$(PIP) install -r requirements.txt
+	@$(PIP) install --upgrade pip
 	@$(PIP) install pip-tools isort pytest flake8
+	@$(PIP) install -r requirements.txt
 	@$(PIP) install -e .
 
 .PHONY: requirements.txt
@@ -24,9 +25,8 @@ requirements.txt:
 .PHONY: test
 test:
 	@$(PYTEST)
-	# TODO: disabled until PEP 572 is supported.
-	# TODO: @$(FLAKE8) bestmobabot tests
-	@$(ISORT) -rc -c bestmobabot tests
+	@$(FLAKE8) bestmobabot tests
+	@$(ISORT) -c --diff bestmobabot tests
 
 .PHONY: tag
 tag:

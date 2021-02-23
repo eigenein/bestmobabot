@@ -523,7 +523,7 @@ class Bot:
         """
         self.log(f'🛍 *{self.user.name}* идет в магазин…')
 
-        logger.info(f'Requesting shops…')
+        logger.info('Requesting shops…')
         slots: List[Tuple[str, str]] = [
             (shop_id, slot.id)
             for shop_id in constants.SHOP_IDS
