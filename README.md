@@ -13,6 +13,7 @@
 
 - [Документация](https://eigenein.github.io/bestmobabot/)
 - [Поддержка](https://github.com/eigenein/bestmobabot/issues)
+- [Обсуждения](https://github.com/eigenein/bestmobabot/discussions)
 - [Список обновлений](https://github.com/eigenein/bestmobabot/releases)
 
 ## Авторы и помощники
