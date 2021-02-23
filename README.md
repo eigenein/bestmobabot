@@ -15,9 +15,10 @@ The project is intended for a Russian-speaking community.
 - [Поддержка](https://github.com/eigenein/bestmobabot/issues)
 - [Список обновлений](https://github.com/eigenein/bestmobabot/releases)
 
-## Авторы
+## Авторы и помощники
 
-* [Pavel Perestoronin](https://github.com/eigenein)
+[![Pavel Perestoronin](https://img.shields.io/badge/-@eigenein-black?logo=github)](https://github.com/eigenein)
+[![Natalia Perestoronina](https://img.shields.io/badge/-@antareada-black?logo=github)](https://github.com/antareada)
 
 ## Лицензия
 
