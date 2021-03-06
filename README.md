@@ -18,12 +18,12 @@
 - [Обсуждения](https://github.com/eigenein/bestmobabot/discussions)
 - [Список обновлений](https://github.com/eigenein/bestmobabot/releases)
 
-## Авторы и помощники
+## Авторы и помощники / Contributors
 
 [![Pavel Perestoronin](https://img.shields.io/badge/-@eigenein-black?logo=github)](https://github.com/eigenein)
 [![Natalia Perestoronina](https://img.shields.io/badge/-@antareada-black?logo=github)](https://github.com/antareada)
 
-## Лицензия
+## Лицензия / License
 
 [Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License](http://creativecommons.org/licenses/by-nc-nd/4.0/).
 
