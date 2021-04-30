@@ -35,7 +35,7 @@ scipy==1.3.3
 six==1.13.0               # via python-dateutil, traitlets
 soupsieve==1.9.5          # via beautifulsoup4
 traitlets==4.3.3          # via ipython
-urllib3==1.25.7           # via requests
+urllib3==1.25.8           # via requests
 wcwidth==0.1.7            # via prompt-toolkit
 
 # The following packages are considered to be unsafe in a requirements file:
