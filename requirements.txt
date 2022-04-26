@@ -25,7 +25,7 @@ pickleshare==0.7.5        # via ipython
 prompt-toolkit==3.0.2     # via ipython
 ptyprocess==0.6.0         # via pexpect
 pydantic==1.2
-pygments==2.5.2           # via ipython
+pygments==2.7.4           # via ipython
 python-dateutil==2.8.1    # via pandas
 pytz==2019.3              # via pandas
 pyyaml==5.2
