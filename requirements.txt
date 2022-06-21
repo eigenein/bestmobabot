@@ -17,7 +17,7 @@ ipython==7.10.1
 jedi==0.15.1              # via ipython
 joblib==0.14.1            # via scikit-learn
 loguru==0.4.0
-numpy==1.17.4
+numpy==1.22.0
 pandas==0.25.3
 parso==0.5.1              # via jedi
 pexpect==4.7.0            # via ipython
